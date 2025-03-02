@@ -1,0 +1,218 @@
+# Reglas para Documentación Académica en Prácticas de Virtualización y Sistemas Distribuidos
+
+## Introducción
+
+Este documento establece las normas y directrices para la elaboración de documentación técnica académica en las prácticas de Virtualización y Procesamiento Distribuido. Estas reglas garantizan la consistencia, claridad y rigor académico en todos los informes técnicos presentados como parte de la asignatura.
+
+## Estructura del Documento
+
+### 1. Elementos Obligatorios
+
+Todo documento técnico debe incluir los siguientes elementos:
+
+1. **Título**: Claro y descriptivo del objetivo principal de la práctica.
+2. **Tabla de Contenidos**: Con enlaces a las diferentes secciones del documento.
+3. **Desarrollo**: Organizado en fases y tareas claramente numeradas.
+4. **Pruebas y Validación**: Sección específica que demuestre el funcionamiento correcto de la implementación.
+5. **Conclusiones**: Resumen de los logros y aprendizajes adquiridos.
+6. **Bibliografía**: Referencias a las fuentes utilizadas en formato adecuado.
+
+### 2. Organización Jerárquica
+
+La documentación debe seguir una estructura jerárquica consistente:
+
+1. **Fases**: Unidades principales que agrupan conjuntos de tareas relacionadas.
+2. **Tareas**: Unidades específicas de trabajo con objetivos concretos.
+3. **Subtareas**: Cuando sea necesario subdividir una tarea en pasos más específicos.
+
+Ejemplo:
+```markdown
+## Fase 1. Configuración del Sistema Anfitrión
+
+### Tarea 1.1. Configuración del Usuario Root
+...
+
+### Tarea 1.2. Verificación de SELinux
+...
+```
+
+## Formato y Estilo
+
+### 1. Comandos y Outputs
+
+Los comandos y sus salidas deben presentarse en bloques de código con el siguiente formato:
+
+```markdown
+```bash
+comando_ejemplo --opcion valor
+```
+
+Para las salidas extensas, incluir sólo las partes relevantes y utilizar elipsis `...` para indicar contenido omitido.
+
+### 2. Explicación de Comandos
+
+Cada comando significativo debe ir acompañado de:
+
+1. **Descripción del Propósito**: Qué se intenta lograr con el comando.
+2. **Explicación Detallada**: Estructura del comando siguiendo este formato:
+
+```markdown
+**Explicación del comando**:
+- `comando`: Descripción general del comando
+- `--opcion`: Explicación de este parámetro específico
+- `valor`: Significado de este valor particular
+
+La salida muestra:
+- Interpretación del primer elemento relevante de la salida
+- Interpretación del segundo elemento relevante
+```
+
+### 3. Uso de Elementos Markdown
+
+- **Negritas** (`**texto**`): Para resaltar conceptos clave y pasos críticos.
+- **Cursivas** (`*texto*`): Para términos técnicos específicos cuando se introducen por primera vez.
+- **Bloques de cita** (`> texto`): Para notas importantes, advertencias o contexto adicional.
+- **Listas**: Utilizar listas con viñetas para elementos sin orden específico y listas numeradas para pasos secuenciales.
+
+### 4. Imágenes y Figuras
+
+- Incluir capturas de pantalla relevantes para interfaces gráficas o resultados visuales.
+- Cada imagen debe tener un pie de figura descriptivo.
+- Formato recomendado:
+
+```markdown
+![Descripción de la imagen](ruta/a/la/imagen.png)
+*Figura X: Descripción detallada de lo que muestra la imagen*
+```
+
+## Contenido Técnico
+
+### 1. Nivel de Detalle
+
+- **Explicaciones Exhaustivas**: Cada paso debe estar documentado con suficiente detalle para que un lector con conocimientos básicos pueda reproducirlo.
+- **Justificaciones Técnicas**: Explicar el porqué de configuraciones específicas o decisiones tomadas durante la implementación.
+- **Terminología Precisa**: Usar términos técnicos correctos y consistentes a lo largo del documento.
+
+### 2. Secciones Especializadas
+
+#### Solución de Problemas
+
+Incluir una sección dedicada a problemas comunes y sus soluciones, estructurada así:
+
+```markdown
+### Problema X: Descripción concisa del problema
+
+**Síntomas**:
+- Lista de indicadores que permiten identificar el problema
+
+**Solución**:
+1. Primer paso para resolver el problema
+2. Segundo paso
+3. Verificación de que el problema se ha solucionado
+```
+
+#### Pruebas y Validación
+
+Esta sección debe demostrar el funcionamiento correcto mediante:
+
+1. **Verificaciones Sistemáticas**: Pruebas específicas para cada componente o funcionalidad.
+2. **Capturas de Resultados**: Evidencia de las pruebas exitosas.
+3. **Explicación de los Resultados**: Interpretación de las salidas y confirmación de que cumplen con lo esperado.
+
+### 3. Requisitos de Implementación
+
+- **Seguridad**: Documentar explícitamente las medidas de seguridad implementadas (SELinux, firewalls, etc.).
+- **Optimización**: Cuando sea aplicable, explicar las optimizaciones de rendimiento realizadas.
+- **Escalabilidad**: Discutir las consideraciones de escalabilidad de la implementación.
+
+## Estilo de Escritura
+
+### 1. Tono Académico
+
+- Utilizar estilo impersonal (evitar "yo", "nosotros").
+- Priorizar frases en tercera persona y voz pasiva para descripciones técnicas.
+- Mantener un tono formal y técnico en todo el documento.
+
+### 2. Precisión Lingüística
+
+- Utilizar vocabulario técnico preciso.
+- Evitar ambigüedades y generalizaciones.
+- Mantener la coherencia terminológica a lo largo del documento.
+
+### 3. Idioma
+
+- Toda la documentación debe redactarse en español.
+- Los términos técnicos específicos pueden mantenerse en inglés cuando su traducción no sea común o pueda generar confusión.
+
+## Referencias y Bibliografía
+
+### 1. Formato de Citas
+
+Las referencias deben seguir un formato consistente:
+
+```markdown
+## Bibliografía
+
+1. Autor o Entidad. (Año). "Título del documento". [Enlace](URL)
+
+2. Apellido, Nombre. (Año). *Título de libro o artículo*. Editorial o Fuente.
+```
+
+### 2. Referencias Obligatorias
+
+Toda documentación debe incluir al menos:
+
+1. Documentación oficial de las tecnologías principales utilizadas.
+2. Manuales o guías relevantes de los fabricantes o desarrolladores.
+3. Artículos académicos o técnicos que fundamenten decisiones de diseño importantes.
+
+## Entrega y Evaluación
+
+### 1. Criterios de Calidad
+
+La documentación será evaluada según:
+
+- **Completitud**: Inclusión de todos los elementos requeridos.
+- **Precisión Técnica**: Exactitud de las explicaciones y comandos.
+- **Claridad**: Facilidad de comprensión para el lector objetivo.
+- **Organización**: Estructura lógica y navegabilidad del documento.
+- **Reproducibilidad**: Posibilidad de replicar la implementación siguiendo solo la documentación.
+
+### 2. Formato de Entrega
+
+- Documento en formato Markdown (.md)
+- Nombres de archivos descriptivos (p1_instalacion_kvm.md, etc.)
+- Imágenes en carpeta específica con nombres descriptivos
+
+## Ejemplo de Buenas Prácticas
+
+A continuación, se muestra un extracto de documentación que cumple con estas directrices:
+
+```markdown
+### Tarea 3. Configuración de SELinux
+
+Para garantizar el aislamiento adecuado entre máquinas virtuales, es fundamental verificar que SELinux esté funcionando en modo estricto.
+
+```bash
+root@servidor:/# sestatus
+SELinux status:                 enabled
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             targeted
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              enabled
+Policy deny_unknown status:     allowed
+Memory protection checking:     actual (secure)
+```
+
+**Explicación del comando**:
+- `sestatus`: Herramienta que muestra el estado completo de SELinux en el sistema
+- La salida confirma que SELinux está habilitado (`enabled`) y en modo enforcing, lo que proporciona el nivel máximo de seguridad para nuestro entorno de virtualización
+
+> **Nota**: El modo enforcing es crucial en entornos de producción, ya que garantiza que todas las políticas de seguridad se apliquen activamente.
+```
+
+---
+
+Estas directrices deben aplicarse a todas las prácticas de la asignatura para mantener un estándar uniforme en la documentación técnica presentada. 

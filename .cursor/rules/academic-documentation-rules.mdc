@@ -1,0 +1,69 @@
+---
+description: This file contains standardized guidelines for preparing academic technical documentation in Markdown format for virtualization and distributed processing assignments. These rules ensure consistent formatting and structure across all submissions while maintaining academic rigor. The guidelines cover document structure, formatting standards, proper handling of figures and tables, code presentation, and academic referencing requirements. By following these standards, students will produce well-organized, professional-quality technical reports that effectively demonstrate their technical understanding and practical implementation skills. These rules are adapted from official course documentation and emphasize impersonal writing style, proper technical explanations, and thorough validation of completed work. All documentation should be written in Spanish, regardless of the language used in these rules.md
+globs: *.md
+alwaysApply: false
+---
+# Reglas de documentación académica para IA en formato Markdown
+
+## 1. Estructura de los documentos
+
+- Todo documento debe incluir una portada con:
+  - Título del trabajo
+  - Nombre de la asignatura
+  - Nombre del autor
+  - Fecha de realización
+- Organizar el contenido con los siguientes apartados principales:
+  - Desarrollo (dividido en subapartados según necesidad)
+  - Pruebas/Validación
+  - Incidencias (cuando sea pertinente)
+- Cada apartado principal debe comenzar en una nueva página
+- Todas las páginas, excepto la portada, deben estar numeradas
+
+## 2. Formato y estilo
+
+- Utilizar estilo de redacción impersonal (ej: "se procede" en lugar de "he procedido")
+- Numeración jerárquica para todos los apartados y subapartados
+- Formato de títulos:
+  - Apartados principales: tamaño 16, con numeración
+  - Subapartados: tamaño 14, con numeración
+  - Texto general: tamaño 12
+- El contenido debe estar escrito en castellano, independientemente del idioma de estas reglas
+
+## 3. Figuras y tablas
+
+- Todas las figuras y tablas deben incluir un pie descriptivo:
+  - Formato para figuras: "**Figura N.** Descripción..." (tamaño 11)
+  - Formato para tablas: "**Tabla N.** Descripción..." (tamaño 11)
+- Asegurar que todas las figuras/tablas tengan calidad suficiente (dimensiones, contraste, tamaño de elementos)
+- Todas las figuras y tablas deben estar referenciadas en el texto (ej: "como se muestra en la Figura 1...")
+
+## 4. Comandos y código
+
+- Los comandos deben presentarse en líneas separadas usando fuente de tipo "Consola"
+- No utilizar capturas de pantalla para mostrar comandos
+- Explicar el propósito de cada comando y justificar los argumentos utilizados
+- Utilizar capturas de pantalla para ilustrar configuraciones, resultado de comandos o contenido de archivos de configuración
+
+## 5. Carácter académico y referencias
+
+- Indicar claramente que se trata de un trabajo académico al inicio del documento
+- Incluir información contextual relevante que demuestre comprensión del tema
+- Incorporar referencias bibliográficas siguiendo un formato académico estándar
+- Citar adecuadamente fuentes externas cuando se utilicen
+
+## 6. Contenido técnico
+
+- Desarrollar exhaustivamente los aspectos técnicos del trabajo
+- Explicar los procedimientos realizados con suficiente detalle para su reproducción
+- Incluir justificaciones técnicas para las decisiones tomadas
+- Documentar adecuadamente los resultados de las pruebas realizadas
+
+## 7. Entrega
+
+- El documento final debe ser entregado en formato PDF
+- Seguir todas las indicaciones específicas de cada práctica
+- Comprobar que el documento cumple con todos los requisitos antes de su entrega
+
+---
+
+**Nota**: Este conjunto de reglas está basado en la guía de recomendaciones para la elaboración de informes de prácticas obligatorias de la asignatura de Virtualización y Procesamiento Distribuido. La documentación debe demostrar rigor académico y técnico en todo momento.

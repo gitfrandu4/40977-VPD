@@ -6,9 +6,18 @@
   - [Objetivos de Aprendizaje](#objetivos-de-aprendizaje)
   - [Contenido Teórico](#contenido-teórico)
     - [1. Fundamentos y tecnologías de virtualización](#1-fundamentos-y-tecnologías-de-virtualización)
+    - [2. Infraestructuras y protocolos de comunicación para procesamiento distribuido](#2-infraestructuras-y-protocolos-de-comunicación-para-procesamiento-distribuido)
+    - [3. Tecnologías para el almacenamiento distribuido en los sistemas de información](#3-tecnologías-para-el-almacenamiento-distribuido-en-los-sistemas-de-información)
+    - [4. Tecnologías para el procesamiento distribuido en los sistemas de información](#4-tecnologías-para-el-procesamiento-distribuido-en-los-sistemas-de-información)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
-    - [Práctica 2: \[Próximamente\]](#práctica-2-próximamente)
+    - [Práctica 2: Operaciones con máquinas virtuales](#práctica-2-operaciones-con-máquinas-virtuales)
+    - [Práctica 3: Recursos de almacenamiento virtual](#práctica-3-recursos-de-almacenamiento-virtual)
+    - [Práctica 4: Migración de máquinas virtuales](#práctica-4-migración-de-máquinas-virtuales)
+    - [Práctica 5: Infraestructura de red virtual](#práctica-5-infraestructura-de-red-virtual)
+    - [Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)](#práctica-6-almacenamiento-distribuido-almacenamiento-iscsi)
+    - [Práctica 7: Diseño y despliegue de un clúster básico](#práctica-7-diseño-y-despliegue-de-un-clúster-básico)
+    - [Práctica 8 : Trabajo optativo](#práctica-8--trabajo-optativo)
   - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
   - [Recursos Adicionales](#recursos-adicionales)
   - [Normas de Entrega](#normas-de-entrega)
@@ -60,7 +69,11 @@ Adquirir los conocimientos básicos para:
 
 ### 1. Fundamentos y tecnologías de virtualización
 
+### 2. Infraestructuras y protocolos de comunicación para procesamiento distribuido
 
+### 3. Tecnologías para el almacenamiento distribuido en los sistemas de información
+
+### 4. Tecnologías para el procesamiento distribuido en los sistemas de información
 
 ## Prácticas
 
@@ -79,9 +92,33 @@ Adquirir los conocimientos básicos para:
 - [Documentación completa](P1_Instalacion_KVM_MV/p1.md)
 - [Cheatsheet de comandos KVM](P1_Instalacion_KVM_MV/comandos_kvm_cheatsheet.md)
 
-### Práctica 2: [Próximamente]
+### Práctica 2: Operaciones con máquinas virtuales
 
-*Esta práctica se centrará en aspectos avanzados de la virtualización y será añadida próximamente.*
+Próximamente...
+
+### Práctica 3: Recursos de almacenamiento virtual
+
+Próximamente...
+
+### Práctica 4: Migración de máquinas virtuales
+
+Próximamente...
+
+### Práctica 5: Infraestructura de red virtual
+
+Próximamente...
+
+### Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)
+
+Próximamente...
+
+### Práctica 7: Diseño y despliegue de un clúster básico
+
+Próximamente...
+
+### Práctica 8 : Trabajo optativo
+
+Próximamente...
 
 ## Herramientas y Tecnologías
 

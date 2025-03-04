@@ -47,7 +47,7 @@ Este repositorio contiene los materiales, prácticas y proyectos desarrollados p
 
 ## Contenido Teórico
 
-En esta asignatura se desarrollan competencias específicas relacionadas con infraestructuras de los sistemas de información, centrándose en la capacidad para seleccionar, diseñar, desplegar, integrar y gestionar infraestructuras de comunicaciones, de cómputo y almacenamiento en una organización. 
+En esta asignatura se desarrollan competencias específicas relacionadas con infraestructuras de los sistemas de información, centrándose en la capacidad para seleccionar, diseñar, desplegar, integrar y gestionar infraestructuras de comunicaciones, de cómputo y almacenamiento en una organización.
 
 **Objetivos**
 
@@ -65,7 +65,7 @@ Adquirir los conocimientos básicos para:
 
 - Analizar, comparar y seleccionar **productos tecnológicos que proporcionen alta disponibilidad de datos** al sistema de información, atendiendo a criterios tecnológicos y económicos.
 
-*Esta sección se completará a medida que avance el curso con resúmenes de los temas teóricos abordados.*
+_Esta sección se completará a medida que avance el curso con resúmenes de los temas teóricos abordados._
 
 ### 1. Fundamentos y tecnologías de virtualización
 
@@ -82,6 +82,7 @@ Adquirir los conocimientos básicos para:
 **Descripción:** Implementación de un entorno de virtualización basado en KVM (Kernel-based Virtual Machine) en Fedora Linux, incluyendo la configuración del sistema anfitrión, verificación de requisitos hardware, instalación de paquetes de virtualización y creación de máquinas virtuales.
 
 **Logros principales:**
+
 - Configuración del sistema anfitrión con SELinux en modo enforcing
 - Verificación de extensiones de virtualización en el procesador (AMD-V)
 - Instalación de paquetes KVM con interfaz gráfica y en modo headless
@@ -89,12 +90,33 @@ Adquirir los conocimientos básicos para:
 - Implementación de acceso SSH con autenticación por clave pública
 
 **Recursos:**
+
 - [Documentación completa](P1_Instalacion_KVM_MV/p1.md)
 - [Cheatsheet de comandos KVM](P1_Instalacion_KVM_MV/comandos_kvm_cheatsheet.md)
 
 ### Práctica 2: Operaciones con máquinas virtuales
 
-Próximamente...
+**Descripción:** Exploración de diferentes métodos para la gestión de máquinas virtuales en un entorno KVM/QEMU, incluyendo copias de seguridad, clonación mediante distintas herramientas y creación de nuevas máquinas virtuales.
+
+**Logros principales:**
+
+- Creación de copias de seguridad manuales de máquinas virtuales identificando los archivos de configuración XML y las imágenes de disco
+- Restauración y creación de nuevas máquinas virtuales a partir de copias de seguridad con ajustes manuales de configuración
+- Comparación de diferentes métodos de clonación utilizando herramientas gráficas (virt-manager) y de línea de comandos (virt-clone)
+- Creación de máquinas virtuales desde cero mediante virt-install con configuraciones personalizadas
+- Validación de la conectividad de red y acceso SSH para todas las máquinas virtuales creadas
+
+**Técnicas aprendidas:**
+
+- Manipulación de archivos XML de definición de máquinas virtuales
+- Generación de UUIDs y direcciones MAC únicas para evitar conflictos
+- Gestión de permisos y propiedad de archivos para libvirt
+- Optimización de la integración host-invitado mediante el agente QEMU
+- Configuración de acceso remoto seguro en las máquinas virtuales
+
+**Recursos:**
+
+- [Documentación completa](P2_Operaciones_con_MV_KVM/p2.md)
 
 ### Práctica 3: Recursos de almacenamiento virtual
 
@@ -141,50 +163,48 @@ Próximamente...
 - Las prácticas deben entregarse antes de la fecha límite especificada
 - Se valorará la claridad, precisión técnica y reproducibilidad de las implementaciones
 
-
-## Bibliografía 
+## Bibliografía
 
 **Básica**
 
-1. Wolf, Chris & Halter, Erick M. (2005). *Virtualization: From the Desktop to the Enterprise*. Apress. ISBN: 13-978-159059-495-7
+1. Wolf, Chris & Halter, Erick M. (2005). _Virtualization: From the Desktop to the Enterprise_. Apress. ISBN: 13-978-159059-495-7
 
-2. Portnoy, Matthew (2012). *Virtualization Essentials*. John Wiley & Sons. ISBN: 978-1-118-17671-9
+2. Portnoy, Matthew (2012). _Virtualization Essentials_. John Wiley & Sons. ISBN: 978-1-118-17671-9
 
-3. Jepsen, Thomas C. (2003). *Distributed Storage Networks: Architecture, Protocols and Management*. John Wiley & Sons, Ltd. ISBN: 0-470-85020-5
+3. Jepsen, Thomas C. (2003). _Distributed Storage Networks: Architecture, Protocols and Management_. John Wiley & Sons, Ltd. ISBN: 0-470-85020-5
 
-**Recomendada**
-4. Sosinsky, Barrie (2011). *Cloud Computing Bible*. Wiley. ISBN: 978-0-470-90356-8
+**Recomendada** 4. Sosinsky, Barrie (2011). _Cloud Computing Bible_. Wiley. ISBN: 978-0-470-90356-8
 
-5. Sosinsky, Barrie (2011). *¿Qué es la nube? El futuro de los sistemas de información*. Anaya. ISBN: 978-8-441-53024-9
+5. Sosinsky, Barrie (2011). _¿Qué es la nube? El futuro de los sistemas de información_. Anaya. ISBN: 978-8-441-53024-9
 
-6. Magoulès, Frederic (2010). *Fundamentals of Grid Computing: Theory, Algorithms and Technologies*. CRC Press. ISBN: 978-1-4398-0367-7
+6. Magoulès, Frederic (2010). _Fundamentals of Grid Computing: Theory, Algorithms and Technologies_. CRC Press. ISBN: 978-1-4398-0367-7
 
-7. Buyya, Rajkumar (1999). *High Performance Cluster Computing*. Prentice Hall. ISBN: 10: 0130137855
+7. Buyya, Rajkumar (1999). _High Performance Cluster Computing_. Prentice Hall. ISBN: 10: 0130137855
 
-8. Magoules, Frédéric et al. (2009). *Introduction to Grid Computing*. CRC Press. ISBN: 978-1-4200-7406-2
+8. Magoules, Frédéric et al. (2009). _Introduction to Grid Computing_. CRC Press. ISBN: 978-1-4200-7406-2
 
-9. Red Hat Enterprise Linux 7. *RedHatEnterpriseLinux7.VirtualizationSecurityGuide*. Red Hat, 2019.
+9. Red Hat Enterprise Linux 7. _RedHatEnterpriseLinux7.VirtualizationSecurityGuide_. Red Hat, 2019.
 
-10. Red Hat Enterprise Linux 7. *Virtualization Getting Started Guide*. Red Hat, 2020.
+10. Red Hat Enterprise Linux 7. _Virtualization Getting Started Guide_. Red Hat, 2020.
 
-11. Red Hat Enterprise Linux 7. *VirtualizationDeploymentandAdministrationGuide*. Red Hat, 2020.
+11. Red Hat Enterprise Linux 7. _VirtualizationDeploymentandAdministrationGuide_. Red Hat, 2020.
 
-12. Red Hat Enterprise Linux 7. *NetworkingGuide*. Red Hat, 2020.
+12. Red Hat Enterprise Linux 7. _NetworkingGuide_. Red Hat, 2020.
 
-13. Red Hat Enterprise Linux 7. *Storage Administration Guide*. Red Hat, 2020.
+13. Red Hat Enterprise Linux 7. _Storage Administration Guide_. Red Hat, 2020.
 
-14. Red Hat Enterprise Linux 7. *Security Guide*. Red Hat, 2020.
+14. Red Hat Enterprise Linux 7. _Security Guide_. Red Hat, 2020.
 
-15. Red Hat Enterprise Linux 7. *SystemAdministrationGuide*. Red Hat, 2019.
+15. Red Hat Enterprise Linux 7. _SystemAdministrationGuide_. Red Hat, 2019.
 
-16. Red Hat Enterprise Linux 7. *Configuring and managing virtualization*. Red Hat, 2020.
+16. Red Hat Enterprise Linux 7. _Configuring and managing virtualization_. Red Hat, 2020.
 
-17. Red Hat Enterprise Linux 7. *Global File System 2*. Red Hat, 2020.
+17. Red Hat Enterprise Linux 7. _Global File System 2_. Red Hat, 2020.
 
-18. Red Hat Enterprise Linux 7. *High Availability Add-On Overview*. Red Hat, 2020.
+18. Red Hat Enterprise Linux 7. _High Availability Add-On Overview_. Red Hat, 2020.
 
-19. Red Hat Enterprise Linux 7. *High Availability Add-On Administration*. Red Hat, 2020.
+19. Red Hat Enterprise Linux 7. _High Availability Add-On Administration_. Red Hat, 2020.
 
 ---
 
-*Última actualización: [Domingo 2 de Marzo de 2025]*
+_Última actualización: [Domingo 2 de Marzo de 2025]_

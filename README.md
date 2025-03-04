@@ -21,7 +21,7 @@
   - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
   - [Recursos Adicionales](#recursos-adicionales)
   - [Normas de Entrega](#normas-de-entrega)
-  - [Autor](#autor)
+  - [Bibliografía](#bibliografía)
 
 ## Información de la Asignatura
 
@@ -141,11 +141,49 @@ Próximamente...
 - Las prácticas deben entregarse antes de la fecha límite especificada
 - Se valorará la claridad, precisión técnica y reproducibilidad de las implementaciones
 
-## Autor
 
-- **Nombre:** [Tu Nombre]
-- **Contacto:** [Tu Email]
-- **GitHub:** [gitfrandu4](https://github.com/gitfrandu4)
+## Bibliografía 
+
+**Básica**
+
+1. Wolf, Chris & Halter, Erick M. (2005). *Virtualization: From the Desktop to the Enterprise*. Apress. ISBN: 13-978-159059-495-7
+
+2. Portnoy, Matthew (2012). *Virtualization Essentials*. John Wiley & Sons. ISBN: 978-1-118-17671-9
+
+3. Jepsen, Thomas C. (2003). *Distributed Storage Networks: Architecture, Protocols and Management*. John Wiley & Sons, Ltd. ISBN: 0-470-85020-5
+
+**Recomendada**
+4. Sosinsky, Barrie (2011). *Cloud Computing Bible*. Wiley. ISBN: 978-0-470-90356-8
+
+5. Sosinsky, Barrie (2011). *¿Qué es la nube? El futuro de los sistemas de información*. Anaya. ISBN: 978-8-441-53024-9
+
+6. Magoulès, Frederic (2010). *Fundamentals of Grid Computing: Theory, Algorithms and Technologies*. CRC Press. ISBN: 978-1-4398-0367-7
+
+7. Buyya, Rajkumar (1999). *High Performance Cluster Computing*. Prentice Hall. ISBN: 10: 0130137855
+
+8. Magoules, Frédéric et al. (2009). *Introduction to Grid Computing*. CRC Press. ISBN: 978-1-4200-7406-2
+
+9. Red Hat Enterprise Linux 7. *RedHatEnterpriseLinux7.VirtualizationSecurityGuide*. Red Hat, 2019.
+
+10. Red Hat Enterprise Linux 7. *Virtualization Getting Started Guide*. Red Hat, 2020.
+
+11. Red Hat Enterprise Linux 7. *VirtualizationDeploymentandAdministrationGuide*. Red Hat, 2020.
+
+12. Red Hat Enterprise Linux 7. *NetworkingGuide*. Red Hat, 2020.
+
+13. Red Hat Enterprise Linux 7. *Storage Administration Guide*. Red Hat, 2020.
+
+14. Red Hat Enterprise Linux 7. *Security Guide*. Red Hat, 2020.
+
+15. Red Hat Enterprise Linux 7. *SystemAdministrationGuide*. Red Hat, 2019.
+
+16. Red Hat Enterprise Linux 7. *Configuring and managing virtualization*. Red Hat, 2020.
+
+17. Red Hat Enterprise Linux 7. *Global File System 2*. Red Hat, 2020.
+
+18. Red Hat Enterprise Linux 7. *High Availability Add-On Overview*. Red Hat, 2020.
+
+19. Red Hat Enterprise Linux 7. *High Availability Add-On Administration*. Red Hat, 2020.
 
 ---
 

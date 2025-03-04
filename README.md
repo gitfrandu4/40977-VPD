@@ -1,5 +1,19 @@
 # 40977-VPD: Virtualización y Procesamiento Distribuido
 
+- [40977-VPD: Virtualización y Procesamiento Distribuido](#40977-vpd-virtualización-y-procesamiento-distribuido)
+  - [Información de la Asignatura](#información-de-la-asignatura)
+  - [Descripción](#descripción)
+  - [Objetivos de Aprendizaje](#objetivos-de-aprendizaje)
+  - [Contenido Teórico](#contenido-teórico)
+    - [1. Fundamentos y tecnologías de virtualización](#1-fundamentos-y-tecnologías-de-virtualización)
+  - [Prácticas](#prácticas)
+    - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
+    - [Práctica 2: \[Próximamente\]](#práctica-2-próximamente)
+  - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
+  - [Recursos Adicionales](#recursos-adicionales)
+  - [Normas de Entrega](#normas-de-entrega)
+  - [Autor](#autor)
+
 ## Información de la Asignatura
 
 - **Código:** 40977
@@ -24,7 +38,29 @@ Este repositorio contiene los materiales, prácticas y proyectos desarrollados p
 
 ## Contenido Teórico
 
+En esta asignatura se desarrollan competencias específicas relacionadas con infraestructuras de los sistemas de información, centrándose en la capacidad para seleccionar, diseñar, desplegar, integrar y gestionar infraestructuras de comunicaciones, de cómputo y almacenamiento en una organización. 
+
+**Objetivos**
+
+Adquirir los conocimientos básicos para:
+
+- Analizar, comparar y seleccionar distintas **infraestructuras de comunicaciones** atendiendo a criterios tecnológicos y económicos.
+
+- Analizar, comparar y seleccionar **productos tecnológicos para la virtualización**, atendiendo a criterios tecnológicos y económicos.
+
+- Instalar y configurar **plataformas de virtualización**.
+
+- Analizar, comparar y seleccionar **productos tecnológicos que proporcionen alta disponibilidad de cómputo** al sistema de información, atendiendo a criterios tecnológicos y económicos.
+
+- Instalar y configurar plataformas de **alta disponibilidad de cómputo**.
+
+- Analizar, comparar y seleccionar **productos tecnológicos que proporcionen alta disponibilidad de datos** al sistema de información, atendiendo a criterios tecnológicos y económicos.
+
 *Esta sección se completará a medida que avance el curso con resúmenes de los temas teóricos abordados.*
+
+### 1. Fundamentos y tecnologías de virtualización
+
+
 
 ## Prácticas
 

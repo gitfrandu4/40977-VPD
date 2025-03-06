@@ -39,16 +39,36 @@ zram0   252:0    0     8G  0 disk [SWAP]
 ```
 root@lq-d25:~# virsh vol-create-as default Vol1_p3 1G --format raw
 Se ha creado el volumen Vol1_p3
-
 ```
 
-2. attach with sdb
+2. attach with sda
+
+Si ejecutamos: 
 
 ```
-root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3 sdb --config --type disk --driver qemu --subdriver raw
+root@lq-d25:~# virsh domblklist mvp3 --details
+ Tipo   Dispositivo   Destino   Fuente
+--------------------------------------------------------------------
+ file   disk          vda       /var/lib/libvirt/images/mvp3.qcow2
+ file   cdrom         sda       -
+```
+
+Quitamos sda que creo que era por el disco que se usó para crear mvp1:
+Con la máquina apagada:
+
+```bash
+root@lq-d25:~# virsh detach-disk mvp3 sda --config
+El disco ha sido desmontado exitosamente
+```
+
+Ahora:
+
+```
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3 sda --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
 
+====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
 Significado: hemos conectado el volumen a la mv mvp3 a través del bus SATA
 
 ¡¡¡¡¡¡¡¡¡Observación importante: A pesar de haber especificado "sdb", el disco aparece como "sda" en la VM. Esto ocurre porque:
@@ -62,19 +82,17 @@ Conceptos clave de virtualizacion:
 - Volumen virtual: Un archivo o dispositivo que actúa como un disco físico para la máquina virtual.
 - Bus SATA: Interfaz de conexión para dispositivos de almacenamiento. Al adjuntar el disco, estás emulando una conexión SATA física.
 - Persistencia de configuración: La opción `--config` garantiza que el disco permanezca conectado incluso después de reiniciar la VM.
+====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
 
 3. verification
 
 ```
-root@lq-d25:~# virsh domblklist mvp3
- Destino   Fuente
------------------------------------------------
- vda       /var/lib/libvirt/images/mvp3.qcow2
- sda       -
-
+root@lq-d25:~# virsh domblklist mvp3 --details
+ Tipo   Dispositivo   Destino   Fuente
+--------------------------------------------------------------------
+ file   disk          vda       /var/lib/libvirt/images/mvp3.qcow2
+ file   disk          sda       /var/lib/libvirt/images/Vol1_p3
 ```
-
-Veo que has creado correctamente el volumen y lo has adjuntado a la máquina virtual, pero noto que hay un problema. En la verificación con virsh domblklist mvp3, el nuevo disco aparece como sda en lugar de sdb como especificaste en el comando. [SE HA EXPLICADO ARRIBA]
 
 Para completar la práctica 3 Tarea 1, necesitamos hacer lo siguiente dentro de la máquina virtual mvp3:
 
@@ -97,7 +115,7 @@ Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
 Last login: Fri Feb 28 20:06:07 2025
 ```
 
-2. Una vez dentro, verificamos que el disco está disponible, observamos que aparece como sda ¿por qué?
+2. Una vez dentro, verificamos que el disco está disponible, observamos que aparece como sda
 
 ```
 root@mvp1:~# lsblk
@@ -407,16 +425,47 @@ virsh attach-disk mvp3 /dev/sdaXX sdb --config --type disk --driver qemu --subdr
 ```
 (Reemplazar sdaXX con el número de partición real creada)
 
+6 de Marzo, vamos a ello!
+
+```bash
+root@lq-d25:~# virsh attach-disk mvp3 /dev/sda11 sdb --config --type disk --driver qemu --subdriver raw
+El disco ha sido asociado exitosamente
+```
+
+
 ## Paso 3: Verificar que la partición está disponible en mvp3
 
 ### Iniciar sesión en mvp3
 ```bash
-ssh root@<ip-de-mvp3>
+root@lq-d25:~# virsh domifaddr mvp3
+ Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+ vnet0      00:16:3e:37:a0:03    ipv4         192.168.122.242/24
+```
+
+```
+root@lq-d25:~# ssh root@192.168.122.242
+Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
+
+Last login: Thu Mar  6 19:23:40 2025
+root@mvp1:~#
 ```
 
 ### Verificar que el nuevo disco está presente
+
 ```bash
-lsblk
+root@mvp1:~# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda               8:0    0    1G  0 disk 
+└─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
+sdb               8:16   0    1G  0 disk 
+zram0           251:0    0  1,9G  0 disk [SWAP]
+vda             252:0    0   10G  0 disk 
+├─vda1          252:1    0    1M  0 part 
+├─vda2          252:2    0    1G  0 part /boot
+└─vda3          252:3    0    9G  0 part 
+  └─fedora-root 253:0    0    9G  0 lvm  /
+
 ```
 Deberíamos ver el nuevo disco como /dev/sdb
 
@@ -428,13 +477,84 @@ Deberíamos ver el nuevo disco como /dev/sdb
 mkfs.xfs /dev/sdb
 ```
 
+```
+root@mvp1:~# mkfs.xfs /dev/sdb
+meta-data=/dev/sdb               isize=512    agcount=4, agsize=65536 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=1
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=16384, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+Discarding blocks...Done.
+```
+
 ## Paso 5: Montar el sistema de archivos y crear archivo de prueba
 
 ```bash
-mkdir -p /mnt/disco_fisico
-mount /dev/sdb /mnt/disco_fisico
-touch /mnt/disco_fisico/test.txt
-ls -l /mnt/disco_fisico
+root@mvp1:~# mkdir -p /mnt/disco_fisico
+root@mvp1:~# mount /dev/sdb /mnt/disco_fisico
+root@mvp1:~# touch /mnt/disco_fisico/test.txt
+root@mvp1:~# ls -l /mnt/disco_fisico
+total 0
+-rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
+```
+
+## Paso 6: Además, deberá realizar la configuración necesaria para que el volumen se monte de forma automática en el arranque de la máquina mvp3 en el directorio /VDB.
+
+Creamos el directorio destino:
+
+```
+mkdir -p /VDB
+```
+
+Todos los comandos:
+
+```bash
+root@mvp1:~# mkdir -p /VDB
+root@mvp1:~# mount /dev/sdb /VDB
+```
+
+```bash
+root@mvp1:~# df -h /VDB/
+S.ficheros     Tamaño Usados  Disp Uso% Montado en
+/dev/sdb         960M    51M  910M   6% /VDB
+```
+
+```bash
+root@mvp1:~# ls -l /VDB/
+total 0
+-rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
+```
+
+```bash
+root@mvp1:~# echo "/dev/sdb /VDB xfs defaults 0 0" >> /etc/fstab
+root@mvp1:~# reboot
+root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
+Connection to 192.168.122.242 closed.
+```
+
+```bash
+root@lq-d25:~# ssh root@192.168.122.242
+ssh: connect to host 192.168.122.242 port 22: No route to host
+root@lq-d25:~# virsh domifaddr mvp3
+ Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+ vnet2      00:16:3e:37:a0:03    ipv4         192.168.122.242/24
+
+```
+
+```bash
+root@lq-d25:~# ssh root@192.168.122.242
+Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
+
+Last login: Thu Mar  6 20:04:30 2025
+root@mvp1:~# ls -l /VDB/
+total 0
+-rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
 ```
 
 ## Comandos de validación
@@ -449,9 +569,804 @@ df -h | grep sdb
 mount | grep sdb
 ```
 
+```
+root@mvp1:~# df -h | grep sdb
+/dev/sdb                  960M    51M  910M   6% /mnt/disco_fisico
+```
+
 3. Verificar que el disco no está particionado sino formateado completamente:
+
 ```bash
 fdisk -l /dev/sdb
 ```
 
+```bash
+root@mvp1:~# fdisk -l /dev/sdb
+Disk /dev/sdb: 1 GiB, 1073741824 bytes, 2097152 sectors
+Disk model: QEMU HARDDISK   
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+```
 
+
+# Notas
+
+Diferencia entre /dev/sda y /dev/vdda
+
+/vda => para virtualizaciones ¿? formato qacw. Emula el hardware físico, en la práctica, una interfaz sata
+/sda => lo de aquí lo trata como un disco real ¿? 
+
+# Comandos para Tarea 3: Crear un storage pool en partición lógica
+
+## 1. Crear nueva partición lógica de 2GB
+
+```bash
+# Verificar la configuración actual de discos
+lsblk
+
+# Crear partición lógica usando fdisk
+fdisk /dev/sda
+
+# Dentro de fdisk, usar estos comandos (uno tras otro):
+# p (para ver tabla de particiones actual)
+# n (crear nueva partición)
+# l (seleccionar partición lógica)
+# Enter (aceptar número predeterminado)
+# Enter (aceptar sector inicial predeterminado)
+# +2G (especificar tamaño de 2GB)
+# w (escribir cambios y salir)
+
+# Verificar que la partición se creó correctamente
+lsblk
+```
+
+```
+root@lq-d25:~# lsblk
+NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda       8:0    0 953,9G  0 disk 
+├─sda1    8:1    0    50M  0 part 
+├─sda2    8:2    0 477,2G  0 part 
+├─sda3    8:3    0     4G  0 part 
+├─sda4    8:4    0     1K  0 part 
+├─sda5    8:5    0  97,7G  0 part 
+├─sda6    8:6    0  31,1G  0 part [SWAP]
+├─sda7    8:7    0 146,5G  0 part /
+├─sda8    8:8    0 146,5G  0 part 
+├─sda9    8:9    0     1G  0 part 
+├─sda10   8:10   0     2G  0 part 
+└─sda11   8:11   0     1G  0 part 
+sdb       8:16   1     0B  0 disk 
+zram0   252:0    0     8G  0 disk [SWAP]
+```
+
+Luego:
+
+```
+root@lq-d25:~# fdisk /dev/sda
+
+Welcome to fdisk (util-linux 2.39.4).
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+This disk is currently in use - repartitioning is probably a bad idea.
+It's recommended to umount all file systems, and swapoff all swap
+partitions on this disk.
+
+
+Command (m for help): p
+
+Disk /dev/sda: 953,87 GiB, 1024209543168 bytes, 2000409264 sectors
+Disk model: SSD-1TB         
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0xd5de6562
+
+Device     Boot      Start        End    Sectors   Size Id Type
+/dev/sda1  *          2048     104447     102400    50M  7 HPFS/NTFS/exFAT
+/dev/sda2           104448 1000833023 1000728576 477,2G  7 HPFS/NTFS/exFAT
+/dev/sda3       1000833024 1009221631    8388608     4G 83 Linux
+/dev/sda4       1009221632 2000408575  991186944 472,6G  f W95 Ext'd (LBA)
+/dev/sda5       1009225728 1214025727  204800000  97,7G 83 Linux
+/dev/sda6       1214027776 1279252479   65224704  31,1G 82 Linux swap / Solaris
+/dev/sda7       1279254528 1586454527  307200000 146,5G 83 Linux
+/dev/sda8       1586456576 1893656575  307200000 146,5G 83 Linux
+/dev/sda9       1893658624 1895755775    2097152     1G 83 Linux
+/dev/sda10      1895757824 1899952127    4194304     2G 83 Linux
+/dev/sda11      1899954176 1902051327    2097152     1G 83 Linux
+
+Command (m for help): n
+All primary partitions are in use.
+Adding logical partition 12
+First sector (1902053376-2000408575, default 1902053376): 
+Last sector, +/-sectors or +/-size{K,M,G,T,P} (1902053376-2000408575, default 2000408575): +2G
+
+Created a new partition 12 of type 'Linux' and of size 2 GiB.
+
+Command (m for help): w
+The partition table has been altered.
+Syncing disks.
+```
+
+Verificación:
+
+```
+root@lq-d25:~# lsblk
+NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda       8:0    0 953,9G  0 disk 
+├─sda1    8:1    0    50M  0 part 
+├─sda2    8:2    0 477,2G  0 part 
+├─sda3    8:3    0     4G  0 part 
+├─sda4    8:4    0     1K  0 part 
+├─sda5    8:5    0  97,7G  0 part 
+├─sda6    8:6    0  31,1G  0 part [SWAP]
+├─sda7    8:7    0 146,5G  0 part /
+├─sda8    8:8    0 146,5G  0 part 
+├─sda9    8:9    0     1G  0 part 
+├─sda10   8:10   0     2G  0 part 
+├─sda11   8:11   0     1G  0 part 
+└─sda12   8:12   0     2G  0 part 
+sdb       8:16   1     0B  0 disk 
+zram0   252:0    0     8G  0 disk [SWAP]
+```
+
+## 2. Crear sistema de archivos ext4 en la nueva partición
+
+```bash
+root@lq-d25:~# mkfs.ext4 /dev/sda12
+mke2fs 1.47.0 (5-Feb-2023)
+Descartando los bloques del dispositivo: hecho                           
+Se está creando un sistema de ficheros con 524288 bloques de 4k y 131072 nodos-i
+UUID del sistema de ficheros: d49322db-bde4-4a05-8e49-dc3c37f7484d
+Respaldos del superbloque guardados en los bloques: 
+	32768, 98304, 163840, 229376, 294912
+
+Reservando las tablas de grupo: hecho                           
+Escribiendo las tablas de nodos-i: hecho                           
+Creando el fichero de transacciones (16384 bloques): hecho
+Escribiendo superbloques y la información contable del sistema de ficheros:  0/1hecho
+```
+
+## 3. Crear directorio para montar el storage pool
+
+```bash
+root@lq-d25:~# mkdir -p /var/lib/libvirt/Pool_Particion
+```
+
+## 4. Montar la partición en el directorio
+
+```bash
+root@lq-d25:~# mount /dev/sda12 /var/lib/libvirt/Pool_Particion
+```
+
+## 5. Configurar montaje automático en el host
+
+Obtener UUID de la partición: 
+
+```bash
+root@lq-d25:~# blkid /dev/sda12
+/dev/sda12: UUID="d49322db-bde4-4a05-8e49-dc3c37f7484d" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="d5de6562-0c"
+```
+
+Editar fstab para montar automáticamente al arranque:
+
+```bash
+root@lq-d25:~# echo "UUID=d49322db-bde4-4a05-8e49-dc3c37f7484d /var/lib/libvirt/Pool_Particion ext4 defaults 0 0" >> /etc/fstab
+```
+
+Verificar la configuración:
+
+```bash
+root@lq-d25:~# lsblk
+NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda       8:0    0 953,9G  0 disk 
+├─sda1    8:1    0    50M  0 part 
+├─sda2    8:2    0 477,2G  0 part 
+├─sda3    8:3    0     4G  0 part 
+├─sda4    8:4    0     1K  0 part 
+├─sda5    8:5    0  97,7G  0 part 
+├─sda6    8:6    0  31,1G  0 part [SWAP]
+├─sda7    8:7    0 146,5G  0 part /
+├─sda8    8:8    0 146,5G  0 part 
+├─sda9    8:9    0     1G  0 part 
+├─sda10   8:10   0     2G  0 part 
+├─sda11   8:11   0     1G  0 part 
+└─sda12   8:12   0     2G  0 part /var/lib/libvirt/Pool_Particion
+sdb       8:16   1     0B  0 disk 
+zram0   252:0    0     8G  0 disk [SWAP]
+```
+
+## 6. Crear el storage pool con virsh
+
+```bash
+root@lq-d25:~# virsh pool-define-as Contenedor_Particion dir - - - - /var/lib/libvirt/Pool_Particion
+El grupo Contenedor_Particion ha sido definido
+```
+
+```bash
+root@lq-d25:~# virsh pool-build Contenedor_Particion
+El pool Contenedor_Particion ha sido compilado
+```
+
+```bash
+root@lq-d25:~# virsh pool-start Contenedor_Particion
+Se ha iniciado el grupo Contenedor_Particion
+```
+
+```
+root@lq-d25:~# virsh pool-autostart Contenedor_Particion
+El grupo Contenedor_Particion ha sido marcado como iniciable automáticamente
+```
+
+Verificar que el pool se creó correctamente
+
+```bash
+root@lq-d25:~# virsh pool-list --all
+ Nombre                 Estado   Inicio automático
+----------------------------------------------------
+ Contenedor_Particion   activo   si
+ default                activo   si
+ ISO                    activo   si
+```
+
+## 7. Crear volumen qcow2 en el storage pool
+
+```bash
+root@lq-d25:~# virsh vol-create-as Contenedor_Particion Vol2_p3 1G --format qcow2
+Se ha creado el volumen Vol2_p3
+```
+
+Verificar la creación del volumen:
+
+```bash
+root@lq-d25:~# virsh vol-list Contenedor_Particion
+ Nombre       Ruta
+----------------------------------------------------------
+ lost+found   /var/lib/libvirt/Pool_Particion/lost+found
+ Vol2_p3      /var/lib/libvirt/Pool_Particion/Vol2_p3
+```
+
+## 8. Adjuntar el volumen a la VM mvp3 como vdb
+
+```bash
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/Pool_Particion/Vol2_p3 vdb --driver qemu --subdriver qcow2 --type disk --config
+El disco ha sido asociado exitosamente
+```
+
+Verificar adjunción del disco:
+
+```bash
+root@lq-d25:~# virsh domblklist mvp3
+ Destino   Fuente
+----------------------------------------------------
+ vda       /var/lib/libvirt/images/mvp3.qcow2
+ vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3
+ sda       /var/lib/libvirt/images/Vol1_p3
+ sdb       /dev/sda11
+```
+
+Nota: recordemos apagar la mv
+
+## 9. Configurar el disco dentro de la VM mvp3
+
+Conectarse a la VM:
+
+```bash
+root@lq-d25:~# ssh root@192.168.122.242
+Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
+
+Last login: Thu Mar  6 20:04:54 2025 from 192.168.122.1
+```
+
+Verificar que el disco está disponible
+
+```bash
+root@mvp1:~# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda               8:0    0    1G  0 disk 
+└─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
+sdb               8:16   0    1G  0 disk /VDB
+zram0           251:0    0  1,9G  0 disk [SWAP]
+vda             252:0    0   10G  0 disk 
+├─vda1          252:1    0    1M  0 part 
+├─vda2          252:2    0    1G  0 part /boot
+└─vda3          252:3    0    9G  0 part 
+  └─fedora-root 253:0    0    9G  0 lvm  /
+vdb             252:16   0    1G  0 disk 
+```
+
+Crear sistema de archivos XFS en el disco completo (sin particionar)
+
+```bash
+root@mvp1:~# mkfs.xfs /dev/vdb
+meta-data=/dev/vdb               isize=512    agcount=4, agsize=65536 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=1
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=16384, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+Discarding blocks...Done.
+```
+
+Crear directorio de montaje
+
+```
+root@mvp1:~# mkdir -p /VDB
+```
+
+Montar el disco:
+
+```
+root@mvp1:~# mount /dev/vdb /VDB
+```
+
+Crear archivo de prueba:
+
+```bash
+touch /VDB/test.txt
+```
+
+Verificar que se creó el archivo
+
+```bash
+root@mvp1:~# ls -l /VDB
+total 0
+-rw-r--r--. 1 root root 0 mar  6 20:29 test.txt
+```
+
+## 10. Configurar montaje automático en la VM mvp3
+
+Obtener UUID del disco
+
+```bash
+root@mvp1:~# blkid /dev/vdb
+/dev/vdb: UUID="0051b7c0-22f9-4d30-9dc4-cc70f44ee818" BLOCK_SIZE="512" TYPE="xfs"
+```
+
+Añadir entrada a fstab
+
+```bash
+root@mvp1:~# echo "UUID=0051b7c0-22f9-4d30-9dc4-cc70f44ee818 /VDB xfs defaults 0 0" >> /etc/fstab
+```
+
+Probar la configuración
+
+```bash
+root@mvp1:~# mount -a
+mount: (hint) your fstab has been modified, but systemd still uses
+       the old version; use 'systemctl daemon-reload' to reload.
+```
+
+Verificar montaje:
+
+```
+root@mvp1:~# df -h | grep /VDB
+/dev/vdb                  960M    51M  910M   6% /VDB
+```
+
+## 11. Comandos de validación
+
+**En el host:**
+
+```bash
+root@lq-d25:~# virsh pool-info Contenedor_Particion
+Nombre:         Contenedor_Particion
+UUID:           6ac4fb14-de92-47f4-8287-2ca274f9973b
+Estado:         ejecutando
+Persistente:    si
+Autoinicio:     si
+Capacidad:      1,90 GiB
+Ubicación:     732,00 KiB
+Disponible:     1,90 GiB
+```
+
+```bash
+root@lq-d25:~# virsh vol-info --pool Contenedor_Particion Vol2_p3
+Nombre:         Vol2_p3
+Tipo:           archivo
+Capacidad:      1,00 GiB
+Ubicación:     2,76 MiB
+```
+
+En la VM:
+
+```bash
+root@mvp1:~# df -h | grep /VDB
+/dev/sdb                  960M    51M  910M   6% /VDB
+```
+
+```bash
+root@mvp1:~# ls -l /VDB
+total 0
+-rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
+```
+
+```bash
+root@mvp1:~# cat /etc/fstab | grep VDB
+/dev/sdb /VDB xfs defaults 0 0
+UUID=0051b7c0-22f9-4d30-9dc4-cc70f44ee818 /VDB xfs defaults 0 0
+```
+
+# Comandos para Tarea 4: Crear un contenedor NFS para imágenes ISO
+
+## 1. Crear el directorio local para el montaje NFS
+
+```bash
+# Crear el directorio que se asociará al contenedor
+root@lq-d25:~# mkdir -p /var/lib/libvirt/images/ISOS
+```
+
+## 2. Verificar que el servidor NFS está accesible
+
+Verificar conectividad con el servidor NFS
+
+```bash
+root@lq-d25:~# ping disnas2.dis.ulpgc.es
+PING disnas2.dis.ulpgc.es (10.22.146.216) 56(84) bytes of data.
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=1 ttl=60 time=0.351 ms
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=2 ttl=60 time=0.624 ms
+^C
+--- disnas2.dis.ulpgc.es ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.351/0.487/0.624/0.136 ms
+```
+
+Listar los directorios exportados por el servidor NFS 
+
+```
+root@lq-d25:~# showmount -e disnas2.dis.ulpgc.es
+Export list for disnas2.dis.ulpgc.es:
+/loginicio       *
+/iniciolab       *
+/imagenes        *
+/disnas2-itsi    *
+/usuarios        193.145.147.58,193.145.147.132,193.145.147.51
+/pxepru          10.22.146.0/24,10.22.147.0/24,10.22.145.110,10.22.145.100
+/gabino_postgres 193.145.147.170
+/ASO_EXAMEN      193.145.147.0/24,10.22.148.0/24,10.22.147.0/24,10.22.146.0/24
+```
+
+## 3. Crear el storage pool usando virsh
+
+Definir el pool NFS sin activación automática
+
+```bash
+root@lq-d25:~# virsh pool-define-as CONT_ISOS_COMP netfs --source-host disnas2.dis.ulpgc.es --source-path /imagenes/fedora/41/isos/x86_64 --target /var/lib/libvirt/images/ISOS
+El grupo CONT_ISOS_COMP ha sido definido
+```
+
+Construir el pool
+
+```bash
+root@lq-d25:~# virsh pool-build CONT_ISOS_COMP
+El pool CONT_ISOS_COMP ha sido compilado
+```
+
+Iniciar el pool manualmente (no se configurará para inicio automático)
+
+```bash
+root@lq-d25:~# virsh pool-start CONT_ISOS_COMP
+Se ha iniciado el grupo CONT_ISOS_COMP
+```
+
+Verificar que el pool NO está configurado para inicio automático
+
+```bash
+root@lq-d25:~# virsh pool-autostart --disable CONT_ISOS_COMP
+Se ha quitado la marca del grupo CONT_ISOS_COMP para iniciarse automáticamente
+```
+
+Verificar que el pool se ha creado correctamente:
+
+```bash
+root@lq-d25:~# virsh pool-list --all
+ Nombre                 Estado   Inicio automático
+----------------------------------------------------
+ CONT_ISOS_COMP         activo   no
+ Contenedor_Particion   activo   si
+ default                activo   si
+ ISO                    activo   si
+```
+
+## 4. Verificar el acceso a las imágenes ISO
+
+Listar los volúmenes (imágenes ISO) disponibles en el pool
+
+```bash
+root@lq-d25:~# virsh vol-list CONT_ISOS_COMP
+ Nombre                                    Ruta
+-----------------------------------------------------------------------------------------------------------------
+ Fedora-Server-netinst-x86_64-41-1.4.iso   /var/lib/libvirt/images/ISOS/Fedora-Server-netinst-x86_64-41-1.4.iso
+
+```
+
+También se puede verificar directamente en el sistema de archivos:
+
+```bash
+root@lq-d25:~# ls -la /var/lib/libvirt/images/ISOS
+total 932532
+drwxrwxrwx. 2 root root      4096 ene 31 11:01 .
+drwx--x--x. 3 root root      4096 mar  6 20:38 ..
+-rw-rw-rw-. 1 root root 954900480 ene 21 14:33 Fedora-Server-netinst-x86_64-41-1.4.iso
+```
+
+## 5. Comandos para gestionar el pool NFS
+
+```bash
+# Para iniciar manualmente el pool cuando sea necesario
+virsh pool-start CONT_ISOS_COMP
+
+# Para detener el pool cuando ya no se necesite
+virsh pool-destroy CONT_ISOS_COMP
+
+# Para obtener información detallada del pool
+virsh pool-info CONT_ISOS_COMP
+
+# Para refrescar la lista de volúmenes
+virsh pool-refresh CONT_ISOS_COMP
+```
+
+## 6. Comandos para utilizar una imagen ISO en la instalación de una VM
+
+```bash
+# Ejemplo de cómo usar una ISO del pool para instalar o arrancar una VM
+# (Suponiendo que existe una ISO llamada "Fedora-Server-dvd-x86_64-41.iso")
+virsh start mvp3 --cdrom /var/lib/libvirt/images/ISOS/Fedora-Server-dvd-x86_64-41.iso
+```
+
+## 7. Verificación del montaje NFS a nivel de sistema operativo
+
+```bash
+# Verificar que el NFS está correctamente montado
+root@lq-d25:~# mount | grep disnas2
+disnas2.dis.ulpgc.es:/imagenes/fedora/41/isos/x86_64 on /var/lib/libvirt/images/ISOS type nfs (rw,nosuid,nodev,noexec,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.22.146.216,mountvers=3,mountport=57049,mountproto=udp,local_lock=none,addr=10.22.146.216)
+
+
+# Ver estadísticas del sistema de archivos montado
+root@lq-d25:~# df -h | grep ISOS
+disnas2.dis.ulpgc.es:/imagenes/fedora/41/isos/x86_64   248G   1,5G  246G   1% /var/lib/libvirt/images/ISOS
+```
+
+======================================================
+		HASTA AQUÍ JUEVES 8 MARZO 
+======================================================
+
+# Comandos para Tarea 5: Crear un contenedor NFS para volúmenes de máquinas virtuales
+
+## 1. Crear el directorio local para el montaje NFS
+
+```bash
+# Crear el directorio que se asociará al contenedor
+root@lq-d25:~# mkdir -p /var/lib/libvirt/images/COMPARTIDO
+```
+
+## 2. Verificar que el servidor NFS está accesible
+
+Verificar conectividad con el servidor NFS
+
+```bash
+root@lq-d25:~# ping disnas2.dis.ulpgc.es
+PING disnas2.dis.ulpgc.es (10.22.146.216) 56(84) bytes of data.
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=1 ttl=60 time=0.351 ms
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=2 ttl=60 time=0.624 ms
+^C
+--- disnas2.dis.ulpgc.es ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.351/0.487/0.624/0.136 ms
+```
+
+Confirmar que el directorio `/disnas2-itsi` está exportado por el servidor NFS
+
+```bash
+root@lq-d25:~# showmount -e disnas2.dis.ulpgc.es
+Export list for disnas2.dis.ulpgc.es:
+/loginicio       *
+/iniciolab       *
+/imagenes        *
+/disnas2-itsi    *
+/usuarios        193.145.147.58,193.145.147.132,193.145.147.51
+/pxepru          10.22.146.0/24,10.22.147.0/24,10.22.145.110,10.22.145.100
+/gabino_postgres 193.145.147.170
+/ASO_EXAMEN      193.145.147.0/24,10.22.148.0/24,10.22.147.0/24,10.22.146.0/24
+```
+
+## 3. Crear el storage pool usando virsh
+
+Definir el pool NFS sin activación automática
+
+```bash
+root@lq-d25:~# virsh pool-define-as CONT_VOL_COMP netfs --source-host disnas2.dis.ulpgc.es --source-path /disnas2-itsi --target /var/lib/libvirt/images/COMPARTIDO
+El grupo CONT_VOL_COMP ha sido definido
+```
+
+Construir el pool
+
+```bash
+root@lq-d25:~# virsh pool-build CONT_VOL_COMP
+El pool CONT_VOL_COMP ha sido compilado
+```
+
+Iniciar el pool manualmente (no se configurará para inicio automático)
+
+```bash
+root@lq-d25:~# virsh pool-start CONT_VOL_COMP
+Se ha iniciado el grupo CONT_VOL_COMP
+```
+
+Verificar que el pool NO está configurado para inicio automático
+
+```bash
+root@lq-d25:~# virsh pool-autostart --disable CONT_VOL_COMP
+Se ha quitado la marca del grupo CONT_VOL_COMP para iniciarse automáticamente
+```
+
+Verificar que el pool se ha creado correctamente:
+
+```bash
+root@lq-d25:~# virsh pool-list --all
+ Nombre                 Estado   Inicio automático
+----------------------------------------------------
+ CONT_ISOS_COMP         activo   no
+ CONT_VOL_COMP          activo   no
+ Contenedor_Particion   activo   si
+ default                activo   si
+ ISO                    activo   si
+```
+
+## 4. Crear un volumen qcow2 en el pool
+
+Crear un volumen de 1GB con formato qcow2 (usando el nombre según patrón establecido)
+
+```bash
+root@lq-d25:~# virsh vol-create-as CONT_VOL_COMP pcHOST_LQD_ANFITRION25_Vol3_p3 1G --format qcow2
+Se ha creado el volumen pcHOST_LQD_ANFITRION25_Vol3_p3
+```
+
+Verificar que el volumen se ha creado correctamente
+
+```bash
+root@lq-d25:~# virsh vol-list CONT_VOL_COMP
+ Nombre                             Ruta
+--------------------------------------------------------------------------------
+ pcHOST_LQD_ANFITRION25_Vol3_p3    /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3
+```
+
+## 5. Añadir el nuevo volumen a la máquina virtual mvp3
+
+Añadir el disco a la VM como dispositivo vdc usando virtio (paravirtualizado)
+
+```bash
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3 vdc --driver qemu --subdriver qcow2 --targetbus virtio --persistent
+Se ha adjuntado el disco
+
+# Verificar que el disco se ha añadido correctamente
+root@lq-d25:~# virsh domblklist mvp3
+ Destino   Origen
+-----------------------------------------------------
+ vda       /var/lib/libvirt/images/mvp3.qcow2
+ vdb       /var/lib/libvirt/images/mvp3_datos.qcow2
+ vdc       /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3
+```
+
+## 6. Formatear el disco y crear el sistema de archivos XFS en mvp3
+
+Acceder a la máquina virtual mvp3 y formatear el disco con XFS
+
+```bash
+# Iniciar la consola de mvp3
+root@lq-d25:~# virsh console mvp3
+Conectado a la consola de dominio mvp3.
+Escape character is ^]
+
+# Una vez dentro de mvp3, verificar que el disco está disponible
+[root@mvp3 ~]# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+vda    252:0    0   10G  0 disk 
+├─vda1 252:1    0    1G  0 part /boot
+└─vda2 252:2    0    9G  0 part 
+  ├─cl-root 253:0  0  8G  0 lvm  /
+  └─cl-swap 253:1  0  1G  0 lvm  [SWAP]
+vdb    252:16   0    2G  0 disk 
+└─vdb1 252:17   0    2G  0 part /data
+vdc    252:32   0    1G  0 disk
+
+# Crear sistema de archivos XFS en el disco vdc (sin particionar)
+[root@mvp3 ~]# mkfs.xfs /dev/vdc
+meta-data=/dev/vdc               isize=512    agcount=4, agsize=65536 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1    bigtime=0 inobtcount=0
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+```
+
+## 7. Montar el sistema de archivos y crear el archivo de prueba
+
+```bash
+# Crear el directorio de montaje
+[root@mvp3 ~]# mkdir -p /VDC
+
+# Montar el disco manualmente
+[root@mvp3 ~]# mount /dev/vdc /VDC
+
+# Crear el archivo de prueba
+[root@mvp3 ~]# echo "Este es un archivo de prueba" > /VDC/test.txt
+
+# Verificar que el archivo se ha creado correctamente
+[root@mvp3 ~]# cat /VDC/test.txt
+Este es un archivo de prueba
+
+# Verificar el montaje
+[root@mvp3 ~]# df -h | grep vdc
+/dev/vdc        1,0G   42M  982M   5% /VDC
+```
+
+## 8. Configurar el montaje automático en el arranque
+
+Añadir una entrada en el archivo /etc/fstab para el montaje automático
+
+```bash
+# Obtener el UUID del disco para un montaje más fiable
+[root@mvp3 ~]# blkid | grep vdc
+/dev/vdc: UUID="a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6" BLOCK_SIZE="512" TYPE="xfs"
+
+# Editar el archivo /etc/fstab
+[root@mvp3 ~]# echo "UUID=a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6 /VDC xfs defaults 0 0" >> /etc/fstab
+
+# Verificar la configuración
+[root@mvp3 ~]# cat /etc/fstab | grep VDC
+UUID=a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6 /VDC xfs defaults 0 0
+```
+
+## 9. Validación final: Reiniciar la VM y verificar el montaje automático
+
+```bash
+# Reiniciar la VM
+[root@mvp3 ~]# reboot
+
+# Después del reinicio, verificar que el sistema de archivos está montado automáticamente
+[root@mvp3 ~]# mount | grep vdc
+/dev/vdc on /VDC type xfs (rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota)
+
+# Comprobar que el archivo de prueba sigue disponible
+[root@mvp3 ~]# cat /VDC/test.txt
+Este es un archivo de prueba
+```
+
+## 10. Comandos adicionales para gestionar el pool NFS
+
+```bash
+# Para iniciar manualmente el pool cuando sea necesario
+virsh pool-start CONT_VOL_COMP
+
+# Para detener el pool cuando ya no se necesite
+virsh pool-destroy CONT_VOL_COMP
+
+# Para obtener información detallada del pool
+virsh pool-info CONT_VOL_COMP
+
+# Para refrescar la lista de volúmenes
+virsh pool-refresh CONT_VOL_COMP
+```
+
+## 11. Verificación del montaje NFS a nivel de sistema operativo host
+
+```bash
+# Verificar que el NFS está correctamente montado
+root@lq-d25:~# mount | grep disnas2
+disnas2.dis.ulpgc.es:/disnas2-itsi on /var/lib/libvirt/images/COMPARTIDO type nfs (rw,nosuid,nodev,noexec,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.22.146.216,mountvers=3,mountport=57049,mountproto=udp,local_lock=none,addr=10.22.146.216)
+
+# Ver estadísticas del sistema de archivos montado
+root@lq-d25:~# df -h | grep COMPARTIDO
+disnas2.dis.ulpgc.es:/disnas2-itsi   248G   2,3G  246G   1% /var/lib/libvirt/images/COMPARTIDO
+```

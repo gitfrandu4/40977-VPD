@@ -1134,15 +1134,16 @@ disnas2.dis.ulpgc.es:/imagenes/fedora/41/isos/x86_64   248G   1,5G  246G   1% /v
 ```
 
 ======================================================
-		HASTA AQUÍ JUEVES 8 MARZO 
+		HASTA AQUÍ JUEVES 6 MARZO 
 ======================================================
 
 # Comandos para Tarea 5: Crear un contenedor NFS para volúmenes de máquinas virtuales
 
 ## 1. Crear el directorio local para el montaje NFS
 
+Crear el directorio que se asociará al contenedor:
+
 ```bash
-# Crear el directorio que se asociará al contenedor
 root@lq-d25:~# mkdir -p /var/lib/libvirt/images/COMPARTIDO
 ```
 
@@ -1153,12 +1154,13 @@ Verificar conectividad con el servidor NFS
 ```bash
 root@lq-d25:~# ping disnas2.dis.ulpgc.es
 PING disnas2.dis.ulpgc.es (10.22.146.216) 56(84) bytes of data.
-64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=1 ttl=60 time=0.351 ms
-64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=2 ttl=60 time=0.624 ms
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=1 ttl=61 time=0.312 ms
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=2 ttl=61 time=0.320 ms
+64 bytes from disnas2.dis.ulpgc.es (10.22.146.216): icmp_seq=3 ttl=61 time=0.628 ms
 ^C
 --- disnas2.dis.ulpgc.es ping statistics ---
-2 packets transmitted, 2 received, 0% packet loss, time 1002ms
-rtt min/avg/max/mdev = 0.351/0.487/0.624/0.136 ms
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.312/0.420/0.628/0.147 ms
 ```
 
 Confirmar que el directorio `/disnas2-itsi` está exportado por el servidor NFS
@@ -1224,17 +1226,15 @@ root@lq-d25:~# virsh pool-list --all
 Crear un volumen de 1GB con formato qcow2 (usando el nombre según patrón establecido)
 
 ```bash
-root@lq-d25:~# virsh vol-create-as CONT_VOL_COMP pcHOST_LQD_ANFITRION25_Vol3_p3 1G --format qcow2
-Se ha creado el volumen pcHOST_LQD_ANFITRION25_Vol3_p3
+root@lq-d25:~# virsh vol-create-as CONT_VOL_COMP pc25_LQD_ANFITRION1_Vol3_p3 1G --format qcow2 --prealloc-metadata
+Se ha creado el volumen pc25_LQD_ANFITRION1_Vol3_p3
 ```
 
 Verificar que el volumen se ha creado correctamente
 
 ```bash
-root@lq-d25:~# virsh vol-list CONT_VOL_COMP
- Nombre                             Ruta
---------------------------------------------------------------------------------
- pcHOST_LQD_ANFITRION25_Vol3_p3    /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3
+root@lq-d25:~# virsh vol-list CONT_VOL_COMP | grep pc25
+ pc25_LQD_ANFITRION1_Vol3_p3           /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
 ```
 
 ## 5. Añadir el nuevo volumen a la máquina virtual mvp3
@@ -1242,104 +1242,152 @@ root@lq-d25:~# virsh vol-list CONT_VOL_COMP
 Añadir el disco a la VM como dispositivo vdc usando virtio (paravirtualizado)
 
 ```bash
-root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3 vdc --driver qemu --subdriver qcow2 --targetbus virtio --persistent
-Se ha adjuntado el disco
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3 vdc --driver qemu --subdriver qcow2 --targetbus virtio --persistent
+El disco ha sido asociado exitosamente
+```
 
-# Verificar que el disco se ha añadido correctamente
+Verificar que el disco se ha añadido correctamente
+
+```bash
 root@lq-d25:~# virsh domblklist mvp3
- Destino   Origen
------------------------------------------------------
+ Destino   Fuente
+---------------------------------------------------------------------------
  vda       /var/lib/libvirt/images/mvp3.qcow2
- vdb       /var/lib/libvirt/images/mvp3_datos.qcow2
- vdc       /var/lib/libvirt/images/COMPARTIDO/pcHOST_LQD_ANFITRION25_Vol3_p3
+ vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3
+ vdc       /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
+ sda       /var/lib/libvirt/images/Vol1_p3
+ sdb       /dev/sda11
 ```
 
 ## 6. Formatear el disco y crear el sistema de archivos XFS en mvp3
 
 Acceder a la máquina virtual mvp3 y formatear el disco con XFS
 
+Iniciar la consola de mvp3
+
 ```bash
-# Iniciar la consola de mvp3
-root@lq-d25:~# virsh console mvp3
-Conectado a la consola de dominio mvp3.
-Escape character is ^]
+root@lq-d25:~# virsh domifaddr mvp3
+ Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+ vnet0      00:16:3e:37:a0:03    ipv4         192.168.122.242/24
 
-# Una vez dentro de mvp3, verificar que el disco está disponible
-[root@mvp3 ~]# lsblk
-NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-vda    252:0    0   10G  0 disk 
-├─vda1 252:1    0    1G  0 part /boot
-└─vda2 252:2    0    9G  0 part 
-  ├─cl-root 253:0  0  8G  0 lvm  /
-  └─cl-swap 253:1  0  1G  0 lvm  [SWAP]
-vdb    252:16   0    2G  0 disk 
-└─vdb1 252:17   0    2G  0 part /data
-vdc    252:32   0    1G  0 disk
+root@lq-d25:~# ssh root@192.168.122.242
+Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
 
-# Crear sistema de archivos XFS en el disco vdc (sin particionar)
-[root@mvp3 ~]# mkfs.xfs /dev/vdc
+Last login: Thu Mar  6 20:33:30 2025 from 192.168.122.1
+root@mvp1:~# 
+```
+
+Una vez dentro de mvp3, verificar que el disco está disponible
+
+```
+root@mvp1:~# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda               8:0    0    1G  0 disk 
+└─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
+sdb               8:16   0    1G  0 disk /VDB
+zram0           251:0    0  1,9G  0 disk [SWAP]
+vda             252:0    0   10G  0 disk 
+├─vda1          252:1    0    1M  0 part 
+├─vda2          252:2    0    1G  0 part /boot
+└─vda3          252:3    0    9G  0 part 
+  └─fedora-root 253:0    0    9G  0 lvm  /
+vdb             252:16   0    1G  0 disk 
+vdc             252:32   0    1G  0 disk 
+```
+
+Crear sistema de archivos XFS en el disco vdc (sin particionar)
+
+``bash
+root@mvp1:~# mkfs.xfs /dev/vdc
 meta-data=/dev/vdc               isize=512    agcount=4, agsize=65536 blks
          =                       sectsz=512   attr=2, projid32bit=1
-         =                       crc=1        finobt=1, sparse=1, rmapbt=0
-         =                       reflink=1    bigtime=0 inobtcount=0
+         =                       crc=1        finobt=1, sparse=1, rmapbt=1
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
 data     =                       bsize=4096   blocks=262144, imaxpct=25
          =                       sunit=0      swidth=0 blks
 naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
-log      =internal log           bsize=4096   blocks=2560, version=2
+log      =internal log           bsize=4096   blocks=16384, version=2
          =                       sectsz=512   sunit=0 blks, lazy-count=1
 realtime =none                   extsz=4096   blocks=0, rtextents=0
+Discarding blocks...Done.
 ```
 
 ## 7. Montar el sistema de archivos y crear el archivo de prueba
 
+Crear el directorio de montaje
 ```bash
-# Crear el directorio de montaje
-[root@mvp3 ~]# mkdir -p /VDC
+root@mvp1:~# mkdir -p /VDC
+```
 
-# Montar el disco manualmente
-[root@mvp3 ~]# mount /dev/vdc /VDC
+Montar el disco manualmente
 
-# Crear el archivo de prueba
-[root@mvp3 ~]# echo "Este es un archivo de prueba" > /VDC/test.txt
+```bash
+root@mvp1:~# mount /dev/vdc /VDC
+```
 
-# Verificar que el archivo se ha creado correctamente
-[root@mvp3 ~]# cat /VDC/test.txt
+Crear el archivo de prueba
+
+```bash
+root@mvp1:~# echo "Este es un archivo de prueba" > /VDC/test.txt
+```
+
+Verificar que el archivo se ha creado correctamente
+
+```bash
+root@mvp1:~# cat /VDC/test.txt
 Este es un archivo de prueba
+```
 
-# Verificar el montaje
-[root@mvp3 ~]# df -h | grep vdc
-/dev/vdc        1,0G   42M  982M   5% /VDC
+Verificar el montaje
+
+```bash
+root@mvp1:~# df -h | grep vdc
+/dev/vdc                  960M    51M  910M   6% /VDC
 ```
 
 ## 8. Configurar el montaje automático en el arranque
 
 Añadir una entrada en el archivo /etc/fstab para el montaje automático
 
+Obtener el UUID del disco para un montaje más fiable:
 ```bash
-# Obtener el UUID del disco para un montaje más fiable
-[root@mvp3 ~]# blkid | grep vdc
-/dev/vdc: UUID="a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6" BLOCK_SIZE="512" TYPE="xfs"
+root@mvp1:~# blkid | grep vdc
+/dev/vdc: UUID="877f6a37-3466-4e81-95f7-9cf4e64421a4" BLOCK_SIZE="512" TYPE="xfs"
+```
 
-# Editar el archivo /etc/fstab
-[root@mvp3 ~]# echo "UUID=a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6 /VDC xfs defaults 0 0" >> /etc/fstab
+Editar el archivo `/etc/fstab`
 
-# Verificar la configuración
-[root@mvp3 ~]# cat /etc/fstab | grep VDC
-UUID=a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6 /VDC xfs defaults 0 0
+```bash
+root@mvp1:~# echo "UUID=877f6a37-3466-4e81-95f7-9cf4e64421a4 /VDC xfs defaults 0 0" >> /etc/fstab
+```
+
+Verificar la configuración
+
+```bash
+root@mvp1:~# cat /etc/fstab | grep VDC
+UUID=877f6a37-3466-4e81-95f7-9cf4e64421a4 /VDC xfs defaults 0 0
 ```
 
 ## 9. Validación final: Reiniciar la VM y verificar el montaje automático
 
+Reiniciar la VM
 ```bash
-# Reiniciar la VM
-[root@mvp3 ~]# reboot
+root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
+Connection to 192.168.122.242 closed.
+```
 
-# Después del reinicio, verificar que el sistema de archivos está montado automáticamente
-[root@mvp3 ~]# mount | grep vdc
-/dev/vdc on /VDC type xfs (rw,relatime,attr2,inode64,logbufs=8,logbsize=32k,noquota)
+Después del reinicio, verificar que el sistema de archivos está montado automáticamente
 
-# Comprobar que el archivo de prueba sigue disponible
-[root@mvp3 ~]# cat /VDC/test.txt
+```bash
+root@mvp1:~# mount | grep vdc
+/dev/vdc on /VDC type xfs (rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota)
+```
+
+Comprobar que el archivo de prueba sigue disponible
+
+```bash
+root@mvp1:~# cat /VDC/test.txt
 Este es un archivo de prueba
 ```
 
@@ -1361,12 +1409,14 @@ virsh pool-refresh CONT_VOL_COMP
 
 ## 11. Verificación del montaje NFS a nivel de sistema operativo host
 
+Verificar que el NFS está correctamente montado
 ```bash
-# Verificar que el NFS está correctamente montado
 root@lq-d25:~# mount | grep disnas2
 disnas2.dis.ulpgc.es:/disnas2-itsi on /var/lib/libvirt/images/COMPARTIDO type nfs (rw,nosuid,nodev,noexec,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.22.146.216,mountvers=3,mountport=57049,mountproto=udp,local_lock=none,addr=10.22.146.216)
+```
 
-# Ver estadísticas del sistema de archivos montado
-root@lq-d25:~# df -h | grep COMPARTIDO
-disnas2.dis.ulpgc.es:/disnas2-itsi   248G   2,3G  246G   1% /var/lib/libvirt/images/COMPARTIDO
+Ver estadísticas del sistema de archivos montado
+```
+root@lq-d25:~#  df -h | grep COMPARTIDO
+disnas2.dis.ulpgc.es:/disnas2-itsi   396G    23G  374G   6% /var/lib/libvirt/images/COMPARTIDO
 ```

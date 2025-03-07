@@ -850,8 +850,8 @@ root@lq-d25:~# virsh domblklist mvp3
  Destino   Fuente
 ----------------------------------------------------
  vda       /var/lib/libvirt/images/mvp3.qcow2
- vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3
- sda       /var/lib/libvirt/images/Vol1_p3
+ vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3.qcow2
+ sda       /var/lib/libvirt/images/Vol1_p3.img
  sdb       /dev/sda11
 ```
 
@@ -1261,9 +1261,9 @@ root@lq-d25:~# virsh domblklist mvp3
  Destino   Fuente
 ---------------------------------------------------------------------------
  vda       /var/lib/libvirt/images/mvp3.qcow2
- vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3
- vdc       /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
- sda       /var/lib/libvirt/images/Vol1_p3
+ vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3.qcow2
+ vdc       /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3.qcow2
+ sda       /var/lib/libvirt/images/Vol1_p3.img
  sdb       /dev/sda11
 ```
 

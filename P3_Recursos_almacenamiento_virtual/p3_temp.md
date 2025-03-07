@@ -64,7 +64,7 @@ El disco ha sido desmontado exitosamente
 Ahora:
 
 ```
-root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3 sda --config --type disk --driver qemu --subdriver raw
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.img sda --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
 
@@ -91,7 +91,7 @@ root@lq-d25:~# virsh domblklist mvp3 --details
  Tipo   Dispositivo   Destino   Fuente
 --------------------------------------------------------------------
  file   disk          vda       /var/lib/libvirt/images/mvp3.qcow2
- file   disk          sda       /var/lib/libvirt/images/Vol1_p3
+ file   disk          sda       /var/lib/libvirt/images/Vol1_p3.img
 ```
 
 Para completar la práctica 3 Tarea 1, necesitamos hacer lo siguiente dentro de la máquina virtual mvp3:
@@ -174,7 +174,7 @@ Particionado con fdisk: Creaste una partición primaria de 512MB, lo que represe
 
 4. Creamos el sistema de archivos XFS en la nueva partición:
 
-```
+```bash
 root@mvp1:~# mkfs.xfs -f /dev/sda1
 meta-data=/dev/sda1              isize=512    agcount=4, agsize=32768 blks
          =                       sectsz=512   attr=2, projid32bit=1
@@ -191,7 +191,7 @@ Discarding blocks...Done.
 
 para comprobar la persistencia, reiniciamos la MV y verificamos que el disco sigue disponible:
 
-```
+```bash
 root@mvp1:~# reboot
 root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
 Connection to 192.168.122.242 closed.
@@ -199,6 +199,9 @@ root@lq-d25:~# ssh root@192.168.122.242
 Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
 
 Last login: Fri Feb 28 20:10:38 2025 from 192.168.122.1
+```
+
+```bash
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
 sda               8:0    0    1G  0 disk 
@@ -222,14 +225,13 @@ root@mvp1:~# mount | grep sda1
 
 6. Montamos el sistema de archivos
 
-```
+```bash
 root@mvp1:~# mkdir -p /mnt/nuevo_disco
 root@mvp1:~# mount /dev/sda1 /mnt/nuevo_disco
 ```
-
 Verificamos que el sistema de archivos está montado correctamente:
 
-```
+```bash
 root@mvp1:~# df -h /mnt/nuevo_disco
 S.ficheros     Tamaño Usados  Disp Uso% Montado en
 /dev/sda1        504M    24K  478M   1% /mnt/nuevo_disco
@@ -237,7 +239,7 @@ S.ficheros     Tamaño Usados  Disp Uso% Montado en
 
 Detalles de la partición creada:
 
-```
+```bash
 root@mvp1:~# fdisk -l /dev/sda
 Disk /dev/sda: 1 GiB, 1073741824 bytes, 2097152 sectors
 Disk model: QEMU HARDDISK   
@@ -254,14 +256,14 @@ Device     Boot Start     End Sectors  Size Id Type
 
 7. Creamos el archivo test.txt
 
-```
+```bash
 root@mvp1:~# touch /mnt/nuevo_disco/test.txt
 
 ```
 
 8. Verificamos que se ha creado correctamente
 
-```
+```bash
 root@mvp1:~# ls -l /mnt/nuevo_disco
 total 16
 drwx------. 2 root root 16384 feb 28 20:15 lost+found
@@ -271,14 +273,17 @@ drwx------. 2 root root 16384 feb 28 20:15 lost+found
 
 Montaje persistente: para que el montaje sobreviva a reinicio, añadimos una entrada a /etc/fstab
 
-```
+```bash
 echo "/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0" >> /etc/fstab
 ```
 
 Comprobamos:
 
-```
+```bash
 root@mvp1:~# echo "/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0" >> /etc/fstab
+````
+
+```bash
 root@mvp1:~# reboot
 root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
 Connection to 192.168.122.242 closed.
@@ -286,6 +291,9 @@ root@lq-d25:~# ssh root@192.168.122.242
 Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
 
 Last login: Fri Feb 28 20:24:06 2025 from 192.168.122.1
+```
+
+```bash
 root@mvp1:~# ls -l /mnt/nuevo_disco
 total 0
 -rw-r--r--. 1 root root 0 feb 28 20:28 test.txt
@@ -507,7 +515,7 @@ total 0
 
 Creamos el directorio destino:
 
-```
+```bash
 mkdir -p /VDB
 ```
 
@@ -1298,7 +1306,7 @@ vdc             252:32   0    1G  0 disk
 
 Crear sistema de archivos XFS en el disco vdc (sin particionar)
 
-``bash
+```bash
 root@mvp1:~# mkfs.xfs /dev/vdc
 meta-data=/dev/vdc               isize=512    agcount=4, agsize=65536 blks
          =                       sectsz=512   attr=2, projid32bit=1
@@ -1316,6 +1324,7 @@ Discarding blocks...Done.
 ## 7. Montar el sistema de archivos y crear el archivo de prueba
 
 Crear el directorio de montaje
+
 ```bash
 root@mvp1:~# mkdir -p /VDC
 ```
@@ -1419,4 +1428,20 @@ Ver estadísticas del sistema de archivos montado
 ```
 root@lq-d25:~#  df -h | grep COMPARTIDO
 disnas2.dis.ulpgc.es:/disnas2-itsi   396G    23G  374G   6% /var/lib/libvirt/images/COMPARTIDO
+```
+
+Todos los archivos de las tareas:
+
+```bash
+root@mvp1:~# ls -l /VDB
+total 0
+-rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
+root@mvp1:~# ls -l /mnt/disco_fisico/
+total 0
+-rw-r--r--. 1 root root 0 mar  7 20:18 test.txt
+root@mvp1:~# ls -l /mnt/nuevo_disco/
+total 0
+-rw-r--r--. 1 root root 0 mar  7 20:15 test.txt
+root@mvp1:~# ls -l /VDC/test.txt 
+-rw-r--r--. 1 root root 29 mar  7 20:28 /VDC/test.txt
 ```

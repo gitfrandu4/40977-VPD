@@ -69,6 +69,34 @@ _Esta sección se completará a medida que avance el curso con resúmenes de los
 
 ### 1. Fundamentos y tecnologías de virtualización
 
+En este módulo se abordan los conceptos fundamentales de la virtualización y se profundiza en el funcionamiento del sistema KVM. Se divide en dos temas principales:
+
+#### [Tema 1.1: Fundamentos y tecnologías de virtualización](Tema_1_1_fundamentos_y_tecnologias_de_virtualizacion.md)
+
+Este tema introduce los conceptos esenciales de la virtualización, incluyendo:
+
+- Definición, utilidad e inconvenientes de la virtualización
+- Conceptos básicos: anfitrión, huésped, hipervisor
+- Evolución histórica de la virtualización
+- Tipos de virtualización (recursos, plataforma)
+- Clasificación de hipervisores (Tipo I y Tipo II)
+- Comparativa entre diferentes enfoques de virtualización
+
+El estudio de este contenido permite comprender los fundamentos teóricos necesarios para abordar las implementaciones prácticas de entornos virtualizados.
+
+#### [Tema 1.2: El sistema anfitrión y anatomía de la máquina virtual en KVM](Tema_1_2_el_sistema_anfitrion_y_anatomia_de_la_mv_en_kvm.md)
+
+Este tema se centra en la arquitectura y funcionamiento de KVM, cubriendo:
+
+- Componentes principales de KVM (módulos del kernel, QEMU, libvirt)
+- Funcionalidades y limitaciones del sistema
+- Interfaz de virtualización y archivos de configuración XML
+- Recursos de las máquinas virtuales (CPU, memoria, dispositivos)
+- Gestión del almacenamiento virtualizado
+- Infraestructura de red virtual (switch virtual, NAT, puentes)
+
+El dominio de estos conceptos resulta fundamental para la correcta implementación y administración de las prácticas basadas en KVM que se desarrollan en la asignatura.
+
 ### 2. Infraestructuras y protocolos de comunicación para procesamiento distribuido
 
 ### 3. Tecnologías para el almacenamiento distribuido en los sistemas de información

@@ -147,6 +147,7 @@ El dominio de estos conceptos resulta fundamental para la correcta implementaci�
 **Recursos:**
 
 - [Documentación completa](P2_Operaciones_con_MV_KVM/p2.md)
+- [Cheatsheet de comandos KVM](P2_Operaciones_con_MV_KVM/comandos_kvm_operaciones_cheatsheet.md)
 
 ### Práctica 3: Recursos de almacenamiento virtual
 

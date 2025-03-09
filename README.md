@@ -6,6 +6,8 @@
   - [Objetivos de Aprendizaje](#objetivos-de-aprendizaje)
   - [Contenido Teórico](#contenido-teórico)
     - [1. Fundamentos y tecnologías de virtualización](#1-fundamentos-y-tecnologías-de-virtualización)
+      - [Tema 1.1: Fundamentos y tecnologías de virtualización](#tema-11-fundamentos-y-tecnologías-de-virtualización)
+      - [Tema 1.2: El sistema anfitrión y anatomía de la máquina virtual en KVM](#tema-12-el-sistema-anfitrión-y-anatomía-de-la-máquina-virtual-en-kvm)
     - [2. Infraestructuras y protocolos de comunicación para procesamiento distribuido](#2-infraestructuras-y-protocolos-de-comunicación-para-procesamiento-distribuido)
     - [3. Tecnologías para el almacenamiento distribuido en los sistemas de información](#3-tecnologías-para-el-almacenamiento-distribuido-en-los-sistemas-de-información)
     - [4. Tecnologías para el procesamiento distribuido en los sistemas de información](#4-tecnologías-para-el-procesamiento-distribuido-en-los-sistemas-de-información)

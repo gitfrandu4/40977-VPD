@@ -13,6 +13,11 @@
   - [1.6. Recursos de la máquina virtual (MV)](#16-recursos-de-la-máquina-virtual-mv)
   - [1.7. Almacenamiento](#17-almacenamiento)
   - [1.8. Recursos virtuales de red](#18-recursos-virtuales-de-red)
+    - [Switch virtual](#switch-virtual)
+    - [Red NAT](#red-nat)
+    - [Red enrutada](#red-enrutada)
+    - [Red aislada](#red-aislada)
+    - [Interfaz modo puente (_bridge_)](#interfaz-modo-puente-bridge)
   - [1.9. Bibliografía](#19-bibliografía)
 
 ## Objetivos
@@ -252,4 +257,112 @@ Formatos de imágenes de disco soportados por libvirt:
 
 ## 1.8. Recursos virtuales de red
 
+Se estructuran en base a dos conceptos.
+
+- **Controladora de red (NIC)**
+  - Controladora emulada.
+  - Controladora paravirtualiazada.
+  - Controladora del anfitrión conectada a la MV
+
+- **Switch virtual**. Se implementan mediante filtros de red proporcionados por `libvirt` y reglas del cortafuegos del sistema anfitrión
+  - Red virtual aislada. Se implementan mediante filtros de red manejados por libvirt.
+  - Red virtual de tipo NAT. Se implementan utilizando reglas del cortafuegos del sistema anfitrión.
+  - Red virtual de tipo enrutada. Se implementan utilizando reglas del cortafuegos del sistema anfitrión.
+
+- Bridge del sistema anfitrión que se asocia a una NIC de las MVs.
+
+---
+
+### Switch virtual
+
+Un **switch virtual** representa una red virtual conectada con el anfitrión.
+
+- La comunicación entre redes virtuales y con el exterior es gestionada por el anfitrión.
+- El anfitrión realiza funciones de enrutador.
+
+<img src="assets/2025-03-09-16-12-17.png" alt="Virtual Switch" width="600"/>
+
+- Flujo de paquetes (ida):
+
+<img src="assets/2025-03-09-16-12-49.png" alt="Paquetes de red" width="600"/>
+
+- Flujo de paquetes (vuelta):
+
+<img src="assets/2025-03-09-16-13-15.png" alt="Paquetes de red" width="600"/>
+
+En Linux el **switch virtual** se muestra como una interface de red.
+
+- La primera vez que se inicia crea la interface **virb0**
+- Las redes virtuales pueden operar en tres modos:
+  - Red NAT
+  - Red enrutada
+  - Red aislada
+- Su modo de operación lo define la configuración el cortafuego (_iptables_).
+- La interface **virb0** representa a una red NAT cuyo nombre es default.
+
+---
+
+### Red NAT
+- Se usa
+  - MV con direcciones privadas
+  - Conexión al exterior
+
+➡️ Hacer NAT sobre la dirección fuente
+
+```bash
+-A POSTROUTING -s 192.168.11.0/24 ! -d 192.168.11.0/24 -o virbr0-nic -j MASQUERADE
+```
+
+- Si se desea conectarse desde el exterior
+  - Desvío de puerto explícito con iptables
+
+<img src="assets/2025-03-09-16-14-24.png" alt="Red NAT" width="600"/>
+
+---
+
+### Red enrutada
+
+Se usa
+- MV con direcciones reales (enrutables)
+- Conexión al exterior
+
+➡️ Permitir acceso hacia y desde el exterior
+
+```bash
+-A FORWARD -d 193.16.100.0/24 -o virbr1-j ACCEPT
+-A FORWARD -s 193.16.100.0/24 -i virbr1-j ACCEPT
+```
+
+<img src="assets/2025-03-09-16-35-05.png" alt="Red enrutada" width="600"/>
+
+---
+
+### Red aislada
+
+Se usa
+- MV sin conexión
+
+➡️ Impedir el acceso
+
+```bash
+-A FORWARD-o virbr2-j REJECT--reject-with icmp-port-unreachable
+-A FORWARD-i virbr2-j REJECT--reject-with icmp-port-unreachable
+```
+
+<img src="assets/2025-03-09-16-36-40.png" alt="Red aislada" width="600"/>
+
+---
+
+### Interfaz modo puente (_bridge_)
+
+- Para conectar MVs a la misma LAN que el host físico
+- Se define un puente (_bridge_) al que se conecta el anfitrión y a las MVs.
+- Las MVs conectadas al _bridge_ poseen direcciones de la misma red que la interface física.
+
+<img src="assets/2025-03-09-16-37-10.png" alt="Interfaz modo puente" width="600"/>
+
+
 ## 1.9. Bibliografía
+
+- Red Hat Enterprise Linux 7. Virtualization Getting Started Guide.
+- Red Hat Enterprise Linux 7. Virtualization Tuning and Optimization Guide.

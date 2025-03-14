@@ -789,7 +789,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 ## 6. Crear el storage pool con virsh
 
 ```bash
-root@lq-d25:~# virsh pool-define-as Contenedor_Particion dir - - - - /var/lib/libvirt/Pool_Particion
+root@lq-d25:~# virsh pool-define-as Contenedor_Particion fs - - - - /var/lib/libvirt/Pool_Particion
 El grupo Contenedor_Particion ha sido definido
 ```
 
@@ -818,6 +818,31 @@ root@lq-d25:~# virsh pool-list --all
  default                activo   si
  ISO                    activo   si
 ```
+
+=======================
+
+```
+virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion
+El grupo Contenedor_Particion ha sido definido
+
+root@lq-d25:~# virsh pool-start Contenedor_Particion
+Se ha iniciado el grupo Contenedor_Particion
+
+root@lq-d25:~# virsh pool-autostart Contenedor_Particion
+El grupo Contenedor_Particion ha sido marcado como iniciable automáticamente
+
+root@lq-d25:~# virsh pool-list --all
+ Nombre                 Estado     Inicio automático
+------------------------------------------------------
+ CONT_ISOS_COMP         inactivo   no
+ CONT_VOL_COMP          inactivo   no
+ Contenedor_Particion   activo     si
+ default                activo     si
+ ISO                    activo     si
+```
+
+
+======================
 
 ## 7. Crear volumen qcow2 en el storage pool
 

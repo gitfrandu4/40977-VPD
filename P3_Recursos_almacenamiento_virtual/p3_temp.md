@@ -821,6 +821,12 @@ root@lq-d25:~# virsh pool-list --all
 
 =======================
 
+¿¿¿¿ESTO ANTES???
+```
+mkfs.xfs /dev/sda13
+```
+
+
 ```
 virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion
 El grupo Contenedor_Particion ha sido definido

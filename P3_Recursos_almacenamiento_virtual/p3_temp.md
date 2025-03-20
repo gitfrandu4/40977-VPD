@@ -64,7 +64,7 @@ El disco ha sido desmontado exitosamente
 Ahora:
 
 ```
-root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.img sda --config --type disk --driver qemu --subdriver raw
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.qcow2 sda --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
 

@@ -789,7 +789,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 ## 6. Crear el storage pool con virsh
 
 ```bash
-root@lq-d25:~# virsh pool-define-as Contenedor_Particion fs - - - - /var/lib/libvirt/Pool_Particion
+root@lq-d25:~# virsh pool-define-as Contenedor_Particion dir - - - - /var/lib/libvirt/Pool_Particion
 El grupo Contenedor_Particion ha sido definido
 ```
 

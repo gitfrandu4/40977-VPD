@@ -37,7 +37,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 1. Create the raw volume
 
 ```
-root@lq-d25:~# virsh vol-create-as default Vol1_p3 1G --format raw
+root@lq-d25:~# virsh vol-create-as default Vol1_p3.qcow2 1G --format raw
 Se ha creado el volumen Vol1_p3
 ```
 

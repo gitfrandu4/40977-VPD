@@ -403,7 +403,7 @@ Comandos dentro de fdisk:
 Es crucial recordar qué partición se ha creado
 
 ```
-/dev/sda11
+/dev/sda13
 ```
 
 ```
@@ -528,8 +528,27 @@ root@mvp1:~# echo "/dev/sdb /mnt/disco_fisico xfs defaults 0 0" >> /etc/fstab
 ```
 
 ```bash
-root@mvp1:~# cat /etc/fstab
+root@mvp1:~# cat /etc/fstab 
 
+#
+# /etc/fstab
+# Created by anaconda on Fri Feb 14 19:27:15 2025
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk/'.
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info.
+#
+# After editing this file, run 'systemctl daemon-reload' to update systemd
+# units generated from this file.
+#
+UUID=86e79892-bf3a-4793-8074-fc0c76acae8b /                       xfs     defaults        0 0
+UUID=0da1439f-42fb-4986-ba69-c84fe43d8394 /boot                   xfs     defaults        0 0
+/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0
+/dev/sdb /mnt/disco_fisico xfs defaults 0 0
+```
+
+```bash
+root@mvp1:~# cat /etc/fstab
+```
 
 ## Comandos de validación
 
@@ -1432,6 +1451,27 @@ Comprobar que el archivo de prueba sigue disponible
 ```bash
 root@mvp1:~# cat /VDC/test.txt
 Este es un archivo de prueba
+```
+
+```bash
+root@mvp1:~# cat /etc/fstab 
+
+#
+# /etc/fstab
+# Created by anaconda on Fri Feb 14 19:27:15 2025
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk/'.
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info.
+#
+# After editing this file, run 'systemctl daemon-reload' to update systemd
+# units generated from this file.
+#
+UUID=86e79892-bf3a-4793-8074-fc0c76acae8b /                       xfs     defaults        0 0
+UUID=0da1439f-42fb-4986-ba69-c84fe43d8394 /boot                   xfs     defaults        0 0
+/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0
+/dev/sdb /mnt/disco_fisico xfs defaults 0 0
+UUID=6a85a9cd-1dd4-488e-9c82-af011f935f88 /VDB xfs defaults 0 0
+UUID=c5bc8f23-41ba-46ac-9f11-3669018d0ac6  /VDC xfs defaults 0 0
 ```
 
 ## 10. Comandos adicionales para gestionar el pool NFS

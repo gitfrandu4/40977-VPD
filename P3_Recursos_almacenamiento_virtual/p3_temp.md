@@ -37,7 +37,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 1. Create the raw volume
 
 ```
-root@lq-d25:~# virsh vol-create-as default Vol1_p3.qcow2 1G --format raw
+root@lq-d25:~# virsh vol-create-as default Vol1_p3.img 1G --format raw
 Se ha creado el volumen Vol1_p3
 ```
 
@@ -64,7 +64,7 @@ El disco ha sido desmontado exitosamente
 Ahora:
 
 ```
-root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.qcow2 sda --config --type disk --driver qemu --subdriver raw
+root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.img sda --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
 
@@ -519,57 +519,17 @@ total 0
 
 ## Paso 6: Además, deberá realizar la configuración necesaria para que el volumen se monte de forma automática en el arranque de la máquina mvp3 en el directorio /VDB.
 
-Creamos el directorio destino:
-
 ```bash
-mkdir -p /VDB
-```
-
-Todos los comandos:
-
-```bash
-root@mvp1:~# mkdir -p /VDB
-root@mvp1:~# mount /dev/sdb /VDB
+echo "/dev/sdb /mnt/disco_fisico xfs defaults 0 0" >> /etc/fstab
 ```
 
 ```bash
-root@mvp1:~# df -h /VDB/
-S.ficheros     Tamaño Usados  Disp Uso% Montado en
-/dev/sdb         960M    51M  910M   6% /VDB
+root@mvp1:~# echo "/dev/sdb /mnt/disco_fisico xfs defaults 0 0" >> /etc/fstab
 ```
 
 ```bash
-root@mvp1:~# ls -l /VDB/
-total 0
--rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
-```
+root@mvp1:~# cat /etc/fstab
 
-```bash
-root@mvp1:~# echo "/dev/sdb /VDB xfs defaults 0 0" >> /etc/fstab
-root@mvp1:~# reboot
-root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
-Connection to 192.168.122.242 closed.
-```
-
-```bash
-root@lq-d25:~# ssh root@192.168.122.242
-ssh: connect to host 192.168.122.242 port 22: No route to host
-root@lq-d25:~# virsh domifaddr mvp3
- Nombre     dirección MAC       Protocol     Address
--------------------------------------------------------------------------------
- vnet2      00:16:3e:37:a0:03    ipv4         192.168.122.242/24
-
-```
-
-```bash
-root@lq-d25:~# ssh root@192.168.122.242
-Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
-
-Last login: Thu Mar  6 20:04:30 2025
-root@mvp1:~# ls -l /VDB/
-total 0
--rw-r--r--. 1 root root 0 mar  6 19:51 test.txt
-```
 
 ## Comandos de validación
 
@@ -1521,3 +1481,147 @@ total 0
 root@mvp1:~# ls -l /VDC/test.txt
 -rw-r--r--. 1 root root 29 mar  7 20:28 /VDC/test.txt
 ```
+
+```bash
+root@mvp1:~# echo "UUID=877f6a37-3466-4e81-95f7-9cf4e64421a4 /VDC xfs defaults 0 0" >> /etc/fstab
+```
+
+**Importante**: Antes de reiniciar, validar la sintaxis y las entradas de fstab:
+
+```bash
+root@mvp1:~# mount -fav
+/                        : ignored
+/boot                   : already mounted
+/VDB                    : already mounted
+/VDC                    : already mounted
+```
+
+El comando `mount -fav` simula el montaje de todas las entradas sin realizar cambios reales. Si no hay errores, proceder con el reinicio.
+
+Verificar la configuración:
+
+```bash
+root@mvp1:~# cat /etc/fstab | grep VDC
+UUID=877f6a37-3466-4e81-95f7-9cf4e64421a4 /VDC xfs defaults 0 0
+```
+
+# Anexo: Resolución de Problemas de Red
+
+## Pérdida de Conectividad en Máquinas Virtuales
+
+Si una máquina virtual pierde la conectividad de red o no se puede acceder por SSH, sigue estos pasos para diagnosticar y resolver el problema:
+
+### 1. Verificar el Estado de la MV
+
+```bash
+# Listar todas las MVs y su estado
+virsh list --all
+
+# Si está apagada, encenderla
+virsh start nombre_mv
+```
+
+### 2. Acceso Directo a la MV
+
+Cuando SSH no está disponible, usa estos métodos alternativos:
+
+```bash
+# Acceso por consola (requiere que la MV tenga configurado el acceso por consola)
+virsh console nombre_mv
+
+# Acceso por visor gráfico
+virt-viewer nombre_mv
+```
+
+### 3. Diagnóstico de Red en la MV
+
+Una vez dentro de la MV, ejecuta:
+
+```bash
+# Verificar interfaces de red
+ip a
+
+# Estado del servicio de red
+systemctl status NetworkManager
+
+# Reiniciar el servicio de red si es necesario
+systemctl restart NetworkManager
+
+# Reiniciar una interfaz específica
+ifdown eth0 && ifup eth0
+```
+
+### 4. Verificación de Red en el Host
+
+En el sistema anfitrión:
+
+```bash
+# Verificar el bridge virtual
+ip a show virbr0
+
+# Listar interfaces de red de la MV
+virsh domiflist nombre_mv
+
+# Ver las direcciones IP asignadas a las MVs
+virsh domifaddr nombre_mv
+```
+
+### 5. Gestión del Servicio libvirtd
+
+El servicio libvirtd es crucial para la gestión de redes virtuales. Para administrarlo:
+
+```bash
+# Verificar el estado del servicio
+systemctl status libvirtd
+
+# Reiniciar el servicio
+systemctl restart libvirtd
+
+# Si el problema persiste, reiniciar también el servicio de red
+systemctl restart NetworkManager
+```
+
+### 6. Verificación Post-Reinicio
+
+Después de reiniciar los servicios:
+
+```bash
+# Verificar que libvirtd está activo
+systemctl is-active libvirtd
+
+# Comprobar la red virtual
+virsh net-list --all
+
+# Verificar la conectividad de la MV
+ping IP_DE_LA_MV
+```
+
+### Solución de Problemas Comunes
+
+1. **Error de Bridge Virtual**:
+
+   - Verificar que virbr0 existe y está activo
+   - Comprobar que la MV está conectada al bridge correcto
+   - Reiniciar libvirtd si es necesario
+
+2. **Problemas de DHCP**:
+
+   - Verificar que el servicio DHCP de libvirt está funcionando
+   - Comprobar los logs: `journalctl -u libvirtd`
+   - Revisar la configuración de red en `/etc/libvirt/qemu/`
+
+3. **Conflictos de IP**:
+   - Verificar que no hay IPs duplicadas en la red
+   - Comprobar el rango DHCP en la configuración de red virtual
+   - Liberar y renovar la IP de la MV
+
+### Prevención
+
+Para evitar futuros problemas:
+
+1. Mantener copias de seguridad de las configuraciones de red
+2. Documentar las IPs asignadas a cada MV
+3. Verificar regularmente el estado de los servicios de red
+4. Mantener actualizado el sistema host y las MVs
+
+**Nota**: Siempre es recomendable tener acceso por consola configurado en las MVs como método de recuperación alternativo cuando la red no está disponible.

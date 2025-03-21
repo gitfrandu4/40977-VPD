@@ -436,7 +436,7 @@ virsh attach-disk mvp3 /dev/sdaXX sdb --config --type disk --driver qemu --subdr
 6 de Marzo, vamos a ello!
 
 ```bash
-root@lq-d25:~# virsh attach-disk mvp3 /dev/sda11 sdb --config --type disk --driver qemu --subdriver raw
+root@lq-d25:~# virsh attach-disk mvp3 /dev/sda13 sdb --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
 
@@ -643,7 +643,11 @@ sda       8:0    0 953,9G  0 disk
 ├─sda8    8:8    0 146,5G  0 part 
 ├─sda9    8:9    0     1G  0 part 
 ├─sda10   8:10   0     2G  0 part 
-└─sda11   8:11   0     1G  0 part 
+├─sda11   8:11   0     1G  0 part 
+├─sda12   8:12   0     2G  0 part 
+├─sda13   8:13   0     1G  0 part 
+└─sda14   8:14   0     2G  0 part /var/lib/libvirt/Pool_Particion
+                                  /var/lib/libvirt/Pool_Particion
 sdb       8:16   1     0B  0 disk 
 zram0   252:0    0     8G  0 disk [SWAP]
 ```
@@ -702,6 +706,7 @@ Verificación:
 
 ```
 root@lq-d25:~# lsblk
+root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
 sda       8:0    0 953,9G  0 disk 
 ├─sda1    8:1    0    50M  0 part 
@@ -715,7 +720,10 @@ sda       8:0    0 953,9G  0 disk
 ├─sda9    8:9    0     1G  0 part 
 ├─sda10   8:10   0     2G  0 part 
 ├─sda11   8:11   0     1G  0 part 
-└─sda12   8:12   0     2G  0 part 
+├─sda12   8:12   0     2G  0 part 
+├─sda13   8:13   0     1G  0 part 
+└─sda14   8:14   0     2G  0 part /var/lib/libvirt/Pool_Particion
+                                  /var/lib/libvirt/Pool_Particion
 sdb       8:16   1     0B  0 disk 
 zram0   252:0    0     8G  0 disk [SWAP]
 ```
@@ -879,11 +887,12 @@ Verificar adjunción del disco:
 ```bash
 root@lq-d25:~# virsh domblklist mvp3
  Destino   Fuente
-----------------------------------------------------
+---------------------------------------------------------------------------
  vda       /var/lib/libvirt/images/mvp3.qcow2
- vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3.qcow2
+ vdb       /var/lib/libvirt/Pool_Particion/Vol2_p3
+ vdc       /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
  sda       /var/lib/libvirt/images/Vol1_p3.img
- sdb       /dev/sda11
+ sdb       /dev/sda13
 ```
 
 Nota: recordemos apagar la mv

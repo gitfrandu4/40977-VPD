@@ -731,7 +731,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 ## 2. Crear sistema de archivos ext4 en la nueva partición
 
 ```bash
-root@lq-d25:~# mkfs.ext4 /dev/sda12
+root@lq-d25:~# mkfs.ext4 /dev/sda14
 mke2fs 1.47.0 (5-Feb-2023)
 Descartando los bloques del dispositivo: hecho                           
 Se está creando un sistema de ficheros con 524288 bloques de 4k y 131072 nodos-i
@@ -754,7 +754,7 @@ root@lq-d25:~# mkdir -p /var/lib/libvirt/Pool_Particion
 ## 4. Montar la partición en el directorio
 
 ```bash
-root@lq-d25:~# mount /dev/sda12 /var/lib/libvirt/Pool_Particion
+root@lq-d25:~# mount /dev/sda14 /var/lib/libvirt/Pool_Particion
 ```
 
 ## 5. Configurar montaje automático en el host
@@ -762,8 +762,8 @@ root@lq-d25:~# mount /dev/sda12 /var/lib/libvirt/Pool_Particion
 Obtener UUID de la partición: 
 
 ```bash
-root@lq-d25:~# blkid /dev/sda12
-/dev/sda12: UUID="d49322db-bde4-4a05-8e49-dc3c37f7484d" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="d5de6562-0c"
+root@lq-d25:~# blkid /dev/sda14
+/dev/sda14: UUID="d49322db-bde4-4a05-8e49-dc3c37f7484d" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="d5de6562-0c"
 ```
 
 Editar fstab para montar automáticamente al arranque:
@@ -836,7 +836,7 @@ mkfs.xfs /dev/sda13
 
 
 ```
-virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion
+virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda14 --target /var/lib/libvirt/Pool_Particion
 El grupo Contenedor_Particion ha sido definido
 
 root@lq-d25:~# virsh pool-start Contenedor_Particion

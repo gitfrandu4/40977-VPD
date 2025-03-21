@@ -1032,6 +1032,32 @@ root@mvp1:~# cat /etc/fstab | grep VDB
 UUID=0051b7c0-22f9-4d30-9dc4-cc70f44ee818 /VDB xfs defaults 0 0
 ```
 
+Para asegurarnos que lo hemos creado correctamente como de tipo fs:
+
+```bash
+root@lq-d25:~# virsh pool-dumpxml Contenedor_Particion
+<pool type='fs'>
+  <name>Contenedor_Particion</name>
+  <uuid>3a56d64b-e0df-40d2-b660-71173a1cdc1b</uuid>
+  <capacity unit='bytes'>1006632960</capacity>
+  <allocation unit='bytes'>41066496</allocation>
+  <available unit='bytes'>965566464</available>
+  <source>
+    <device path='/dev/sda13'/>
+    <format type='auto'/>
+  </source>
+  <target>
+    <path>/var/lib/libvirt/Pool_Particion</path>
+    <permissions>
+      <mode>0755</mode>
+      <owner>0</owner>
+      <group>0</group>
+      <label>system_u:object_r:unlabeled_t:s0</label>
+    </permissions>
+  </target>
+</pool>
+```
+
 # Comandos para Tarea 4: Crear un contenedor NFS para imágenes ISO
 
 ## 1. Crear el directorio local para el montaje NFS

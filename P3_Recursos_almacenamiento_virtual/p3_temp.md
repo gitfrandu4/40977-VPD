@@ -6,7 +6,7 @@ Paso 1 clonamos
 
 ```
 root@lq-d25:~# virt-clone --original mvp1 --name mvp3 --file /var/lib/libvirt/images/mvp3.qcow2 --mac=00:16:3e:37:a0:03
-Allocating 'mvp3.qcow2'                                     | 1.8 GB  00:05 ... 
+Allocating 'mvp3.qcow2'                                     | 1.8 GB  00:05 ...
 
 El clon 'mvp3' ha sido creado exitosamente.
 ```
@@ -16,18 +16,18 @@ Listamos nosequé disponibles
 ```
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-└─sda10   8:10   0     2G  0 part 
-sdb       8:16   1     0B  0 disk 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+└─sda10   8:10   0     2G  0 part
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 
 ```
@@ -43,7 +43,7 @@ Se ha creado el volumen Vol1_p3
 
 2. attach with sda
 
-Si ejecutamos: 
+Si ejecutamos:
 
 ```
 root@lq-d25:~# virsh domblklist mvp3 --details
@@ -82,7 +82,7 @@ Conceptos clave de virtualizacion:
 - Volumen virtual: Un archivo o dispositivo que actúa como un disco físico para la máquina virtual.
 - Bus SATA: Interfaz de conexión para dispositivos de almacenamiento. Al adjuntar el disco, estás emulando una conexión SATA física.
 - Persistencia de configuración: La opción `--config` garantiza que el disco permanezca conectado incluso después de reiniciar la VM.
-====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
+  ====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
 
 3. verification
 
@@ -120,13 +120,13 @@ Last login: Fri Feb 28 20:06:07 2025
 ```
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda               8:0    0    1G  0 disk 
-sr0              11:0    1 1024M  0 rom  
+sda               8:0    0    1G  0 disk
+sr0              11:0    1 1024M  0 rom
 zram0           251:0    0  1,9G  0 disk [SWAP]
-vda             252:0    0   10G  0 disk 
-├─vda1          252:1    0    1M  0 part 
+vda             252:0    0   10G  0 disk
+├─vda1          252:1    0    1M  0 part
 ├─vda2          252:2    0    1G  0 part /boot
-└─vda3          252:3    0    9G  0 part 
+└─vda3          252:3    0    9G  0 part
   └─fedora-root 253:0    0    9G  0 lvm  /
 ```
 
@@ -148,7 +148,7 @@ Partition type
    e   extended (container for logical partitions)
 Select (default p): p
 Partition number (1-4, default 1): 1
-First sector (2048-2097151, default 2048): 
+First sector (2048-2097151, default 2048):
 Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-2097151, default 2097151): +512M
 
 Created a new partition 1 of type 'Linux' and of size 512 MiB.
@@ -161,6 +161,7 @@ Syncing disks.
 ```
 
 opciones usadas:
+
 ```
 Pulsa n para nueva partición
 Pulsa p para partición primaria
@@ -204,14 +205,14 @@ Last login: Fri Feb 28 20:10:38 2025 from 192.168.122.1
 ```bash
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda               8:0    0    1G  0 disk 
-└─sda1            8:1    0  512M  0 part 
-sr0              11:0    1 1024M  0 rom  
+sda               8:0    0    1G  0 disk
+└─sda1            8:1    0  512M  0 part
+sr0              11:0    1 1024M  0 rom
 zram0           251:0    0  1,9G  0 disk [SWAP]
-vda             252:0    0   10G  0 disk 
-├─vda1          252:1    0    1M  0 part 
+vda             252:0    0   10G  0 disk
+├─vda1          252:1    0    1M  0 part
 ├─vda2          252:2    0    1G  0 part /boot
-└─vda3          252:3    0    9G  0 part 
+└─vda3          252:3    0    9G  0 part
   └─fedora-root 253:0    0    9G  0 lvm  /
 
 ```
@@ -229,6 +230,7 @@ root@mvp1:~# mount | grep sda1
 root@mvp1:~# mkdir -p /mnt/nuevo_disco
 root@mvp1:~# mount /dev/sda1 /mnt/nuevo_disco
 ```
+
 Verificamos que el sistema de archivos está montado correctamente:
 
 ```bash
@@ -242,7 +244,7 @@ Detalles de la partición creada:
 ```bash
 root@mvp1:~# fdisk -l /dev/sda
 Disk /dev/sda: 1 GiB, 1073741824 bytes, 2097152 sectors
-Disk model: QEMU HARDDISK   
+Disk model: QEMU HARDDISK
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
@@ -281,7 +283,7 @@ Comprobamos:
 
 ```bash
 root@mvp1:~# echo "/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0" >> /etc/fstab
-````
+```
 
 ```bash
 root@mvp1:~# reboot
@@ -301,40 +303,40 @@ total 0
 
 ## Tarea 2: Creación y asociación de partición física a máquina virtual
 
-En la tarea 1 trabajamos con un volumen virtual (archivo). En la tarea 2 vamos a trabajar con una partición física real del host. 
+En la tarea 1 trabajamos con un volumen virtual (archivo). En la tarea 2 vamos a trabajar con una partición física real del host.
 
-Es importante que identifiquemos correctamente el disco y la partición extendida para no afectar a otros estudiantes. 
+Es importante que identifiquemos correctamente el disco y la partición extendida para no afectar a otros estudiantes.
 
 a tener en cuenta: Diferencia entre volúmenes y particiones: Los volúmenes son abstracciones de almacenamiento; las particiones son divisiones físicas de un disco
 
 Objetivo
 Crear una partición física en el host anfitrión y asociarla directamente a la máquina virtual mvp3 como un disco completo.
 
-1. Paso 1.  Identificar y crear la partición lógica en el host
-
+1. Paso 1. Identificar y crear la partición lógica en el host
 
 Primero, debemos identificar si estamos en un equipo con un disco (LQ-C/LQ-D) o dos discos (LQ-1/LQ-2):
 
 ```bash
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-└─sda10   8:10   0     2G  0 part 
-sdb       8:16   1     0B  0 disk 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+└─sda10   8:10   0     2G  0 part
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 
 ```
 
 ### Crear una partición lógica de 1GB
+
 Según la salida de lsblk, nos encontramos en un sistema con un disco principal (/dev/sda) que contiene 10 particiones extendidas.
 
 **IMPORTANTE**: Esta operación es delicada. Cualquier error puede dañar datos de otros estudiantes.
@@ -354,7 +356,7 @@ partitions on this disk.
 Command (m for help): p
 
 Disk /dev/sda: 953,87 GiB, 1024209543168 bytes, 2000409264 sectors
-Disk model: SSD-1TB         
+Disk model: SSD-1TB
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
@@ -376,7 +378,7 @@ Device     Boot      Start        End    Sectors   Size Id Type
 Command (m for help): n
 All primary partitions are in use.
 Adding logical partition 11
-First sector (1899954176-2000408575, default 1899954176): 
+First sector (1899954176-2000408575, default 1899954176):
 Last sector, +/-sectors or +/-size{K,M,G,T,P} (1899954176-2000408575, default 2000408575): +1G
 
 Created a new partition 11 of type 'Linux' and of size 1 GiB.
@@ -388,6 +390,7 @@ Syncing disks.
 ```
 
 Comandos dentro de fdisk:
+
 1. `p` - para imprimir la tabla de particiones actual y verificar el espacio
 2. `n` - para crear una nueva partición
 3. Aceptar el número de partición predeterminado
@@ -396,7 +399,8 @@ Comandos dentro de fdisk:
 6. `w` - para escribir los cambios y salir
 
 ### Anotar el nombre de la partición creada
-Es crucial recordar qué partición se ha creado 
+
+Es crucial recordar qué partición se ha creado
 
 ```
 /dev/sda11
@@ -405,19 +409,19 @@ Es crucial recordar qué partición se ha creado
 ```
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-├─sda10   8:10   0     2G  0 part 
-└─sda11   8:11   0     1G  0 part 
-sdb       8:16   1     0B  0 disk 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+├─sda10   8:10   0     2G  0 part
+└─sda11   8:11   0     1G  0 part
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 
 ```
@@ -431,6 +435,7 @@ Usaremos virsh attach-disk para conectar la partición física directamente a la
 ```bash
 virsh attach-disk mvp3 /dev/sdaXX sdb --config --type disk --driver qemu --subdriver raw
 ```
+
 (Reemplazar sdaXX con el número de partición real creada)
 
 6 de Marzo, vamos a ello!
@@ -440,10 +445,10 @@ root@lq-d25:~# virsh attach-disk mvp3 /dev/sda13 sdb --config --type disk --driv
 El disco ha sido asociado exitosamente
 ```
 
-
 ## Paso 3: Verificar que la partición está disponible en mvp3
 
 ### Iniciar sesión en mvp3
+
 ```bash
 root@lq-d25:~# virsh domifaddr mvp3
  Nombre     dirección MAC       Protocol     Address
@@ -464,17 +469,18 @@ root@mvp1:~#
 ```bash
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda               8:0    0    1G  0 disk 
+sda               8:0    0    1G  0 disk
 └─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
-sdb               8:16   0    1G  0 disk 
+sdb               8:16   0    1G  0 disk
 zram0           251:0    0  1,9G  0 disk [SWAP]
-vda             252:0    0   10G  0 disk 
-├─vda1          252:1    0    1M  0 part 
+vda             252:0    0   10G  0 disk
+├─vda1          252:1    0    1M  0 part
 ├─vda2          252:2    0    1G  0 part /boot
-└─vda3          252:3    0    9G  0 part 
+└─vda3          252:3    0    9G  0 part
   └─fedora-root 253:0    0    9G  0 lvm  /
 
 ```
+
 Deberíamos ver el nuevo disco como /dev/sdb
 
 ## Paso 4: Crear sistema de archivos XFS en el disco completo
@@ -568,11 +574,13 @@ total 0
 ## Comandos de validación
 
 1. Verificar el montaje:
+
 ```bash
 df -h | grep sdb
 ```
 
 2. Verificar el tipo de sistema de archivos:
+
 ```bash
 mount | grep sdb
 ```
@@ -591,19 +599,18 @@ fdisk -l /dev/sdb
 ```bash
 root@mvp1:~# fdisk -l /dev/sdb
 Disk /dev/sdb: 1 GiB, 1073741824 bytes, 2097152 sectors
-Disk model: QEMU HARDDISK   
+Disk model: QEMU HARDDISK
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
 ```
-
 
 # Notas
 
 Diferencia entre /dev/sda y /dev/vdda
 
 /vda => para virtualizaciones ¿? formato qacw. Emula el hardware físico, en la práctica, una interfaz sata
-/sda => lo de aquí lo trata como un disco real ¿? 
+/sda => lo de aquí lo trata como un disco real ¿?
 
 # Comandos para Tarea 3: Crear un storage pool en partición lógica
 
@@ -632,23 +639,23 @@ lsblk
 ```
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-├─sda10   8:10   0     2G  0 part 
-├─sda11   8:11   0     1G  0 part 
-├─sda12   8:12   0     2G  0 part 
-├─sda13   8:13   0     1G  0 part 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+├─sda10   8:10   0     2G  0 part
+├─sda11   8:11   0     1G  0 part
+├─sda12   8:12   0     2G  0 part
+├─sda13   8:13   0     1G  0 part
 └─sda14   8:14   0     2G  0 part /var/lib/libvirt/Pool_Particion
                                   /var/lib/libvirt/Pool_Particion
-sdb       8:16   1     0B  0 disk 
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 ```
 
@@ -669,7 +676,7 @@ partitions on this disk.
 Command (m for help): p
 
 Disk /dev/sda: 953,87 GiB, 1024209543168 bytes, 2000409264 sectors
-Disk model: SSD-1TB         
+Disk model: SSD-1TB
 Units: sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
@@ -692,7 +699,7 @@ Device     Boot      Start        End    Sectors   Size Id Type
 Command (m for help): n
 All primary partitions are in use.
 Adding logical partition 12
-First sector (1902053376-2000408575, default 1902053376): 
+First sector (1902053376-2000408575, default 1902053376):
 Last sector, +/-sectors or +/-size{K,M,G,T,P} (1902053376-2000408575, default 2000408575): +2G
 
 Created a new partition 12 of type 'Linux' and of size 2 GiB.
@@ -708,23 +715,23 @@ Verificación:
 root@lq-d25:~# lsblk
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-├─sda10   8:10   0     2G  0 part 
-├─sda11   8:11   0     1G  0 part 
-├─sda12   8:12   0     2G  0 part 
-├─sda13   8:13   0     1G  0 part 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+├─sda10   8:10   0     2G  0 part
+├─sda11   8:11   0     1G  0 part
+├─sda12   8:12   0     2G  0 part
+├─sda13   8:13   0     1G  0 part
 └─sda14   8:14   0     2G  0 part /var/lib/libvirt/Pool_Particion
                                   /var/lib/libvirt/Pool_Particion
-sdb       8:16   1     0B  0 disk 
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 ```
 
@@ -733,14 +740,14 @@ zram0   252:0    0     8G  0 disk [SWAP]
 ```bash
 root@lq-d25:~# mkfs.ext4 /dev/sda14
 mke2fs 1.47.0 (5-Feb-2023)
-Descartando los bloques del dispositivo: hecho                           
+Descartando los bloques del dispositivo: hecho
 Se está creando un sistema de ficheros con 524288 bloques de 4k y 131072 nodos-i
 UUID del sistema de ficheros: d49322db-bde4-4a05-8e49-dc3c37f7484d
-Respaldos del superbloque guardados en los bloques: 
+Respaldos del superbloque guardados en los bloques:
 	32768, 98304, 163840, 229376, 294912
 
-Reservando las tablas de grupo: hecho                           
-Escribiendo las tablas de nodos-i: hecho                           
+Reservando las tablas de grupo: hecho
+Escribiendo las tablas de nodos-i: hecho
 Creando el fichero de transacciones (16384 bloques): hecho
 Escribiendo superbloques y la información contable del sistema de ficheros:  0/1hecho
 ```
@@ -759,7 +766,7 @@ root@lq-d25:~# mount /dev/sda14 /var/lib/libvirt/Pool_Particion
 
 ## 5. Configurar montaje automático en el host
 
-Obtener UUID de la partición: 
+Obtener UUID de la partición:
 
 ```bash
 root@lq-d25:~# blkid /dev/sda14
@@ -777,20 +784,20 @@ Verificar la configuración:
 ```bash
 root@lq-d25:~# lsblk
 NAME    MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-sda       8:0    0 953,9G  0 disk 
-├─sda1    8:1    0    50M  0 part 
-├─sda2    8:2    0 477,2G  0 part 
-├─sda3    8:3    0     4G  0 part 
-├─sda4    8:4    0     1K  0 part 
-├─sda5    8:5    0  97,7G  0 part 
+sda       8:0    0 953,9G  0 disk
+├─sda1    8:1    0    50M  0 part
+├─sda2    8:2    0 477,2G  0 part
+├─sda3    8:3    0     4G  0 part
+├─sda4    8:4    0     1K  0 part
+├─sda5    8:5    0  97,7G  0 part
 ├─sda6    8:6    0  31,1G  0 part [SWAP]
 ├─sda7    8:7    0 146,5G  0 part /
-├─sda8    8:8    0 146,5G  0 part 
-├─sda9    8:9    0     1G  0 part 
-├─sda10   8:10   0     2G  0 part 
-├─sda11   8:11   0     1G  0 part 
+├─sda8    8:8    0 146,5G  0 part
+├─sda9    8:9    0     1G  0 part
+├─sda10   8:10   0     2G  0 part
+├─sda11   8:11   0     1G  0 part
 └─sda12   8:12   0     2G  0 part /var/lib/libvirt/Pool_Particion
-sdb       8:16   1     0B  0 disk 
+sdb       8:16   1     0B  0 disk
 zram0   252:0    0     8G  0 disk [SWAP]
 ```
 
@@ -830,10 +837,10 @@ root@lq-d25:~# virsh pool-list --all
 =======================
 
 ¿¿¿¿ESTO ANTES???
+
 ```
 mkfs.xfs /dev/sda13
 ```
-
 
 ```
 virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda14 --target /var/lib/libvirt/Pool_Particion
@@ -854,7 +861,6 @@ root@lq-d25:~# virsh pool-list --all
  default                activo     si
  ISO                    activo     si
 ```
-
 
 ======================
 
@@ -913,16 +919,16 @@ Verificar que el disco está disponible
 ```bash
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda               8:0    0    1G  0 disk 
+sda               8:0    0    1G  0 disk
 └─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
 sdb               8:16   0    1G  0 disk /VDB
 zram0           251:0    0  1,9G  0 disk [SWAP]
-vda             252:0    0   10G  0 disk 
-├─vda1          252:1    0    1M  0 part 
+vda             252:0    0   10G  0 disk
+├─vda1          252:1    0    1M  0 part
 ├─vda2          252:2    0    1G  0 part /boot
-└─vda3          252:3    0    9G  0 part 
+└─vda3          252:3    0    9G  0 part
   └─fedora-root 253:0    0    9G  0 lvm  /
-vdb             252:16   0    1G  0 disk 
+vdb             252:16   0    1G  0 disk
 ```
 
 Crear sistema de archivos XFS en el disco completo (sin particionar)
@@ -1091,7 +1097,7 @@ PING disnas2.dis.ulpgc.es (10.22.146.216) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.351/0.487/0.624/0.136 ms
 ```
 
-Listar los directorios exportados por el servidor NFS 
+Listar los directorios exportados por el servidor NFS
 
 ```
 root@lq-d25:~# showmount -e disnas2.dis.ulpgc.es
@@ -1208,7 +1214,7 @@ disnas2.dis.ulpgc.es:/imagenes/fedora/41/isos/x86_64   248G   1,5G  246G   1% /v
 ```
 
 ======================================================
-		HASTA AQUÍ JUEVES 6 MARZO 
+HASTA AQUÍ JUEVES 6 MARZO
 ======================================================
 
 # Comandos para Tarea 5: Crear un contenedor NFS para volúmenes de máquinas virtuales
@@ -1349,7 +1355,7 @@ root@lq-d25:~# ssh root@192.168.122.242
 Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.242:9090/
 
 Last login: Thu Mar  6 20:33:30 2025 from 192.168.122.1
-root@mvp1:~# 
+root@mvp1:~#
 ```
 
 Una vez dentro de mvp3, verificar que el disco está disponible
@@ -1357,17 +1363,17 @@ Una vez dentro de mvp3, verificar que el disco está disponible
 ```
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
-sda               8:0    0    1G  0 disk 
+sda               8:0    0    1G  0 disk
 └─sda1            8:1    0  512M  0 part /mnt/nuevo_disco
 sdb               8:16   0    1G  0 disk /VDB
 zram0           251:0    0  1,9G  0 disk [SWAP]
-vda             252:0    0   10G  0 disk 
-├─vda1          252:1    0    1M  0 part 
+vda             252:0    0   10G  0 disk
+├─vda1          252:1    0    1M  0 part
 ├─vda2          252:2    0    1G  0 part /boot
-└─vda3          252:3    0    9G  0 part 
+└─vda3          252:3    0    9G  0 part
   └─fedora-root 253:0    0    9G  0 lvm  /
-vdb             252:16   0    1G  0 disk 
-vdc             252:32   0    1G  0 disk 
+vdb             252:16   0    1G  0 disk
+vdc             252:32   0    1G  0 disk
 ```
 
 Crear sistema de archivos XFS en el disco vdc (sin particionar)
@@ -1426,6 +1432,7 @@ root@mvp1:~# df -h | grep vdc
 Añadir una entrada en el archivo /etc/fstab para el montaje automático
 
 Obtener el UUID del disco para un montaje más fiable:
+
 ```bash
 root@mvp1:~# blkid | grep vdc
 /dev/vdc: UUID="877f6a37-3466-4e81-95f7-9cf4e64421a4" BLOCK_SIZE="512" TYPE="xfs"
@@ -1447,6 +1454,7 @@ UUID=877f6a37-3466-4e81-95f7-9cf4e64421a4 /VDC xfs defaults 0 0
 ## 9. Validación final: Reiniciar la VM y verificar el montaje automático
 
 Reiniciar la VM
+
 ```bash
 root@mvp1:~# Connection to 192.168.122.242 closed by remote host.
 Connection to 192.168.122.242 closed.
@@ -1485,12 +1493,14 @@ virsh pool-refresh CONT_VOL_COMP
 ## 11. Verificación del montaje NFS a nivel de sistema operativo host
 
 Verificar que el NFS está correctamente montado
+
 ```bash
 root@lq-d25:~# mount | grep disnas2
 disnas2.dis.ulpgc.es:/disnas2-itsi on /var/lib/libvirt/images/COMPARTIDO type nfs (rw,nosuid,nodev,noexec,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.22.146.216,mountvers=3,mountport=57049,mountproto=udp,local_lock=none,addr=10.22.146.216)
 ```
 
 Ver estadísticas del sistema de archivos montado
+
 ```
 root@lq-d25:~#  df -h | grep COMPARTIDO
 disnas2.dis.ulpgc.es:/disnas2-itsi   396G    23G  374G   6% /var/lib/libvirt/images/COMPARTIDO
@@ -1508,6 +1518,6 @@ total 0
 root@mvp1:~# ls -l /mnt/nuevo_disco/
 total 0
 -rw-r--r--. 1 root root 0 mar  7 20:15 test.txt
-root@mvp1:~# ls -l /VDC/test.txt 
+root@mvp1:~# ls -l /VDC/test.txt
 -rw-r--r--. 1 root root 29 mar  7 20:28 /VDC/test.txt
 ```

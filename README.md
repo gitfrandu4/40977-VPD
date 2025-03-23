@@ -22,6 +22,7 @@
     - [Práctica 8 : Trabajo optativo](#práctica-8--trabajo-optativo)
   - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
   - [Recursos Adicionales](#recursos-adicionales)
+  - [Documentación de Firewalld](#documentación-de-firewalld)
   - [Normas de Entrega](#normas-de-entrega)
   - [Bibliografía](#bibliografía)
 
@@ -187,6 +188,19 @@ Próximamente...
 - [Documentación de Fedora sobre virtualización](https://docs.fedoraproject.org/en-US/quick-docs/virtualization-getting-started/)
 - [Libvirt Wiki](https://wiki.libvirt.org/)
 - [SELinux Project Wiki](https://selinuxproject.org/page/Main_Page)
+
+## Documentación de Firewalld
+
+El documento **Tema_Firewalld.md** proporciona una visión general de **firewalld**, la herramienta predeterminada de gestión de cortafuegos en CentOS 7 y Fedora 20+. Cubre aspectos clave como:
+
+- **Introducción**: Pasos de instalación, verificación de estado y una explicación de firewalld como interfaz dinámica para iptables.
+- **Zonas**: Descripciones detalladas de zonas predeterminadas y personalizadas (por ejemplo, `drop`, `block`, `public`, `external`, `internal`, `work`, `home`, `dmz` y `trusted`), y su papel en la gestión del tráfico de red.
+- **Gestión de Servicios**: Cómo firewalld utiliza servicios para aplicar reglas predefinidas para operaciones de red.
+- **Gestión de Puertos**: Comandos para abrir, cerrar y redirigir puertos, incluyendo la configuración de rangos de puertos y reglas de reenvío.
+- **Configuración**: Diferenciación entre configuraciones en tiempo de ejecución y permanentes, y el uso de archivos XML para configuraciones persistentes.
+- **Comandos Adicionales**: Otras operaciones útiles como habilitar el modo pánico y recargar configuraciones.
+
+Para instrucciones y ejemplos más detallados, consulte la [documentación de Firewalld](Tema_Firewalld.md).
 
 ## Normas de Entrega
 

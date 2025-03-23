@@ -4,7 +4,7 @@
 
 Paso 1 clonamos
 
-```
+```bash
 root@lq-d25:~# virt-clone --original mvp1 --name mvp3 --file /var/lib/libvirt/images/mvp3.qcow2 --mac=00:16:3e:37:a0:03
 Allocating 'mvp3.qcow2'                                     | 1.8 GB  00:05 ...
 
@@ -36,7 +36,7 @@ zram0   252:0    0     8G  0 disk [SWAP]
 
 1. Create the raw volume
 
-```
+```bash
 root@lq-d25:~# virsh vol-create-as default Vol1_p3.img 1G --format raw
 Se ha creado el volumen Vol1_p3
 ```
@@ -45,7 +45,7 @@ Se ha creado el volumen Vol1_p3
 
 Si ejecutamos:
 
-```
+```bash
 root@lq-d25:~# virsh domblklist mvp3 --details
  Tipo   Dispositivo   Destino   Fuente
 --------------------------------------------------------------------
@@ -63,18 +63,10 @@ El disco ha sido desmontado exitosamente
 
 Ahora:
 
-```
+```bash
 root@lq-d25:~# virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.img sda --config --type disk --driver qemu --subdriver raw
 El disco ha sido asociado exitosamente
 ```
-
-====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
-Significado: hemos conectado el volumen a la mv mvp3 a través del bus SATA
-
-¡¡¡¡¡¡¡¡¡Observación importante: A pesar de haber especificado "sdb", el disco aparece como "sda" en la VM. Esto ocurre porque:
-
-- La asignación de nombres en el huésped (VM) depende de la configuración interna y el orden de detección.
-- El hipervisor asigna la interfaz (SATA en este caso), pero la VM asigna los nombres de dispositivo.
 
 Conceptos clave de virtualizacion:
 
@@ -84,9 +76,9 @@ Conceptos clave de virtualizacion:
 - Persistencia de configuración: La opción `--config` garantiza que el disco permanezca conectado incluso después de reiniciar la VM.
   ====== IGNORARR BORRAR DESPUÉS. PARECE QUE ERA OTRA COSA ===================
 
-3. verification
+1. verification
 
-```
+```bash
 root@lq-d25:~# virsh domblklist mvp3 --details
  Tipo   Dispositivo   Destino   Fuente
 --------------------------------------------------------------------
@@ -98,7 +90,7 @@ Para completar la práctica 3 Tarea 1, necesitamos hacer lo siguiente dentro de 
 
 1. Iniciamos sesión en la mvp3
 
-```
+```bash
 root@lq-d25:~# ssh root@192.168.122.242
 The authenticity of host '192.168.122.242 (192.168.122.242)' can't be established.
 ED25519 key fingerprint is SHA256:gRFGvZlUIel5P1EJEdiEEgvXQ48k7iMy9Oz5SDPY2h4.
@@ -117,7 +109,7 @@ Last login: Fri Feb 28 20:06:07 2025
 
 2. Una vez dentro, verificamos que el disco está disponible, observamos que aparece como sda
 
-```
+```bash
 root@mvp1:~# lsblk
 NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
 sda               8:0    0    1G  0 disk
@@ -130,7 +122,7 @@ vda             252:0    0   10G  0 disk
   └─fedora-root 253:0    0    9G  0 lvm  /
 ```
 
-3. vamos a crear la parttición de 512MB en disco con la utilidad fdisk
+3. vamos a crear la partición de 512MB en disco con la utilidad fdisk
 
 ```
 root@mvp1:~# fdisk /dev/sda

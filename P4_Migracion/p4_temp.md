@@ -29,14 +29,17 @@ Tanto el almacenamiento compartido como la propia migración requieren comunicac
 Para abordar esta práctica se debe haber completado la práctica 3 (Recursos de almacenamiento virtual), teniendo disponible el contenedor CONT_VOL_COMP funcionando correctamente. Se verifica el correcto funcionamiento del contenedor:
 
 ```bash
-sudo podman ps
+# Verificar el estado del contenedor CONT_VOL_COMP
+root@lq-d25:~# virsh pool-info CONT_VOL_COMP 
+Nombre:         CONT_VOL_COMP
+UUID:           d131e98a-c98b-4bd5-ae8b-453912a010c8
+Estado:         ejecutando
+Persistente:    si
+Autoinicio:     no
+Capacidad:      395,85 GiB
+Ubicación:     351,47 GiB
+Disponible:     44,37 GiB
 ```
-
-**Explicación del comando**:
-
-- `podman ps`: Muestra los contenedores en ejecución, lo que permite verificar que CONT_VOL_COMP está funcionando correctamente.
-
-También se debe asegurar que la máquina virtual a migrar (mvp4_etiqueta_de_equipo) esté almacenada en el volumen compartido proporcionado por CONT_VOL_COMP.
 
 ## 3. Desarrollo de la Práctica
 
@@ -46,46 +49,14 @@ Es necesario configurar cada equipo anfitrión con un nombre de host único y co
 
 ```bash
 # Verificar el nombre actual del host
-hostname
-hostname -f
+root@lq-d25:~# hostname
+lq-d25.vpc.com
 ```
 
 **Explicación del comando**:
 
 - `hostname`: Muestra el nombre de host actual.
 - `hostname -f`: Muestra el nombre de host completamente cualificado (FQDN).
-
-Para configurar un nombre de host permanente, se debe editar el archivo `/etc/hostname` y agregar una entrada en `/etc/hosts` para asegurarse de que el sistema pueda resolver correctamente el nombre de host:
-
-```bash
-# Editar el archivo hostname para establecer el nombre del host
-sudo nano /etc/hostname
-```
-
-Se establece el nombre de host deseado, por ejemplo: `anfitrion1.vpd.local`
-
-```bash
-# Editar el archivo hosts para agregar la entrada correspondiente
-sudo nano /etc/hosts
-```
-
-Se añade la siguiente línea al archivo hosts:
-
-```
-127.0.1.1   anfitrion1.vpd.local   anfitrion1
-```
-
-**Explicación**:
-
-- La entrada en `/etc/hostname` establece el nombre del sistema de forma permanente.
-- La entrada en `/etc/hosts` permite que el sistema resuelva su propio nombre a la dirección IP local.
-
-Para aplicar los cambios sin reiniciar:
-
-```bash
-# Aplicar el nuevo nombre de host
-sudo systemctl restart systemd-hostnamed
-```
 
 ### 3.2. Tarea 2: Configuración del Cortafuegos
 
@@ -95,7 +66,24 @@ Primero, verificamos el estado del cortafuegos:
 
 ```bash
 # Verificar el estado del servicio Firewalld
-sudo systemctl status firewalld
+root@lq-d25:~# systemctl status firewalld
+● firewalld.service - firewalld - dynamic firewall daemon
+     Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled; preset: enabled)
+    Drop-In: /usr/lib/systemd/system/service.d
+             └─10-timeout-abort.conf
+     Active: active (running) since Fri 2025-03-28 18:20:54 WET; 26min ago
+       Docs: man:firewalld(1)
+   Main PID: 1046 (firewalld)
+      Tasks: 2 (limit: 76221)
+     Memory: 50.5M
+        CPU: 322ms
+     CGroup: /system.slice/firewalld.service
+             └─1046 /usr/bin/python3 -sP /usr/sbin/firewalld --nofork --nopid
+
+
+
+mar 28 18:20:53 lq-d25.vpc.com systemd[1]: Starting firewalld.service - firewalld - dynamic firewall daemon...
+mar 28 18:20:54 lq-d25.vpc.com systemd[1]: Started firewalld.service - firewalld - dynamic firewall daemon.
 ```
 
 **Explicación del comando**:
@@ -106,7 +94,11 @@ A continuación, identificamos la zona activa para la interfaz de red que utiliz
 
 ```bash
 # Identificar las zonas activas
-sudo firewall-cmd --get-active-zones
+root@lq-d25:~# firewall-cmd --get-active-zones
+FedoraServer (default)
+  interfaces: enp6s0
+libvirt
+  interfaces: virbr0
 ```
 
 **Explicación del comando**:
@@ -131,6 +123,36 @@ sudo firewall-cmd --reload
 # Verificar la configuración
 sudo firewall-cmd --list-all
 ```
+
+```bash
+root@lq-d25:~# firewall-cmd --add-service=libvirt --permanent
+success
+root@lq-d25:~# firewall-cmd --add-port=49152-49216/tcp --permanent
+success
+root@lq-d25:~# firewall-cmd --add-service=ssh --permanent
+Warning: ALREADY_ENABLED: ssh
+success
+root@lq-d25:~# firewall-cmd --reload
+success 
+root@lq-d25:~# firewall-cmd --list-all
+FedoraServer (default, active)
+  target: default
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: enp6s0
+  sources: 
+  services: cockpit dhcpv6-client libvirt ssh
+  ports: 49152-49216/tcp
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+```
+
 
 **Explicación de los comandos**:
 

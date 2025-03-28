@@ -6,17 +6,25 @@
   - [Índice](#índice)
   - [1. Introducción](#1-introducción)
   - [2. Requisitos Previos](#2-requisitos-previos)
+    - [Tarea 2: Uso de un contenedor de almacenamiento compartido](#tarea-2-uso-de-un-contenedor-de-almacenamiento-compartido)
   - [3. Desarrollo de la Práctica](#3-desarrollo-de-la-práctica)
     - [3.1. Tarea 1: Configuración del Nombre de Host](#31-tarea-1-configuración-del-nombre-de-host)
     - [3.2. Tarea 2: Configuración del Cortafuegos](#32-tarea-2-configuración-del-cortafuegos)
     - [3.3. Tarea 3: Migración](#33-tarea-3-migración)
       - [3.3.1. Generación y Configuración de Claves SSH](#331-generación-y-configuración-de-claves-ssh)
-      - [3.3.2. Migración con virt-manager](#332-migración-con-virt-manager)
-      - [3.3.3. Migración con virsh (Opcional)](#333-migración-con-virsh-opcional)
+      - [3.3.2. Migración con virsh](#332-migración-con-virsh)
       - [3.3.4. Revocación de Accesos Temporales](#334-revocación-de-accesos-temporales)
   - [4. Pruebas y Validación](#4-pruebas-y-validación)
   - [5. Conclusiones](#5-conclusiones)
   - [6. Bibliografía](#6-bibliografía)
+  - [7. Apéndices](#7-apéndices)
+    - [7.1. Método alternativo: Clonación mediante manipulación de archivos XML](#71-método-alternativo-clonación-mediante-manipulación-de-archivos-xml)
+      - [Paso 1: Crear el volumen destino en el contenedor compartido](#paso-1-crear-el-volumen-destino-en-el-contenedor-compartido)
+      - [Paso 2: Extraer la definición XML de la máquina virtual original](#paso-2-extraer-la-definición-xml-de-la-máquina-virtual-original)
+      - [Paso 3: Crear y editar una copia del archivo XML para la nueva máquina virtual](#paso-3-crear-y-editar-una-copia-del-archivo-xml-para-la-nueva-máquina-virtual)
+      - [Paso 4: Definir la nueva máquina virtual a partir del archivo XML modificado](#paso-4-definir-la-nueva-máquina-virtual-a-partir-del-archivo-xml-modificado)
+      - [Paso 5: Copiar los datos del disco original al nuevo volumen](#paso-5-copiar-los-datos-del-disco-original-al-nuevo-volumen)
+      - [Paso 6: Iniciar y verificar la nueva máquina virtual](#paso-6-iniciar-y-verificar-la-nueva-máquina-virtual)
 
 ## 1. Introducción
 
@@ -30,16 +38,122 @@ Para abordar esta práctica se debe haber completado la práctica 3 (Recursos de
 
 ```bash
 # Verificar el estado del contenedor CONT_VOL_COMP
-root@lq-d25:~# virsh pool-info CONT_VOL_COMP 
-Nombre:         CONT_VOL_COMP
-UUID:           d131e98a-c98b-4bd5-ae8b-453912a010c8
-Estado:         ejecutando
-Persistente:    si
-Autoinicio:     no
-Capacidad:      395,85 GiB
-Ubicación:     351,47 GiB
-Disponible:     44,37 GiB
+root@lq-d25:~# virsh pool-info CONT_VOL_COMP
+Nombre:         CONT_VOL_COMP
+UUID:           d131e98a-c98b-4bd5-ae8b-453912a010c8
+Estado:         ejecutando
+Persistente:    si
+Autoinicio:     no
+Capacidad:      395,85 GiB
+Ubicación:     351,47 GiB
+Disponible:     44,37 GiB
 ```
+
+### Tarea 2: Uso de un contenedor de almacenamiento compartido
+
+Tal y como ya se ha indicado, el espacio compartido de almacenamiento requerido para realizar esta práctica lo proporciona el contenedor CONT_VOL_COMP creado en la práctica 3.
+
+Deberá crear una nueva máquina virtual llamada mvp4_etiqueta_de_equipo, que en nuestro caso será mvp4_lqd25. Esta nueva máquina virtual deberá ser el resultado de clonar la máquina virtual mvp1 creada en la práctica 1 pero con una diferencia importante: la imagen de disco de la nueva máquina mvp4_lqd25 debe almacenarse en el espacio de almacenamiento compartido proporcionado por el contenedor CONT_VOL_COMP.
+
+1. Verificar que el contenedor CONT_VOL_COMP está activo:
+
+```bash
+root@lq-d25:~# virsh pool-list --all
+Nombre                 Estado   Inicio automático
+----------------------------------------------------
+CONT_ISOS_COMP         activo   no
+CONT_VOL_COMP          activo   no
+Contenedor_Particion   activo   si
+default                activo   si
+ISO                    activo   si
+```
+
+2. Verificar los volúmenes existentes en el contenedor CONT_VOL_COMP:
+
+```bash
+root@lq-d25:~# virsh vol-list CONT_VOL_COMP
+ Nombre                                 Ruta
+---------------------------------------------------------------------------------------------------------
+ pc25_LQD_ANFITRION1_Vol3_p3           /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
+```
+
+3. Clonar directamente la máquina virtual mvp1 a mvp4_lqd25 utilizando la sintaxis URI correcta para el volumen compartido:
+
+```bash
+root@lq-d25:~# virsh vol-delete --pool CONT_VOL_COMP pc25_LQD_ANFITRION1_p4.qcow2
+```
+
+```bash
+root@lq-d25:~# virt-clone --original mvp1 --name mvp4_lqd25 --file /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_p4.qcow2 --mac=00:16:3e:31:13:b3
+Allocating 'pc25_LQD_ANFITRION1_p4.qcow2'                                                       | 1.4 GB  00:00:00 ...
+
+
+El clon 'mvp4_lqd25' ha sido creado exitosamente.
+```
+
+**Explicación del comando**:
+
+- Primero intentamos eliminar el volumen si ya existe para evitar errores
+- `virt-clone`: Herramienta para clonar máquinas virtuales existentes
+- `--original mvp1`: Especifica la máquina virtual de origen
+- `--name mvp4_lqd25`: Define el nombre de la nueva máquina virtual
+- `--file /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_p4.qcow2`: Especifica la ruta completa al archivo de disco en el almacenamiento compartido
+- `--mac=00:16:3e:5d:31:ff`: Establece una dirección MAC diferente para la interfaz de red
+
+> **Nota**: Al utilizar la ruta completa del archivo, nos aseguramos de que virt-clone pueda crear correctamente el volumen en el espacio de almacenamiento compartido sin problemas de interpretación de sintaxis. Es importante verificar previamente que la ruta al directorio compartido es correcta.
+
+4. Verificar que el volumen se ha creado correctamente:
+
+```bash
+root@lq-d25:~# virsh vol-list CONT_VOL_COMP | grep pc25_LQD
+pc25_LQD_ANFITRION1_p4.qcow2               /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_p4.qcow2
+pc25_LQD_ANFITRION1_Vol3_p3                /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3
+pc25_LQD_ANFITRION1_Vol3_p3.qcow2          /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_Vol3_p3.qcow2
+```
+
+5. Iniciar la máquina virtual clonada:
+
+```bash
+root@lq-d25:~# virsh start mvp4_lqd25
+Se ha iniciado el dominio mvp4_lqd25
+```
+
+6. Verificar que la máquina está operativa:
+
+```bash
+root@lq-d25:~# virsh list --all
+Id   Nombre                   Estado
+-------------------------------------------
+1    mvp4_lqd25               ejecutando
+-    clon_copiando_ficheros   apagado
+-    clon_virt_clone          apagado
+-    clon_virt_manager        apagado
+-    Creacion_virt_install    apagado
+-    mvp1                     apagado
+-    mvp3                     apagado
+```
+
+7. Obtener la dirección IP de la máquina virtual:
+
+```bash
+root@lq-d25:~# virsh domifaddr mvp4_lqd25 
+Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+vnet0      00:16:3e:31:13:b3    ipv4         192.168.122.124/24
+```
+
+8. Conectarse a la máquina virtual para verificar que está completamente operativa:
+
+```bash
+root@lq-d25:~# ssh root@192.168.122.124
+Web console: https://mvp1.vpd.com:9090/ or https://192.168.122.124:9090/
+
+
+Last login: Thu Mar 20 19:28:58 2025
+root@mvp1:~#
+```
+
+> **Nota**: Es normal que el arranque de la máquina demore más tiempo al tener su disco en un espacio de almacenamiento externo, a diferencia de cuando la máquina huésped tiene el disco en el host anfitrión.
 
 ## 3. Desarrollo de la Práctica
 
@@ -133,7 +247,7 @@ root@lq-d25:~# firewall-cmd --add-service=ssh --permanent
 Warning: ALREADY_ENABLED: ssh
 success
 root@lq-d25:~# firewall-cmd --reload
-success 
+success
 root@lq-d25:~# firewall-cmd --list-all
 FedoraServer (default, active)
   target: default
@@ -141,18 +255,17 @@ FedoraServer (default, active)
   egress-priority: 0
   icmp-block-inversion: no
   interfaces: enp6s0
-  sources: 
+  sources:
   services: cockpit dhcpv6-client libvirt ssh
   ports: 49152-49216/tcp
-  protocols: 
+  protocols:
   forward: yes
   masquerade: no
-  forward-ports: 
-  source-ports: 
-  icmp-blocks: 
-  rich rules: 
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
 ```
-
 
 **Explicación de los comandos**:
 
@@ -187,13 +300,21 @@ A continuación, se debe compartir la clave pública con el anfitrión de destin
 
 ```bash
 # Compartir la clave pública con el anfitrión de destino
-sudo ssh-copy-id root@destino.vpd.local
+root@lq-d25:~# ssh-copy-id root@lq-d26.vpd.com
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@lq-d26.vpd.com's password:
+ 
+Number of key(s) added: 1
+ 
+Now try logging into the machine, with:   "ssh 'root@lq-d26.vpd.com'"
+and check to make sure that only the key(s) you wanted were added.
 ```
 
 **Explicación del comando**:
 
-- `ssh-copy-id root@destino.vpd.local`: Copia la clave pública al archivo `authorized_keys` del usuario root en el anfitrión de destino.
-  - `root@destino.vpd.local`: Especifica el usuario y el anfitrión de destino (cambiar por el FQDN del anfitrión de destino).
+- `ssh-copy-id root@dlq-d26.vpd.com`: Copia la clave pública al archivo `authorized_keys` del usuario root en el anfitrión de destino.
+  - `root@dlq-d26.vpd.com`: Especifica el usuario y el anfitrión de destino (cambiar por el FQDN del anfitrión de destino).
 
 Se solicitará la contraseña de root en el anfitrión de destino una única vez para realizar la operación.
 
@@ -201,50 +322,13 @@ Para verificar que la autenticación con clave funciona correctamente:
 
 ```bash
 # Verificar la conexión SSH
-sudo ssh root@destino.vpd.local
+root@lq-d25:~# ssh root@lq-d26.vpd.com
+Last login: Fri Mar 28 20:01:11 2025 from 10.140.92.125
 ```
 
 Si todo está configurado correctamente, se establecerá la conexión sin solicitar contraseña.
 
-#### 3.3.2. Migración con virt-manager
-
-Para realizar la migración usando virt-manager, se siguen estos pasos:
-
-1. Iniciar virt-manager como superusuario:
-
-```bash
-sudo virt-manager
-```
-
-2. Añadir conexión al anfitrión remoto:
-   - En virt-manager, seleccionar "Archivo" > "Añadir conexión".
-   - Seleccionar "Conectar a anfitrión remoto mediante SSH".
-   - En el campo "Anfitrión", introducir el FQDN del anfitrión de destino.
-   - Seleccionar "root" como usuario.
-   - Hacer clic en "Conectar".
-
-![Conexión al anfitrión remoto](mdc:ruta/imagen_conexion.png)
-_Figura 1: Configuración de conexión al anfitrión remoto en virt-manager_
-
-3. Una vez establecida la conexión, seleccionar la máquina virtual a migrar (mvp4_etiqueta_de_equipo).
-
-4. Hacer clic derecho sobre la máquina virtual y seleccionar "Migrar".
-
-5. En la ventana de migración:
-   - Seleccionar el anfitrión de destino.
-   - Marcar la opción "Migración en vivo".
-   - Hacer clic en "Migrar".
-
-![Migración de la máquina virtual](mdc:ruta/imagen_migracion.png)
-_Figura 2: Proceso de migración de la máquina virtual_
-
-**Explicación del proceso**:
-
-- La migración en vivo permite que la máquina virtual continúe operando durante el proceso de migración.
-- El proceso copia la memoria y el estado de la CPU al anfitrión de destino.
-- Como el almacenamiento está compartido mediante NFS en el contenedor CONT_VOL_COMP, no es necesario migrar los archivos de disco.
-
-#### 3.3.3. Migración con virsh (Opcional)
+#### 3.3.2. Migración con virsh
 
 La migración también puede realizarse mediante la línea de comandos usando virsh:
 
@@ -253,7 +337,9 @@ La migración también puede realizarse mediante la línea de comandos usando vi
 sudo virsh list --all
 
 # Realizar la migración en vivo
-sudo virsh migrate --live mvp4_etiqueta_de_equipo qemu+ssh://destino.vpd.local/system --verbose
+root@lq-d25:~# virsh migrate --live mvp4_lqd25 qemu+ssh://lq-d26.vpd.com/system --verbose
+root@lq-d26.vpd.com's password: 
+Migración: [100,00 %]
 ```
 
 **Explicación del comando**:
@@ -261,13 +347,13 @@ sudo virsh migrate --live mvp4_etiqueta_de_equipo qemu+ssh://destino.vpd.local/s
 - `virsh migrate`: Comando para iniciar la migración de una máquina virtual.
   - `--live`: Realiza una migración en vivo, donde la máquina continúa funcionando durante el proceso.
   - `mvp4_etiqueta_de_equipo`: Nombre de la máquina virtual a migrar.
-  - `qemu+ssh://destino.vpd.local/system`: URI del destino, especificando el protocolo (qemu+ssh), el anfitrión de destino y el tipo de conexión (/system).
+  - `qemu+ssh://dlq-d26.vpd.com/system`: URI del destino, especificando el protocolo (qemu+ssh), el anfitrión de destino y el tipo de conexión (/system).
   - `--verbose`: Muestra información detallada durante el proceso de migración.
 
 Para una migración más avanzada con opciones adicionales:
 
 ```bash
-sudo virsh migrate --live --persistent --undefinesource mvp4_etiqueta_de_equipo qemu+ssh://destino.vpd.local/system
+sudo virsh migrate --live --persistent --undefinesource mvp4_etiqueta_de_equipo qemu+ssh://dlq-d26.vpd.com/system
 ```
 
 **Explicación de parámetros adicionales**:
@@ -281,7 +367,7 @@ Una vez completada la migración, es importante revocar los accesos temporales o
 
 ```bash
 # Eliminar la clave pública del anfitrión remoto
-sudo ssh root@destino.vpd.local "sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)/d' ~/.ssh/authorized_keys"
+sudo ssh root@dlq-d26.vpd.com "sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)/d' ~/.ssh/authorized_keys"
 ```
 
 **Explicación del comando**:
@@ -292,7 +378,7 @@ Alternativamente, se puede acceder al anfitrión remoto y editar manualmente el 
 
 ```bash
 # Acceder al anfitrión remoto
-sudo ssh root@destino.vpd.local
+sudo ssh root@dlq-d26.vpd.com
 
 # Editar el archivo authorized_keys
 nano ~/.ssh/authorized_keys
@@ -306,7 +392,17 @@ Para verificar que la migración se ha realizado correctamente, se deben realiza
 
 ```bash
 # En el anfitrión de destino, verificar que la máquina virtual está en ejecución
-sudo virsh list --all
+root@lq-d26:~# virsh list --all
+Id   Nombre                   Estado
+-------------------------------------------
+4    mvp4_lqd25               ejecutando
+-    clon_copiando_ficheros   apagado
+-    clon_virt_clone          apagado
+-    clon_virt_manager        apagado
+-    Creacion_virt_install    apagado
+-    mvp1                     apagado
+-    mvp3                     apagado
+-    mvp5                     apagado
 ```
 
 **Resultado esperado**:
@@ -315,7 +411,23 @@ sudo virsh list --all
 
 ```bash
 # Verificar la información detallada de la máquina virtual
-sudo virsh dominfo mvp4_etiqueta_de_equipo
+root@lq-d26:~# virsh dominfo mvp4_lqd25 
+Id:             4
+Nombre:         mvp4_lqd25
+UUID:           4b35bb33-6531-4fdf-8eaf-6b749ae432f1
+Tipo de sistema operatuvo: hvm
+Estado:         ejecutando
+CPU(s):         1
+Hora de la CPU: 36,6s
+Memoria máxima: 2097152 KiB
+Memoria utilizada: 2097152 KiB
+Persistente:    si
+Autoinicio:     desactivar
+Guardar administrado: no
+Modelo de seguridad: selinux
+DOI de seguridad: 0
+Etiqueta de seguridad: system_u:system_r:svirt_t:s0:c661,c935 (enforcing)
+Messages:       tainted: potentially unsafe use of host CPU passthrough
 ```
 
 **Explicación del comando**:
@@ -324,7 +436,9 @@ sudo virsh dominfo mvp4_etiqueta_de_equipo
 
 ```bash
 # Verificar que se puede acceder a la máquina virtual migrada
-sudo virsh console mvp4_etiqueta_de_equipo
+root@lq-d26:~# virsh console mvp4_lqd25 
+Connected to domain 'mvp4_lqd25'
+Escape character is ^] (Ctrl + ])
 ```
 
 **Explicación del comando**:
@@ -369,3 +483,135 @@ La implementación de migraciones en vivo representa una habilidad esencial para
 2. Muehlfeld M, Gkioka I, Jahoda M, Heves J, Wadeley S, Huffman C. (2019). "Red Hat Enterprise Linux 7 Networking Guide". Red Hat. [https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/networking_guide/index](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/networking_guide/index)
 
 3. Jahoda M, Fiala J, Wadeley S, Krátky R, Prpic M, Gkiova I, Capek T, Ruseva Y, Svoboda M. (2019). "Red Hat Enterprise Linux 7. Red Hat Enterprise Linux 7 Security Guide". Red Hat. [https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/security_guide/index](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/security_guide/index)
+
+## 7. Apéndices
+
+### 7.1. Método alternativo: Clonación mediante manipulación de archivos XML
+
+Esta sección describe un método alternativo para clonar una máquina virtual utilizando un volumen pre-creado en un contenedor de almacenamiento compartido mediante la edición manual del archivo XML de definición de la máquina virtual.
+
+Este enfoque es útil cuando:
+
+- Se necesita un control preciso sobre la configuración de la máquina virtual
+- Se han creado previamente volúmenes específicos que deben ser utilizados
+- El método estándar de clonación presenta problemas con volúmenes pre-creados
+
+#### Paso 1: Crear el volumen destino en el contenedor compartido
+
+Primero, creamos el volumen en el contenedor CONT_VOL_COMP:
+
+```bash
+root@lq-d25:~# virsh vol-create-as CONT_VOL_COMP pc25_LQD_ANFITRION1_p4.qcow2 10G --format qcow2 --prealloc-metadata
+Se ha creado el volumen pc25_LQD_ANFITRION1_p4.qcow2
+```
+
+#### Paso 2: Extraer la definición XML de la máquina virtual original
+
+Obtenemos la definición XML completa de la máquina virtual que queremos clonar:
+
+```bash
+root@lq-d25:~# virsh dumpxml mvp1 > mvp1.xml
+```
+
+**Explicación del comando**:
+
+- `virsh dumpxml`: Obtiene la configuración XML completa de una máquina virtual
+- `mvp1`: Nombre de la máquina virtual de origen
+- `> mvp1.xml`: Redirige la salida a un archivo llamado mvp1.xml
+
+#### Paso 3: Crear y editar una copia del archivo XML para la nueva máquina virtual
+
+Copiamos el archivo XML y lo editamos para adaptarlo a la nueva máquina virtual:
+
+```bash
+root@lq-d25:~# cp mvp1.xml mvp4_lqd25.xml
+root@lq-d25:~# vi mvp4_lqd25.xml
+```
+
+Los cambios necesarios en el archivo XML son:
+
+1. **Cambiar el nombre de la máquina virtual**:
+
+```xml
+<name>mvp4_lqd25</name>
+```
+
+2. **Generar y establecer un nuevo UUID** (utilizando el comando `uuidgen`):
+
+```bash
+root@lq-d25:~# uuidgen
+550e8400-e29b-41d4-a716-446655440000
+```
+
+```xml
+<uuid>550e8400-e29b-41d4-a716-446655440000</uuid>
+```
+
+3. **Modificar la dirección MAC de la interfaz de red**:
+
+```xml
+<mac address='00:16:3e:32:2a:f5'/>
+```
+
+4. **Cambiar la configuración del disco para usar el volumen pre-creado**:
+
+```xml
+<disk type='volume' device='disk'>
+  <driver name='qemu' type='qcow2'/>
+  <source pool='CONT_VOL_COMP' volume='pc25_LQD_ANFITRION1_p4.qcow2'/>
+  <target dev='vda' bus='virtio'/>
+  <address type='pci' domain='0x0000' bus='0x04' slot='0x00' function='0x0'/>
+</disk>
+```
+
+#### Paso 4: Definir la nueva máquina virtual a partir del archivo XML modificado
+
+```bash
+root@lq-d25:~# virsh define mvp4_lqd25.xml
+Se ha definido el dominio mvp4_lqd25 desde mvp4_lqd25.xml
+```
+
+**Explicación del comando**:
+
+- `virsh define`: Registra una máquina virtual en libvirt a partir de un archivo XML
+- `mvp4_lqd25.xml`: Archivo XML con la definición de la nueva máquina virtual
+
+#### Paso 5: Copiar los datos del disco original al nuevo volumen
+
+Localizamos la ruta del disco original:
+
+```bash
+root@lq-d25:~# virsh domblklist mvp1
+ Target   Source
+--------------------------------
+ vda      /var/lib/libvirt/images/mvp1.qcow2
+```
+
+Copiamos el contenido del disco original al nuevo volumen:
+
+```bash
+root@lq-d25:~# qemu-img convert -f qcow2 -O qcow2 /var/lib/libvirt/images/mvp1.qcow2 /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_p4.qcow2
+```
+
+**Explicación del comando**:
+
+- `qemu-img convert`: Herramienta para convertir imágenes de disco entre diferentes formatos
+- `-f qcow2`: Especifica el formato de origen (qcow2)
+- `-O qcow2`: Especifica el formato de destino (qcow2)
+- Seguido de las rutas de origen y destino
+
+#### Paso 6: Iniciar y verificar la nueva máquina virtual
+
+```bash
+root@lq-d25:~# virsh start mvp4_lqd25
+Se ha iniciado el dominio mvp4_lqd25
+
+root@lq-d25:~# virsh list --all
+ Id   Nombre               Estado
+----------------------------------
+ 1    mvp4_lqd25           ejecutando
+ -    mvp1                 apagado
+ -    mvp3                 apagado
+```
+
+Esta metodología proporciona un control más granular sobre el proceso de clonación, permitiendo personalizar aspectos específicos de la configuración de la máquina virtual. Aunque es más compleja que el método estándar, resulta útil en escenarios donde se requiere una mayor flexibilidad o cuando se trabaja con configuraciones específicas de almacenamiento.

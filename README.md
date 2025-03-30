@@ -152,7 +152,65 @@ El dominio de estos conceptos resulta fundamental para la correcta implementaci�
 
 ### Práctica 3: Recursos de almacenamiento virtual
 
-Próximamente...
+**Descripción:** Configuración y gestión de diversos tipos de recursos de almacenamiento para máquinas virtuales KVM/QEMU utilizando libvirt. Se explora la creación de volúmenes en pools por defecto, la integración de particiones físicas del host y la configuración de pools de almacenamiento basados en NFS.
+
+**Logros principales:**
+
+- Creación de volúmenes virtuales (`.img`, `.qcow2`) en el pool por defecto y en pools basados en particiones (`fs`).
+- Asociación de volúmenes virtuales y particiones físicas a máquinas virtuales como discos (`sda`, `sdb`, `vdb`, `vdc`).
+- Configuración de sistemas de archivos (XFS, ext4) y montaje persistente (`/etc/fstab`) dentro de la máquina virtual.
+- Creación y gestión de pools de almacenamiento NFS (`netfs`) para imágenes ISO y volúmenes de disco.
+- Verificación de la persistencia de las configuraciones y del funcionamiento de los distintos tipos de almacenamiento.
+
+**Cheatsheet:**
+
+```bash
+# Crear volumen en pool
+virsh vol-create-as [pool_name] [vol_name] [size]G --format [raw|qcow2]
+
+# Listar volúmenes en pool
+virsh vol-list [pool_name]
+
+# Asociar disco a VM
+virsh attach-disk [vm_name] [source_path] [target_device] --config [--driver qemu --subdriver raw|qcow2] [--targetbus virtio]
+
+# Desasociar disco de VM
+virsh detach-disk [vm_name] [target_device] --config
+
+# Listar discos de VM
+virsh domblklist [vm_name] --details
+
+# Definir pool desde archivo XML o parámetros
+virsh pool-define [xml_file]
+virsh pool-define-as [pool_name] [type] --source-host [host] --source-path [path] --target [local_path] # para netfs
+virsh pool-define-as [pool_name] fs --source-dev [device] --target [local_path] # para fs
+
+# Construir pool
+virsh pool-build [pool_name]
+
+# Iniciar/Parar pool
+virsh pool-start [pool_name]
+virsh pool-destroy [pool_name]
+
+# Configurar autostart de pool
+virsh pool-autostart [pool_name] [--disable]
+
+# Listar pools
+virsh pool-list --all --details
+
+# Ver info de pool/volumen
+virsh pool-info [pool_name]
+virsh vol-info [vol_name] --pool [pool_name]
+
+# Ver XML de pool/volumen
+virsh pool-dumpxml [pool_name]
+virsh vol-dumpxml [vol_name] --pool [pool_name]
+```
+
+**Recursos:**
+
+- [Documentación completa](P3_Recursos_almacenamiento_virtual/p3.md)
+- [Cheatsheet de comandos Storage](P3_Recursos_almacenamiento_virtual/p3_cheatsheet.md)
 
 ### Práctica 4: Migración de máquinas virtuales
 

@@ -104,12 +104,22 @@ root@lq-d25:~# virsh domiflist mvp5
 5. Eliminar la interfaz de red por defecto:
 
 ```bash
-root@lq-d25:~# virsh domif-remove mvp5 vnet0
-La interfaz ha sido desasociada exitosamente
+root@lq-d25:~# virsh domiflist mvp5
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ vnet0      network   default   virtio   00:16:3e:37:a0:05
 
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 00:16:3e:37:a0:05
+La interfaz ha sido desmontada exitosamente
+
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 00:16:3e:37:a0:05 --config
+La interfaz ha sido desmontada exitosamente
+```
+
+```
 root@lq-d25:~# virsh domiflist mvp5
  Interfaz   Tipo   Fuente   Modelo   MAC
----------------------------------------------
+------------------------------------------
 ```
 
 > **Nota**: Al eliminar la interfaz de red, la máquina virtual quedará sin conectividad de red. Para acceder a ella, utilizaremos la consola serie que configuraremos en la siguiente tarea.
@@ -133,7 +143,15 @@ root@mvp5:~# vi /etc/default/grub
 3. Modificar la línea GRUB_CMDLINE_LINUX añadiendo console=ttyS0:
 
 ```
-GRUB_CMDLINE_LINUX="console=ttyS0 resume=/dev/mapper/fedora-swap rd.lvm.lv=fedora/root rd.lvm.lv=fedora/swap rhgb quiet"
+[root@mvp1 ~]# cat /etc/default/grub
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
+GRUB_DEFAULT=saved
+GRUB_DISABLE_SUBMENU=true
+GRUB_TERMINAL_OUTPUT="console"
+GRUB_CMDLINE_LINUX="console=ttyS0 rd.lvm.lv=fedora/root rhgb quiet"
+GRUB_DISABLE_RECOVERY="true"
+GRUB_ENABLE_BLSCFG=true
 ```
 
 4. Eliminar las opciones del kernel que puedan impedir que los cambios surtan efecto:
@@ -167,13 +185,10 @@ root@lq-d25:~# virsh console mvp5
 Connected to domain 'mvp5'
 Escape character is ^] (Ctrl + ])
 
-Fedora Linux 39 (Server Edition)
-Kernel 6.5.13-300.fc39.x86_64 on an x86_64
-
-mvp5 login: root
-Password:
-Last login: Mon Mar 24 20:05:28 from 192.168.122.1
-[root@mvp5 ~]#
+mvp1 login: root
+Contraseña: 
+Last login: Thu Apr  3 19:31:14 on tty1
+[root@mvp1 ~]# 
 ```
 
 **Explicación del proceso**:
@@ -197,9 +212,11 @@ En esta tarea crearemos una red virtual de tipo NAT llamada "Cluster" con un ran
 
 ```bash
 root@lq-d25:~# virsh net-list --all
- Nombre   Estado   Inicio automático   Persistente
---------------------------------------------------
+ Nombre    Estado   Inicio automático   Persistente
+-----------------------------------------------------
  default   activo   si                  si
+
+root@lq-d25:~# 
 ```
 
 2. Crear un archivo XML para definir la red "Cluster":

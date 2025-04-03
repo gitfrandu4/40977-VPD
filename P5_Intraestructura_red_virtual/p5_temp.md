@@ -43,16 +43,23 @@ Para comenzar esta práctica, es necesario clonar la máquina virtual mvp1 cread
 
 ```bash
 root@lq-d25:~# virsh list --all
- Id   Nombre               Estado
-----------------------------------
- -    mvp1                 apagado
+ Id   Nombre                   Estado
+-------------------------------------------
+ 1    mvp5                     ejecutando
+ -    clon_copiando_ficheros   apagado
+ -    clon_virt_clone          apagado
+ -    clon_virt_manager        apagado
+ -    Creacion_virt_install    apagado
+ -    mvp1                     apagado
+ -    mvp3                     apagado
+ -    mvp4_lqd25               apagado
 ```
 
 2. Clonar la máquina virtual mvp1 para crear mvp5:
 
 ```bash
 root@lq-d25:~# virt-clone --original mvp1 --name mvp5 --file /var/lib/libvirt/images/mvp5.qcow2 --mac=00:16:3e:37:a0:05
-Allocating 'mvp5.qcow2'                                      | 1.8 GB  00:05 ...
+Allocating 'mvp5.qcow2'                                     | 2.0 GB  00:07 ... 
 
 El clon 'mvp5' ha sido creado exitosamente.
 ```
@@ -72,13 +79,20 @@ root@lq-d25:~# virsh start mvp5
 Se ha iniciado el dominio mvp5
 ```
 
+```
+root@lq-d25:~# virsh domifaddr mvp5
+ Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+ vnet0      00:16:3e:37:a0:05    ipv4         192.168.122.124/24
+```
+
 4. Verificar la configuración de red actual:
 
 ```bash
 root@lq-d25:~# virsh domiflist mvp5
- Interfaz   Tipo      Fuente    Modelo    MAC
-----------------------------------------------------------
- vnet0      network   default   virtio    00:16:3e:37:a0:05
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ vnet0      network   default   virtio   00:16:3e:37:a0:05
 ```
 
 5. Eliminar la interfaz de red por defecto:

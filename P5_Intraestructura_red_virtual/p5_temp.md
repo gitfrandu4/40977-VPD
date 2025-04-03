@@ -222,7 +222,7 @@ root@lq-d25:~#
 2. Crear un archivo XML para definir la red "Cluster":
 
 ```bash
-root@lq-d25:~# cat > cluster-network.xml <<EOF
+root@lq-d25:~# cat cluster-network.xml 
 <network>
   <name>Cluster</name>
   <forward mode='nat'/>
@@ -233,7 +233,6 @@ root@lq-d25:~# cat > cluster-network.xml <<EOF
     </dhcp>
   </ip>
 </network>
-EOF
 ```
 
 **Explicación del archivo XML**:
@@ -250,51 +249,51 @@ EOF
 
 ```bash
 root@lq-d25:~# virsh net-define cluster-network.xml
-La red Cluster ha sido definida desde cluster-network.xml
+La red Cluster se encuentra definida desde cluster-network.xml
 ```
 
 4. Iniciar la red:
 
 ```bash
 root@lq-d25:~# virsh net-start Cluster
-La red Cluster ha sido iniciada
+La red Cluster se ha iniciado
 ```
 
 5. Configurar la red para que se inicie automáticamente:
 
 ```bash
 root@lq-d25:~# virsh net-autostart Cluster
-La red Cluster ha sido marcada para autoarranque
+La red Cluster ha sido marcada para iniciarse automáticamente
 ```
 
 6. Verificar que la red se ha creado correctamente:
 
 ```bash
 root@lq-d25:~# virsh net-list --all
- Nombre    Estado    Inicio automático   Persistente
----------------------------------------------------
- Cluster   activo    si                  si
- default   activo    si                  si
+ Nombre    Estado   Inicio automático   Persistente
+-----------------------------------------------------
+ Cluster   activo   si                  si
+ default   activo   si                  si
 ```
 
 7. Ver los detalles de la red:
 
 ```bash
-root@lq-d25:~# virsh net-info Cluster
-Nombre:           Cluster
-UUID:             8a123456-7890-1234-abcd-1234567890ab
-Activo:           si
-Persistente:      si
-Autostart:        si
-Puente:           virbr1
+root@lq-d25:~#  virsh net-info Cluster
+Nombre:         Cluster
+UUID:           7ee051d7-e38d-45ab-a26c-232a51e5162e
+Activar:        si
+Persistente:    si
+Autoinicio:     si
+Puente:         virbr1
 ```
 
 8. Verificar la configuración del bridge en el sistema:
 
 ```bash
-root@lq-d25:~# ip addr show virbr1
-4: virbr1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
+root@lq-d25:~#  ip addr show virbr1
+5: virbr1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:55:02:69 brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.1/24 brd 192.168.140.255 scope global virbr1
        valid_lft forever preferred_lft forever
 ```
@@ -311,10 +310,11 @@ En esta tarea añadiremos una primera interfaz de red a la máquina virtual mvp5
 root@lq-d25:~# virsh attach-interface mvp5 network Cluster --model virtio --config
 La interfaz ha sido asociada exitosamente
 
+
 root@lq-d25:~# virsh domiflist mvp5
- Interfaz   Tipo      Fuente    Modelo    MAC
-----------------------------------------------------------
- vnet1      network   Cluster   virtio    52:54:00:ab:cd:ef
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ -          network   Cluster   virtio   52:54:00:1d:94:c0
 ```
 
 **Explicación del comando**:
@@ -338,49 +338,39 @@ El dominio mvp5 está siendo reiniciado
 
 ```bash
 root@lq-d25:~# virsh console mvp5
-Connected to domain 'mvp5'
-Escape character is ^] (Ctrl + ])
-
-Fedora Linux 39 (Server Edition)
-Kernel 6.5.13-300.fc39.x86_64 on an x86_64
-
-mvp5 login: root
-Password:
-Last login: Mon Mar 25 10:15:33 on ttyS0
-[root@mvp5 ~]#
 ```
 
 4. Verificar la configuración de red en mvp5 (Comprobación 1):
 
 ```bash
-[root@mvp5 ~]# ip addr
+[root@mvp1 ~]# ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
+    inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:ab:cd:ef brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.2/24 brd 192.168.140.255 scope global dynamic noprefixroute eth0
-       valid_lft 3600sec preferred_lft 3600sec
-    inet6 fe80::5054:ff:feab:cdef/64 scope link
+2: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3581sec preferred_lft 3581sec
+    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
 **Explicación del resultado**:
 
-- La interfaz `eth0` ha sido configurada correctamente con una dirección IP `192.168.140.2` de la red Cluster (192.168.140.0/24)
+- La interfaz `enp7s0` ha sido configurada correctamente con una dirección IP `192.168.140.25` de la red Cluster (192.168.140.0/24)
 - La dirección IP ha sido asignada automáticamente por el servidor DHCP de la red Cluster
 - El estado de la interfaz es `UP`, lo que indica que está funcionando correctamente
 
 5. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i1.vpd.com:
 
 ```bash
-root@lq-d25:~# echo "192.168.140.2 mvp5i1.vpd.com mvp5i1" >> /etc/hosts
+root@lq-d25:~# echo "192.168.140.25 mvp5i1.vpd.com mvp5i1" >> /etc/hosts
 
 root@lq-d25:~# cat /etc/hosts | grep mvp5
-192.168.140.2 mvp5i1.vpd.com mvp5i1
+192.168.140.25 mvp5i1.vpd.com mvp5i1
 ```
 
 **Explicación**:
@@ -392,15 +382,15 @@ root@lq-d25:~# cat /etc/hosts | grep mvp5
 
 ```bash
 root@lq-d25:~# ping -c 4 mvp5i1.vpd.com
-PING mvp5i1.vpd.com (192.168.140.2) 56(84) bytes of data.
-64 bytes from mvp5i1.vpd.com (192.168.140.2): icmp_seq=1 ttl=64 time=0.356 ms
-64 bytes from mvp5i1.vpd.com (192.168.140.2): icmp_seq=2 ttl=64 time=0.411 ms
-64 bytes from mvp5i1.vpd.com (192.168.140.2): icmp_seq=3 ttl=64 time=0.352 ms
-64 bytes from mvp5i1.vpd.com (192.168.140.2): icmp_seq=4 ttl=64 time=0.398 ms
+PING mvp5i1.vpd.com (192.168.140.25) 56(84) bytes of data.
+64 bytes from mvp5i1.vpd.com (192.168.140.25): icmp_seq=1 ttl=64 time=0.280 ms
+64 bytes from mvp5i1.vpd.com (192.168.140.25): icmp_seq=2 ttl=64 time=0.437 ms
+64 bytes from mvp5i1.vpd.com (192.168.140.25): icmp_seq=3 ttl=64 time=0.242 ms
+64 bytes from mvp5i1.vpd.com (192.168.140.25): icmp_seq=4 ttl=64 time=0.226 ms
 
 --- mvp5i1.vpd.com ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3057ms
-rtt min/avg/max/mdev = 0.352/0.379/0.411/0.026 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3092ms
+rtt min/avg/max/mdev = 0.226/0.296/0.437/0.083 ms
 ```
 
 **Resultado**: La máquina virtual responde correctamente a los paquetes ICMP enviados desde el anfitrión, lo que confirma que la conectividad entre ambos sistemas funciona adecuadamente.
@@ -408,16 +398,16 @@ rtt min/avg/max/mdev = 0.352/0.379/0.411/0.026 ms
 7. Verificar el acceso a Internet desde la máquina virtual (Comprobación 3):
 
 ```bash
-[root@mvp5 ~]# ping -c 4 google.es
-PING google.es (142.250.184.3) 56(84) bytes of data.
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=1 ttl=115 time=14.1 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=2 ttl=115 time=14.3 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=3 ttl=115 time=13.9 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=4 ttl=115 time=14.2 ms
+[root@mvp1 ~]# ping -c 4 google.es
+PING google.es (142.250.184.163) 56(84) bytes of data.
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=1 ttl=114 time=29.7 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=2 ttl=114 time=30.3 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=3 ttl=114 time=30.0 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=4 ttl=114 time=30.4 ms
 
 --- google.es ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3005ms
-rtt min/avg/max/mdev = 13.860/14.109/14.268/0.152 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3004ms
+rtt min/avg/max/mdev = 29.738/30.110/30.441/0.267 ms
 ```
 
 **Resultado**: La máquina virtual puede acceder a sitios de Internet, lo que confirma que la configuración de NAT funciona correctamente. Los paquetes enviados desde la máquina virtual son enrutados a través del sistema anfitrión hacia Internet.
@@ -425,20 +415,22 @@ rtt min/avg/max/mdev = 13.860/14.109/14.268/0.152 ms
 8. Verificar la configuración de red completa en la máquina virtual:
 
 ```bash
-[root@mvp5 ~]# ip route
-default via 192.168.140.1 dev eth0 proto dhcp metric 100
-192.168.140.0/24 dev eth0 proto kernel scope link src 192.168.140.2 metric 100
+[root@mvp1 ~]# ip route
+default via 192.168.140.1 dev enp7s0 proto dhcp src 192.168.140.25 metric 100 
+192.168.140.0/24 dev enp7s0 proto kernel scope link src 192.168.140.25 metric 100
+```
 
-[root@mvp5 ~]# cat /etc/resolv.conf
-# Generated by NetworkManager
-search vpd.com
-nameserver 192.168.140.1
+```bash
+[root@mvp1 ~]# cat /etc/resolv.conf
+
+nameserver 127.0.0.53
+options edns0 trust-ad
+search .
 ```
 
 **Explicación**:
 
-- La tabla de enrutamiento muestra que el tráfico por defecto se dirige a través de la puerta de enlace `192.168.140.1` (la interfaz virbr1 del anfitrión)
-- El archivo `/etc/resolv.conf` está configurado para utilizar el servidor DNS proporcionado por la red Cluster (`192.168.140.1`)
+<<<<COMPLETAR>>>>>
 
 Estas comprobaciones confirman que la interfaz de red se ha configurado correctamente y proporciona conectividad tanto con el anfitrión como con Internet. La red NAT "Cluster" está funcionando como se esperaba, permitiendo que la máquina virtual obtenga una dirección IP automáticamente y pueda comunicarse con otros sistemas.
 
@@ -449,14 +441,14 @@ En esta tarea crearemos una red virtual aislada llamada "Almacenamiento" con un 
 1. Crear un archivo XML para definir la red "Almacenamiento":
 
 ```bash
-root@lq-d25:~# cat > almacenamiento-network.xml <<EOF
+root@lq-d25:~# vi almacenamiento-network.xml
+root@lq-d25:~# cat almacenamiento-network.xml
 <network>
   <name>Almacenamiento</name>
   <bridge name='virbr2' stp='on' delay='0'/>
   <ip address='10.22.122.1' netmask='255.255.255.0'>
   </ip>
 </network>
-EOF
 ```
 
 **Explicación del archivo XML**:
@@ -472,7 +464,7 @@ EOF
 
 ```bash
 root@lq-d25:~# virsh net-define almacenamiento-network.xml
-La red Almacenamiento ha sido definida desde almacenamiento-network.xml
+La red Almacenamiento se encuentra definida desde almacenamiento-network.xml
 ```
 
 3. Iniciar la red:
@@ -493,31 +485,31 @@ La red Almacenamiento ha sido marcada para autoarranque
 
 ```bash
 root@lq-d25:~# virsh net-list --all
- Nombre           Estado    Inicio automático   Persistente
-----------------------------------------------------------
- Almacenamiento   activo    si                  si
- Cluster          activo    si                  si
- default          activo    si                  si
+ Nombre           Estado   Inicio automático   Persistente
+------------------------------------------------------------
+ Almacenamiento   activo   si                  si
+ Cluster          activo   si                  si
+ default          activo   si                  si
 ```
 
 6. Ver los detalles de la red:
 
 ```bash
 root@lq-d25:~# virsh net-info Almacenamiento
-Nombre:           Almacenamiento
-UUID:             9a123456-7890-1234-abcd-1234567890cd
-Activo:           si
-Persistente:      si
-Autostart:        si
-Puente:           virbr2
+Nombre:         Almacenamiento
+UUID:           5c2735be-366d-4c47-907c-8fbfcf600175
+Activar:        si
+Persistente:    si
+Autoinicio:     si
+Puente:         virbr2
 ```
 
 7. Verificar la configuración del bridge en el sistema:
 
 ```bash
-root@lq-d25:~# ip addr show virbr2
-5: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:23:45:67 brd ff:ff:ff:ff:ff:ff
+root@lq-d25:~#  ip addr show virbr2
+7: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:5a:4b:6b brd ff:ff:ff:ff:ff:ff
     inet 10.22.122.1/24 brd 10.22.122.255 scope global virbr2
        valid_lft forever preferred_lft forever
 ```

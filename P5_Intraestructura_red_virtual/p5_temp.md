@@ -6,7 +6,7 @@
   - [Tabla de contenido](#tabla-de-contenido)
   - [Introducción](#introducción)
   - [Desarrollo](#desarrollo)
-    - [Fase 1. Preparación Inicial](#fase-1-preparación-inicial)
+    - [Plan de actividades y orientaciones](#plan-de-actividades-y-orientaciones)
       - [Tarea 1. Creación de la Máquina Virtual mvp5](#tarea-1-creación-de-la-máquina-virtual-mvp5)
       - [Tarea 2. Configuración de la Consola Serie](#tarea-2-configuración-de-la-consola-serie)
     - [Fase 2. Creación y Configuración de Redes Virtuales](#fase-2-creación-y-configuración-de-redes-virtuales)
@@ -31,9 +31,15 @@ Información más detallada se encuentra en las siguientes fuentes bibliográfic
 - "Configurando la red IP con nmcli" [2]. Se trata de una guía rápida de Fedora donde se explica la gestión de redes con la interfaz nmcli (NetworkManager Command Line Interface o Interfaz de Línea de Comando de NetworkManager).
 - "Configuring and managing networking" [3]. Se trata de una guía más exhaustiva sobre la configuración de redes en Red Hat. Los capítulos 2 y 6 serán especialmente útiles para el desarrollo de la práctica.
 
+## Requisitos Previos
+
+Para abordar esta práctica se debe haber completado la práctica 1 (Instalación de KVM. Creación e instalación de máquinas virtuales).
+
 ## Desarrollo
 
-### Fase 1. Preparación Inicial
+### Plan de actividades y orientaciones
+
+Antes de comenzar las tareas específicas de configuración de red, es necesario preparar una máquina virtual (`mvp5`) clonada de `mvp1` y configurar el acceso por consola serie, ya que eliminaremos su interfaz de red inicial.
 
 #### Tarea 1. Creación de la Máquina Virtual mvp5
 
@@ -59,7 +65,7 @@ root@lq-d25:~# virsh list --all
 
 ```bash
 root@lq-d25:~# virt-clone --original mvp1 --name mvp5 --file /var/lib/libvirt/images/mvp5.qcow2 --mac=00:16:3e:37:a0:05
-Allocating 'mvp5.qcow2'                                     | 2.0 GB  00:07 ... 
+Allocating 'mvp5.qcow2'                                     | 2.0 GB  00:07 ...
 
 El clon 'mvp5' ha sido creado exitosamente.
 ```
@@ -184,6 +190,8 @@ Ahora tenemos acceso a la máquina virtual incluso sin interfaz de red, lo que n
 #### Tarea 1. Creación de una Red de Tipo NAT
 
 En esta tarea crearemos una red virtual de tipo NAT llamada "Cluster" con un rango de direcciones 192.168.140.0/24 y un servicio DHCP activo.
+
+> **Nota**: Aunque la ficha de la práctica sugiere usar `virt-manager`, en esta documentación se utiliza la línea de comandos (`virsh` y archivos XML) para definir la red, ya que proporciona mayor control y es más fácilmente reproducible y documentable.
 
 1. Verificar las redes virtuales existentes:
 

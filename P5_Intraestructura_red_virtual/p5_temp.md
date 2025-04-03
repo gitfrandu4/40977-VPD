@@ -531,10 +531,10 @@ root@lq-d25:~# virsh attach-interface mvp5 network Almacenamiento --model virtio
 La interfaz ha sido asociada exitosamente
 
 root@lq-d25:~# virsh domiflist mvp5
- Interfaz   Tipo      Fuente          Modelo    MAC
---------------------------------------------------------------
- vnet1      network   Cluster         virtio    52:54:00:ab:cd:ef
- vnet2      network   Almacenamiento  virtio    52:54:00:12:34:56
+ Interfaz   Tipo      Fuente           Modelo   MAC
+-------------------------------------------------------------------
+ -          network   Cluster          virtio   52:54:00:1d:94:c0
+ -          network   Almacenamiento   virtio   52:54:00:b6:c9:4c
 ```
 
 **Explicación del comando**:
@@ -556,37 +556,27 @@ El dominio mvp5 está siendo reiniciado
 
 ```bash
 root@lq-d25:~# virsh console mvp5
-Connected to domain 'mvp5'
-Escape character is ^] (Ctrl + ])
-
-Fedora Linux 39 (Server Edition)
-Kernel 6.5.13-300.fc39.x86_64 on an x86_64
-
-mvp5 login: root
-Password:
-Last login: Mon Mar 25 11:32:45 on ttyS0
-[root@mvp5 ~]#
 ```
 
 4. Verificar la configuración de red en mvp5 (Comprobación 1):
 
 ```bash
-[root@mvp5 ~]# ip addr
+[root@mvp1 ~]# ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
+    inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:ab:cd:ef brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.2/24 brd 192.168.140.255 scope global dynamic noprefixroute eth0
-       valid_lft 3600sec preferred_lft 3600sec
-    inet6 fe80::5054:ff:feab:cdef/64 scope link
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::5054:ff:feb6:c94c/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
-3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::5054:ff:fe12:3456/64 scope link
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3470sec preferred_lft 3470sec
+    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
@@ -595,12 +585,21 @@ Se observa que la interfaz `eth1` está presente pero no tiene asignada una dire
 5. Configurar la dirección IP estática para la interfaz eth1:
 
 ```bash
-[root@mvp5 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname eth1 ipv4.method manual ipv4.addresses 10.22.122.2/24
+[root@mvp5 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
 Conexión 'Almacenamiento' (38c98a28-8fa5-4c93-b779-26ede1f914ef) agregada con éxito.
-
-[root@mvp5 ~]# nmcli connection up Almacenamiento
-Conexión activada exitosamente (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/2)
 ```
+
+```bash
+[root@mvp1 ~]# nmcli connection up Almacenamiento
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+```
+
+En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con el siguiente comando:
+
+```bash
+[root@mvp1 ~]# nmcli connection modify Almacenamiento ifname enp1s0
+```
+
 
 **Explicación del comando**:
 
@@ -614,16 +613,16 @@ Conexión activada exitosamente (D-Bus active path: /org/freedesktop/NetworkMana
 6. Verificar la configuración de la interfaz eth1:
 
 ```bash
-[root@mvp5 ~]# ip addr show eth1
-3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
-    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute eth1
+[root@mvp1 ~]# ip addr show enp1s0
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp1s0
        valid_lft forever preferred_lft forever
-    inet6 fe80::5054:ff:fe12:3456/64 scope link
+    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
-**Resultado**: La interfaz `eth1` ahora tiene configurada la dirección IP estática `10.22.122.2/24`.
+**Resultado**: La interfaz `enp1s0` ahora tiene configurada la dirección IP estática `10.22.122.2/24`.
 
 7. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i2.vpd.com:
 
@@ -631,7 +630,7 @@ Conexión activada exitosamente (D-Bus active path: /org/freedesktop/NetworkMana
 root@lq-d25:~# echo "10.22.122.2 mvp5i2.vpd.com mvp5i2" >> /etc/hosts
 
 root@lq-d25:~# cat /etc/hosts | grep mvp5
-192.168.140.2 mvp5i1.vpd.com mvp5i1
+192.168.140.25 mvp5i1.vpd.com mvp5i1
 10.22.122.2 mvp5i2.vpd.com mvp5i2
 ```
 
@@ -645,14 +644,14 @@ root@lq-d25:~# cat /etc/hosts | grep mvp5
 ```bash
 root@lq-d25:~# ping -c 4 mvp5i2.vpd.com
 PING mvp5i2.vpd.com (10.22.122.2) 56(84) bytes of data.
-64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=1 ttl=64 time=0.312 ms
-64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=2 ttl=64 time=0.347 ms
-64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=3 ttl=64 time=0.321 ms
-64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=4 ttl=64 time=0.335 ms
+64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=1 ttl=64 time=0.259 ms
+64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=2 ttl=64 time=0.343 ms
+64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=3 ttl=64 time=0.392 ms
+64 bytes from mvp5i2.vpd.com (10.22.122.2): icmp_seq=4 ttl=64 time=0.363 ms
 
 --- mvp5i2.vpd.com ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3066ms
-rtt min/avg/max/mdev = 0.312/0.329/0.347/0.014 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3089ms
+rtt min/avg/max/mdev = 0.259/0.339/0.392/0.049 ms
 ```
 
 **Resultado**: La máquina virtual responde correctamente a los paquetes ICMP enviados desde el anfitrión a través de la interfaz conectada a la red "Almacenamiento".
@@ -660,16 +659,16 @@ rtt min/avg/max/mdev = 0.312/0.329/0.347/0.014 ms
 9. Verificar la conectividad desde la máquina virtual al anfitrión (Comprobación 3):
 
 ```bash
-[root@mvp5 ~]# ping -c 4 10.22.122.1
+[root@mvp1 ~]# ping -c 4 10.22.122.1
 PING 10.22.122.1 (10.22.122.1) 56(84) bytes of data.
-64 bytes from 10.22.122.1: icmp_seq=1 ttl=64 time=0.298 ms
-64 bytes from 10.22.122.1: icmp_seq=2 ttl=64 time=0.323 ms
-64 bytes from 10.22.122.1: icmp_seq=3 ttl=64 time=0.287 ms
-64 bytes from 10.22.122.1: icmp_seq=4 ttl=64 time=0.311 ms
+64 bytes from 10.22.122.1: icmp_seq=1 ttl=64 time=0.152 ms
+64 bytes from 10.22.122.1: icmp_seq=2 ttl=64 time=0.198 ms
+64 bytes from 10.22.122.1: icmp_seq=3 ttl=64 time=0.343 ms
+64 bytes from 10.22.122.1: icmp_seq=4 ttl=64 time=0.281 ms
 
 --- 10.22.122.1 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3077ms
-rtt min/avg/max/mdev = 0.287/0.304/0.323/0.015 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3063ms
+rtt min/avg/max/mdev = 0.152/0.243/0.343/0.073 ms
 ```
 
 **Resultado**: La máquina virtual puede comunicarse con el sistema anfitrión a través de la interfaz virbr2 (10.22.122.1) utilizando la red aislada "Almacenamiento".
@@ -677,9 +676,9 @@ rtt min/avg/max/mdev = 0.287/0.304/0.323/0.015 ms
 10. Intentar acceder a Internet desde la interfaz eth1:
 
 ```bash
-[root@mvp5 ~]# ip route get 8.8.8.8
-8.8.8.8 via 192.168.140.1 dev eth0 src 192.168.140.2
-    cache
+[root@mvp1 ~]# ip route get 8.8.8.8
+8.8.8.8 via 192.168.140.1 dev enp7s0 src 192.168.140.25 uid 0 
+    cache 
 ```
 
 **Explicación**: Los paquetes destinados a Internet siguen utilizando la primera interfaz (eth0) conectada a la red NAT "Cluster", ya que la segunda interfaz (eth1) está conectada a una red aislada sin acceso al exterior.

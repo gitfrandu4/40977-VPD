@@ -693,33 +693,29 @@ En esta tarea crearemos un bridge en el sistema anfitrión y añadiremos una ter
 
 ```bash
 root@lq-d25:~# nmcli con add type bridge ifname br0 con-name Bridge-Lab
-Conexión 'Bridge-Lab' (d0e5ce85-f49a-4b91-8d6e-e343d3eb4d34) agregada con éxito.
+Conexión «Bridge-Lab» (d650c78e-d202-4461-89ac-bafbb45c6792) añadida con éxito.
 ```
 
 2. Añadir la interfaz física (eth0) al bridge:
 
 ```bash
 root@lq-d25:~# nmcli con add type bridge-slave ifname eth0 master br0
-Conexión 'bridge-slave-eth0' (c5d89bcc-0ae3-4313-a0c1-442a4cf8bde8) agregada con éxito.
+Conexión «bridge-slave-eth0» (85772954-8db0-4d6e-bdc5-41f8660941ab) añadida con éxito.
 ```
 
 3. Activar el bridge:
 
 ```bash
 root@lq-d25:~# nmcli con up Bridge-Lab
-Conexión activada exitosamente (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/3)
+La conexión se ha activado correctamente (master waiting for slaves) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/11)
 ```
 
 4. Verificar la configuración del bridge:
 
 ```bash
 root@lq-d25:~# ip addr show br0
-6: br0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
-    link/ether 52:54:00:bc:de:f0 brd ff:ff:ff:ff:ff:ff
-    inet 10.10.14.25/24 brd 10.10.14.255 scope global dynamic noprefixroute br0
-       valid_lft 86399sec preferred_lft 86399sec
-    inet6 fe80::7e31:af83:f32a:5b58/64 scope link noprefixroute
-       valid_lft forever preferred_lft forever
+11: br0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 1e:7d:d4:4c:16:57 brd ff:ff:ff:ff:ff:ff
 ```
 
 **Explicación del proceso**:
@@ -734,13 +730,16 @@ root@lq-d25:~# ip addr show br0
 ```bash
 root@lq-d25:~# virsh attach-interface mvp5 bridge br0 --model virtio --config --mac 00:16:3e:37:a0:15
 La interfaz ha sido asociada exitosamente
+```
+
+```bash
 
 root@lq-d25:~# virsh domiflist mvp5
- Interfaz   Tipo      Fuente          Modelo    MAC
---------------------------------------------------------------
- vnet1      network   Cluster         virtio    52:54:00:ab:cd:ef
- vnet2      network   Almacenamiento  virtio    52:54:00:12:34:56
- vnet3      bridge    br0             virtio    00:16:3e:37:a0:15
+ Interfaz   Tipo      Fuente           Modelo   MAC
+-------------------------------------------------------------------
+ -          network   Cluster          virtio   52:54:00:1d:94:c0
+ -          network   Almacenamiento   virtio   52:54:00:b6:c9:4c
+ -          bridge    br0              virtio   00:16:3e:37:a0:15
 ```
 
 **Explicación del comando**:
@@ -780,30 +779,28 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 8. Verificar la configuración de red en mvp5 (Comprobación 1):
 
 ```bash
-[root@mvp5 ~]# ip addr
+[root@mvp1 ~]# ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
+    inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:ab:cd:ef brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.2/24 brd 192.168.140.255 scope global dynamic noprefixroute eth0
-       valid_lft 3600sec preferred_lft 3600sec
-    inet6 fe80::5054:ff:feab:cdef/64 scope link
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp1s0
        valid_lft forever preferred_lft forever
-3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
-    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute eth1
+    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
-    inet6 fe80::5054:ff:fe12:3456/64 scope link
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3584sec preferred_lft 3584sec
+    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
-4: eth2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 00:16:3e:37:a0:15 brd ff:ff:ff:ff:ff:ff
-    inet 10.10.14.35/24 brd 10.10.14.255 scope global dynamic noprefixroute eth2
-       valid_lft 85876sec preferred_lft 85876sec
-    inet6 fe80::216:3eff:fe37:a015/64 scope link
+    inet6 fe80::f019:f813:e058:b51c/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
@@ -812,6 +809,20 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 - La interfaz `eth2` ha sido configurada correctamente con una dirección IP `10.10.14.35` de la red del laboratorio
 - La dirección IP ha sido asignada automáticamente por el servidor DHCP de la infraestructura del laboratorio
 - El estado de la interfaz es `UP`, lo que indica que está funcionando correctamente
+
+```
+root@lq-d25:~# nmcli device status
+DEVICE  TYPE      STATE                                     CONNECTION 
+enp6s0  ethernet  conectado                                 enp6s0     
+lo      loopback  connected (externally)                    lo         
+virbr0  bridge    connected (externally)                    virbr0     
+virbr1  bridge    connected (externally)                    virbr1     
+virbr2  bridge    connected (externally)                    virbr2     
+vnet7   tun       connected (externally)                    vnet7      
+vnet8   tun       connected (externally)                    vnet8      
+br0     bridge    conectando (obteniendo configuración IP)  Bridge-Lab 
+vnet9   tun       sin gestión                               --
+```
 
 9. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i3.vpd.com:
 

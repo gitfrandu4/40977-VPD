@@ -935,17 +935,7 @@ root@lq-d25:~#  ip addr show bridge0
 
 **Explicación del proceso**:
 
-- `nmcli con add type bridge ifname br0 con-name Bridge-Lab`: Crea un nuevo bridge llamado br0 con el nombre de conexión "Bridge-Lab"
-- `nmcli con add type bridge-slave ifname eth0 master br0`: Añade la interfaz física eth0 al bridge br0
-- `nmcli con up Bridge-Lab`: Activa la conexión del bridge
-- La configuración IP se obtiene automáticamente a través de DHCP desde la infraestructura del laboratorio
-
-5. Añadir una interfaz de red a la máquina virtual mvp5 utilizando virsh para conectarla al bridge:
-
-```bash
-root@lq-d25:~# virsh attach-interface mvp5 bridge br0 --model virtio --config --mac 00:16:3e:37:a0:15
-La interfaz ha sido asociada exitosamente
-```
+<<EXPLICAR>>
 
 ```bash
 
@@ -957,16 +947,26 @@ root@lq-d25:~# virsh domiflist mvp5
  -          bridge    bridge0          virtio   00:16:3e:37:a0:15
 ```
 
-**Explicación del comando**:
+5. Añadir una interfaz de red a la máquina virtual mvp5 utilizando virsh para conectarla al bridge:
 
-- `virsh attach-interface`: Comando para añadir una interfaz de red a una máquina virtual
-- `mvp5`: Nombre de la máquina virtual a la que añadiremos la interfaz
-- `bridge br0`: Especifica que la interfaz debe conectarse al bridge br0
-- `--model virtio`: Configura la interfaz como tipo paravirtualizada (virtio)
-- `--config`: Hace que la configuración sea persistente después de reiniciar la VM
-- `--mac 00:16:3e:37:a0:15`: Asigna una dirección MAC específica a la interfaz para garantizar la estabilidad en la conexión al laboratorio
+```bash
+root@lq-d25:~# virsh attach-interface mvp5 bridge bridge0 --model virtio --mac 08:bf:b8:ee:b1:69 --config
+La interfaz ha sido asociada exitosamente
+```
 
 > **Nota**: Es importante mantener siempre la misma dirección MAC para esta interfaz, ya que los filtros de seguridad del laboratorio permiten la conexión de un número limitado de máquinas desde cada boca de red.
+
+
+**Explicación del comando**:
+
+<<EXPLICAR>>
+Siguiente:
+
+```
+root@lq-d25:~# virsh attach-interface mvp5 bridge bridge0 --model virtio --config --mac 00:16:3e:68:29:bd
+La interfaz ha sido asociada exitosamente
+```
+
 
 6. Reiniciar la máquina virtual para aplicar los cambios:
 

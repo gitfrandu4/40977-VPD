@@ -5,16 +5,24 @@
 - [Práctica 5: Infraestructura de Red Virtual](#práctica-5-infraestructura-de-red-virtual)
   - [Tabla de contenido](#tabla-de-contenido)
   - [Introducción](#introducción)
+  - [Requisitos Previos](#requisitos-previos)
   - [Desarrollo](#desarrollo)
     - [Plan de actividades y orientaciones](#plan-de-actividades-y-orientaciones)
       - [Tarea 1. Creación de la Máquina Virtual mvp5](#tarea-1-creación-de-la-máquina-virtual-mvp5)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores)
       - [Tarea 2. Configuración de la Consola Serie](#tarea-2-configuración-de-la-consola-serie)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-1)
     - [Fase 2. Creación y Configuración de Redes Virtuales](#fase-2-creación-y-configuración-de-redes-virtuales)
       - [Tarea 1. Creación de una Red de Tipo NAT](#tarea-1-creación-de-una-red-de-tipo-nat)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-2)
       - [Tarea 2. Añadir la Primera Interfaz de Red](#tarea-2-añadir-la-primera-interfaz-de-red)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-3)
       - [Tarea 3. Creación de una Red Aislada](#tarea-3-creación-de-una-red-aislada)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-4)
       - [Tarea 4. Añadir la Segunda Interfaz de Red](#tarea-4-añadir-la-segunda-interfaz-de-red)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-5)
       - [Tarea 5. Creación de una Tercera Interfaz de Red de Tipo Bridge](#tarea-5-creación-de-una-tercera-interfaz-de-red-de-tipo-bridge)
+        - [Recuperación en caso de errores](#recuperación-en-caso-de-errores-6)
   - [Bibliografía](#bibliografía)
 
 ## Introducción
@@ -124,6 +132,30 @@ root@lq-d25:~# virsh domiflist mvp5
 
 > **Nota**: Al eliminar la interfaz de red, la máquina virtual quedará sin conectividad de red. Para acceder a ella, utilizaremos la consola serie que configuraremos en la siguiente tarea.
 
+##### Recuperación en caso de errores
+
+Si has cometido errores durante esta tarea o necesitas empezar de nuevo, puedes seguir estos pasos para eliminar completamente la máquina virtual mvp5 y comenzar desde cero:
+
+```bash
+# Detener la máquina virtual mvp5 si está en ejecución
+root@lq-d25:~# virsh destroy mvp5
+
+# Eliminar la máquina virtual mvp5
+root@lq-d25:~# virsh undefine mvp5 --remove-all-storage
+
+# Verificar que la máquina ha sido eliminada
+root@lq-d25:~# virsh list --all
+
+# Volver a clonar mvp1 para crear mvp5
+root@lq-d25:~# virt-clone --original mvp1 --name mvp5 --file /var/lib/libvirt/images/mvp5.qcow2 --mac=00:16:3e:37:a0:05
+```
+
+**Explicación de los comandos**:
+
+- `virsh destroy mvp5`: Detiene forzosamente la ejecución de la máquina virtual
+- `virsh undefine mvp5 --remove-all-storage`: Elimina la definición de la máquina virtual y todos sus archivos de almacenamiento
+- `virt-clone`: Vuelve a clonar la máquina original para recomenzar el proceso
+
 #### Tarea 2. Configuración de la Consola Serie
 
 Para poder acceder a la máquina virtual sin interfaz de red, configuraremos una consola serie.
@@ -186,9 +218,9 @@ Connected to domain 'mvp5'
 Escape character is ^] (Ctrl + ])
 
 mvp1 login: root
-Contraseña: 
+Contraseña:
 Last login: Thu Apr  3 19:31:14 on tty1
-[root@mvp1 ~]# 
+[root@mvp1 ~]#
 ```
 
 **Explicación del proceso**:
@@ -199,6 +231,25 @@ Last login: Thu Apr  3 19:31:14 on tty1
 - Conectamos a la consola serie con `virsh console mvp5`
 
 Ahora tenemos acceso a la máquina virtual incluso sin interfaz de red, lo que nos permitirá configurar las interfaces de red requeridas en las siguientes tareas.
+
+##### Recuperación en caso de errores
+
+Si has cometido errores durante la configuración de la consola serie o no funciona correctamente, puedes seguir estos pasos para restablecer la configuración:
+
+```bash
+# Acceder a la máquina virtual utilizando virt-manager
+root@lq-d25:~# virt-manager
+
+# Desde la consola gráfica, editar el archivo /etc/default/grub nuevamente
+# Asegúrate de que la línea GRUB_CMDLINE_LINUX contenga "console=ttyS0"
+
+# Si necesitas reiniciar el proceso desde cero, puedes seguir estos pasos
+root@lq-d25:~# virsh destroy mvp5
+root@lq-d25:~# virsh undefine mvp5 --remove-all-storage
+root@lq-d25:~# virt-clone --original mvp1 --name mvp5 --file /var/lib/libvirt/images/mvp5.qcow2 --mac=00:16:3e:37:a0:05
+
+# Y luego volver a configurar la consola serie siguiendo los pasos de la tarea 2
+```
 
 ### Fase 2. Creación y Configuración de Redes Virtuales
 
@@ -216,13 +267,13 @@ root@lq-d25:~# virsh net-list --all
 -----------------------------------------------------
  default   activo   si                  si
 
-root@lq-d25:~# 
+root@lq-d25:~#
 ```
 
 2. Crear un archivo XML para definir la red "Cluster":
 
 ```bash
-root@lq-d25:~# cat cluster-network.xml 
+root@lq-d25:~# cat cluster-network.xml
 <network>
   <name>Cluster</name>
   <forward mode='nat'/>
@@ -300,6 +351,51 @@ root@lq-d25:~#  ip addr show virbr1
 
 Estas acciones han creado correctamente una red NAT llamada "Cluster" con las características requeridas, que ahora está lista para ser utilizada por máquinas virtuales.
 
+##### Recuperación en caso de errores
+
+Si has cometido errores durante la creación de la red NAT o necesitas volver a empezar, puedes seguir estos pasos para eliminar la red y crearla de nuevo:
+
+```bash
+# Detener la red si está en ejecución
+root@lq-d25:~# virsh net-destroy Cluster
+
+# Eliminar la definición de la red
+root@lq-d25:~# virsh net-undefine Cluster
+
+# Verificar que la red ha sido eliminada
+root@lq-d25:~# virsh net-list --all
+
+# Volver a crear el archivo XML de la red
+root@lq-d25:~# cat > cluster-network.xml << EOF
+<network>
+  <name>Cluster</name>
+  <forward mode='nat'/>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <ip address='192.168.140.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.140.2' end='192.168.140.149'/>
+    </dhcp>
+  </ip>
+</network>
+EOF
+
+# Definir la red nuevamente
+root@lq-d25:~# virsh net-define cluster-network.xml
+
+# Iniciar la red
+root@lq-d25:~# virsh net-start Cluster
+
+# Configurar autoarranque
+root@lq-d25:~# virsh net-autostart Cluster
+```
+
+**Explicación de los comandos**:
+
+- `virsh net-destroy`: Detiene la red activa
+- `virsh net-undefine`: Elimina la definición de la red
+- `virsh net-define`: Vuelve a definir la red usando el archivo XML
+- `virsh net-start` y `virsh net-autostart`: Inician la red y configuran su inicio automático
+
 #### Tarea 2. Añadir la Primera Interfaz de Red
 
 En esta tarea añadiremos una primera interfaz de red a la máquina virtual mvp5, para que pueda conectarse a la red NAT "Cluster" que creamos anteriormente.
@@ -344,18 +440,6 @@ root@lq-d25:~# virsh console mvp5
 
 ```bash
 [root@mvp1 ~]# ip addr
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute 
-       valid_lft forever preferred_lft forever
-2: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
-       valid_lft 3581sec preferred_lft 3581sec
-    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del resultado**:
@@ -375,7 +459,7 @@ root@lq-d25:~# cat /etc/hosts | grep mvp5
 
 **Explicación**:
 
-- Se añade una entrada al archivo `/etc/hosts` que asocia la dirección IP `192.168.140.2` con el nombre `mvp5i1.vpd.com`
+- Se añade una entrada al archivo `/etc/hosts` que asocia la dirección IP `192.168.140.25` con el nombre `mvp5i1.vpd.com`
 - Esto permite acceder a la máquina virtual utilizando el nombre en lugar de la dirección IP
 
 6. Verificar la conectividad desde el anfitrión a la máquina virtual (Comprobación 2):
@@ -416,7 +500,7 @@ rtt min/avg/max/mdev = 29.738/30.110/30.441/0.267 ms
 
 ```bash
 [root@mvp1 ~]# ip route
-default via 192.168.140.1 dev enp7s0 proto dhcp src 192.168.140.25 metric 100 
+default via 192.168.140.1 dev enp7s0 proto dhcp src 192.168.140.25 metric 100
 192.168.140.0/24 dev enp7s0 proto kernel scope link src 192.168.140.25 metric 100
 ```
 
@@ -430,9 +514,54 @@ search .
 
 **Explicación**:
 
-<<<<COMPLETAR>>>>>
+- La tabla de rutas muestra que la puerta de enlace por defecto es `192.168.140.1`, que corresponde al bridge de la red NAT "Cluster"
+- La máquina virtual puede resolver nombres de dominio usando el servidor DNS configurado (127.0.0.53)
+- La métrica de la ruta por defecto es 100, lo que indica que es la ruta preferida para el tráfico saliente
 
 Estas comprobaciones confirman que la interfaz de red se ha configurado correctamente y proporciona conectividad tanto con el anfitrión como con Internet. La red NAT "Cluster" está funcionando como se esperaba, permitiendo que la máquina virtual obtenga una dirección IP automáticamente y pueda comunicarse con otros sistemas.
+
+##### Recuperación en caso de errores
+
+Si has cometido errores al añadir la primera interfaz de red o necesitas volver a configurarla, puedes seguir estos pasos:
+
+```bash
+# Ver las interfaces de red actuales
+root@lq-d25:~# virsh domiflist mvp5
+
+# Eliminar la interfaz específica (usando su MAC)
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:1d:94:c0
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:1d:94:c0 --config
+
+# Verificar que la interfaz ha sido eliminada
+root@lq-d25:~# virsh domiflist mvp5
+
+# Volver a añadir la interfaz
+root@lq-d25:~# virsh attach-interface mvp5 network Cluster --model virtio --config
+
+# Reiniciar la máquina virtual
+root@lq-d25:~# virsh reboot mvp5
+
+# En la máquina virtual, eliminar la configuración de red anterior si existe
+[root@mvp1 ~]# nmcli connection delete Almacenamiento
+
+# Crear la nueva conexión con dirección IP estática
+[root@mvp1 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
+
+# Activar la conexión
+[root@mvp1 ~]# nmcli connection up Almacenamiento
+
+# En el anfitrión, eliminar la entrada antigua en /etc/hosts si es necesario
+root@lq-d25:~# sed -i '/mvp5i2.vpd.com/d' /etc/hosts
+```
+
+**Explicación de los comandos**:
+
+- `virsh domiflist`: Muestra las interfaces de la máquina virtual
+- `virsh detach-interface`: Elimina una interfaz de red específica
+- `virsh attach-interface`: Vuelve a añadir la interfaz
+- `nmcli connection delete`: Elimina la configuración de red existente
+- `nmcli connection add`: Crea una nueva conexión con IP estática
+- `sed -i '/mvp5i2.vpd.com/d' /etc/hosts`: Elimina la entrada antigua del archivo hosts
 
 #### Tarea 3. Creación de una Red Aislada
 
@@ -441,7 +570,6 @@ En esta tarea crearemos una red virtual aislada llamada "Almacenamiento" con un 
 1. Crear un archivo XML para definir la red "Almacenamiento":
 
 ```bash
-root@lq-d25:~# vi almacenamiento-network.xml
 root@lq-d25:~# cat almacenamiento-network.xml
 <network>
   <name>Almacenamiento</name>
@@ -520,6 +648,47 @@ root@lq-d25:~#  ip addr show virbr2
 - El estado es `DOWN` porque aún no hay ninguna máquina virtual conectada a esta red
 - Al ser una red aislada, solo permitirá la comunicación entre las máquinas virtuales conectadas a ella y el anfitrión
 
+##### Recuperación en caso de errores
+
+Si has cometido errores durante la creación de la red aislada o necesitas volver a empezar, puedes seguir estos pasos para eliminar la red y crearla de nuevo:
+
+```bash
+# Detener la red si está en ejecución
+root@lq-d25:~# virsh net-destroy Almacenamiento
+
+# Eliminar la definición de la red
+root@lq-d25:~# virsh net-undefine Almacenamiento
+
+# Verificar que la red ha sido eliminada
+root@lq-d25:~# virsh net-list --all
+
+# Volver a crear el archivo XML de la red
+root@lq-d25:~# cat > almacenamiento-network.xml << EOF
+<network>
+  <name>Almacenamiento</name>
+  <bridge name='virbr2' stp='on' delay='0'/>
+  <ip address='10.22.122.1' netmask='255.255.255.0'>
+  </ip>
+</network>
+EOF
+
+# Definir la red nuevamente
+root@lq-d25:~# virsh net-define almacenamiento-network.xml
+
+# Iniciar la red
+root@lq-d25:~# virsh net-start Almacenamiento
+
+# Configurar autoarranque
+root@lq-d25:~# virsh net-autostart Almacenamiento
+```
+
+**Explicación de los comandos**:
+
+- `virsh net-destroy`: Detiene la red activa
+- `virsh net-undefine`: Elimina la definición de la red
+- `virsh net-define`: Vuelve a definir la red usando el archivo XML
+- `virsh net-start` y `virsh net-autostart`: Inician la red y configuran su inicio automático
+
 #### Tarea 4. Añadir la Segunda Interfaz de Red
 
 En esta tarea añadiremos una segunda interfaz de red a la máquina virtual mvp5, para que pueda conectarse a la red aislada "Almacenamiento" que creamos anteriormente.
@@ -562,25 +731,9 @@ root@lq-d25:~# virsh console mvp5
 
 ```bash
 [root@mvp1 ~]# ip addr
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute 
-       valid_lft forever preferred_lft forever
-2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::5054:ff:feb6:c94c/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
-3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
-       valid_lft 3470sec preferred_lft 3470sec
-    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
 ```
 
-Se observa que la interfaz `eth1` está presente pero no tiene asignada una dirección IPv4. A continuación, configuraremos la dirección IP estática.
+Se observa que la interfaz `XXXXXX` está presente pero no tiene asignada una dirección IPv4. A continuación, configuraremos la dirección IP estática.
 
 5. Configurar la dirección IP estática para la interfaz eth1:
 
@@ -600,7 +753,6 @@ En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con e
 [root@mvp1 ~]# nmcli connection modify Almacenamiento ifname enp1s0
 ```
 
-
 **Explicación del comando**:
 
 - `nmcli connection add`: Crea una nueva conexión de red
@@ -618,7 +770,7 @@ En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con e
     link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
     inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp1s0
        valid_lft forever preferred_lft forever
-    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute 
+    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 ```
 
@@ -630,7 +782,7 @@ En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con e
 root@lq-d25:~# echo "10.22.122.2 mvp5i2.vpd.com mvp5i2" >> /etc/hosts
 
 root@lq-d25:~# cat /etc/hosts | grep mvp5
-192.168.140.25 mvp5i1.vpd.com mvp5i1
+192.168.140.2 mvp5i1.vpd.com mvp5i1
 10.22.122.2 mvp5i2.vpd.com mvp5i2
 ```
 
@@ -651,7 +803,7 @@ PING mvp5i2.vpd.com (10.22.122.2) 56(84) bytes of data.
 
 --- mvp5i2.vpd.com ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3089ms
-rtt min/avg/max/mdev = 0.259/0.339/0.392/0.049 ms
+rtt min/avg/max/mdev = 0.259/0.310/0.324/0.010 ms
 ```
 
 **Resultado**: La máquina virtual responde correctamente a los paquetes ICMP enviados desde el anfitrión a través de la interfaz conectada a la red "Almacenamiento".
@@ -677,13 +829,56 @@ rtt min/avg/max/mdev = 0.152/0.243/0.343/0.073 ms
 
 ```bash
 [root@mvp1 ~]# ip route get 8.8.8.8
-8.8.8.8 via 192.168.140.1 dev enp7s0 src 192.168.140.25 uid 0 
-    cache 
+8.8.8.8 via 192.168.140.1 dev enp7s0 src 192.168.140.25 uid 0
+    cache
 ```
 
 **Explicación**: Los paquetes destinados a Internet siguen utilizando la primera interfaz (eth0) conectada a la red NAT "Cluster", ya que la segunda interfaz (eth1) está conectada a una red aislada sin acceso al exterior.
 
 En resumen, hemos configurado correctamente una segunda interfaz de red en mvp5 conectada a una red aislada llamada "Almacenamiento". Esta interfaz permite la comunicación entre la máquina virtual y el anfitrión, pero no tiene acceso a redes externas, lo que es el comportamiento esperado para una red aislada.
+
+##### Recuperación en caso de errores
+
+Si has cometido errores al añadir la segunda interfaz de red o necesitas volver a configurarla, puedes seguir estos pasos para solucionarlos:
+
+```bash
+# Ver las interfaces de red actuales
+root@lq-d25:~# virsh domiflist mvp5
+
+# Eliminar la interfaz específica (usando su MAC)
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:b6:c9:4c
+root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:b6:c9:4c --config
+
+# Verificar que la interfaz ha sido eliminada
+root@lq-d25:~# virsh domiflist mvp5
+
+# Volver a añadir la interfaz
+root@lq-d25:~# virsh attach-interface mvp5 network Almacenamiento --model virtio --config
+
+# Reiniciar la máquina virtual
+root@lq-d25:~# virsh reboot mvp5
+
+# En la máquina virtual, eliminar la configuración de red anterior si existe
+[root@mvp1 ~]# nmcli connection delete Almacenamiento
+
+# Crear la nueva conexión con dirección IP estática
+[root@mvp1 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
+
+# Activar la conexión
+[root@mvp1 ~]# nmcli connection up Almacenamiento
+
+# En el anfitrión, eliminar la entrada antigua en /etc/hosts si es necesario
+root@lq-d25:~# sed -i '/mvp5i2.vpd.com/d' /etc/hosts
+```
+
+**Explicación de los comandos**:
+
+- `virsh domiflist`: Muestra las interfaces de la máquina virtual
+- `virsh detach-interface`: Elimina una interfaz de red específica
+- `virsh attach-interface`: Vuelve a añadir la interfaz
+- `nmcli connection delete`: Elimina la configuración de red existente
+- `nmcli connection add`: Crea una nueva conexión con IP estática
+- `sed -i '/mvp5i2.vpd.com/d' /etc/hosts`: Elimina la entrada antigua del archivo hosts
 
 #### Tarea 5. Creación de una Tercera Interfaz de Red de Tipo Bridge
 
@@ -780,28 +975,6 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 
 ```bash
 [root@mvp1 ~]# ip addr
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute 
-       valid_lft forever preferred_lft forever
-2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
-    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp1s0
-       valid_lft forever preferred_lft forever
-    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
-3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:1d:94:c0 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.140.25/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
-       valid_lft 3584sec preferred_lft 3584sec
-    inet6 fe80::8ef0:b5b:3f2d:4b2b/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
-4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 00:16:3e:37:a0:15 brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::f019:f813:e058:b51c/64 scope link noprefixroute 
-       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del resultado**:
@@ -812,15 +985,15 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 
 ```
 root@lq-d25:~# nmcli device status
-DEVICE  TYPE      STATE                                     CONNECTION 
-enp6s0  ethernet  conectado                                 enp6s0     
-lo      loopback  connected (externally)                    lo         
-virbr0  bridge    connected (externally)                    virbr0     
-virbr1  bridge    connected (externally)                    virbr1     
-virbr2  bridge    connected (externally)                    virbr2     
-vnet7   tun       connected (externally)                    vnet7      
-vnet8   tun       connected (externally)                    vnet8      
-br0     bridge    conectando (obteniendo configuración IP)  Bridge-Lab 
+DEVICE  TYPE      STATE                                     CONNECTION
+enp6s0  ethernet  conectado                                 enp6s0
+lo      loopback  connected (externally)                    lo
+virbr0  bridge    connected (externally)                    virbr0
+virbr1  bridge    connected (externally)                    virbr1
+virbr2  bridge    connected (externally)                    virbr2
+vnet7   tun       connected (externally)                    vnet7
+vnet8   tun       connected (externally)                    vnet8
+br0     bridge    conectando (obteniendo configuración IP)  Bridge-Lab
 vnet9   tun       sin gestión                               --
 ```
 
@@ -869,7 +1042,7 @@ PING google.es (142.250.184.3) 56(84) bytes of data.
 
 --- google.es ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 12.539/12.659/12.823/0.114 ms
+rtt min/avg/max/mdev = 12.539/12.659/12.823/0.267 ms
 ```
 
 **Resultado**: La máquina virtual puede acceder a sitios de Internet, lo que confirma que la configuración del bridge funciona correctamente. A diferencia de la configuración NAT, en este caso la máquina virtual tiene acceso directo a la red externa a través del bridge.
@@ -905,9 +1078,85 @@ default via 10.10.14.1 dev eth2 proto dhcp metric 100
 
 - La ruta por defecto está configurada a través de la interfaz eth2 (bridge) usando la puerta de enlace `10.10.14.1`
 - Cada interfaz tiene su propia ruta para la red a la que está conectada, con diferentes métricas
-- La interfaz eth2 tiene la métrica más baja (100), lo que significa que es la interfaz preferida para el tráfico saliente
+- La interfaz eth2 tiene la métrica más baja (100), lo que indica que es la interfaz preferida para el tráfico saliente
 
 En resumen, hemos configurado correctamente una tercera interfaz de red de tipo bridge en mvp5, que le permite conectarse directamente a la red física del laboratorio. Esta configuración permite que la máquina virtual obtenga una dirección IP de la infraestructura DHCP del laboratorio y tenga acceso directo a Internet y a otros sistemas en la misma red física, como si fuera un equipo físico más conectado a la red.
+
+##### Recuperación en caso de errores
+
+Si has cometido errores al añadir la tercera interfaz de red o tienes problemas con el DHCP, puedes seguir estos pasos para solucionarlos:
+
+```bash
+# En el sistema anfitrión:
+
+# Ver las interfaces de red actuales
+root@lq-d25:~# virsh domiflist mvp5
+
+# Eliminar la interfaz bridge si es necesario
+root@lq-d25:~# virsh detach-interface mvp5 bridge --mac 00:16:3e:37:a0:15
+root@lq-d25:~# virsh detach-interface mvp5 bridge --mac 00:16:3e:37:a0:15 --config
+
+# Verificar que la interfaz ha sido eliminada
+root@lq-d25:~# virsh domiflist mvp5
+
+# Eliminar la configuración del bridge si es necesario
+root@lq-d25:~# nmcli con del Bridge-Lab
+root@lq-d25:~# nmcli con del bridge-slave-eth0
+
+# Volver a crear el bridge correctamente
+root@lq-d25:~# nmcli con add type bridge ifname br0 con-name Bridge-Lab
+root@lq-d25:~# nmcli con add type bridge-slave ifname eth0 master br0
+
+# Desactivar la conexión original antes de activar el bridge
+root@lq-d25:~# nmcli con down "nombre-conexión-original"
+root@lq-d25:~# nmcli con up Bridge-Lab
+
+# Verificar que el bridge tiene IP
+root@lq-d25:~# ip addr show br0
+
+# Si no tiene IP, forzar renovación DHCP
+root@lq-d25:~# nmcli con down Bridge-Lab
+root@lq-d25:~# nmcli con up Bridge-Lab
+
+# Volver a añadir la interfaz bridge a la máquina virtual
+root@lq-d25:~# virsh attach-interface mvp5 bridge br0 --model virtio --config --mac 00:16:3e:37:a0:15
+
+# Reiniciar la máquina virtual
+root@lq-d25:~# virsh reboot mvp5
+
+# En la máquina virtual (a través de virsh console mvp5):
+
+# Identificar el nombre de la interfaz
+[root@mvp1 ~]# ip addr
+
+# Si la interfaz no tiene IP, forzar la configuración DHCP:
+[root@mvp1 ~]# nmcli device status
+[root@mvp1 ~]# nmcli con show
+
+# Si la conexión existe, reiniciarla:
+[root@mvp1 ~]# nmcli con down "nombre-conexión-eth2"
+[root@mvp1 ~]# nmcli con up "nombre-conexión-eth2"
+
+# Si la conexión no existe, crearla:
+[root@mvp1 ~]# nmcli con add type ethernet con-name Bridge-Lab ifname eth2 ipv4.method auto
+
+# Si sigue sin funcionar, reiniciar NetworkManager:
+[root@mvp1 ~]# systemctl restart NetworkManager
+
+# Verificar la configuración
+[root@mvp1 ~]# ip addr
+[root@mvp1 ~]# ip route
+
+# En el anfitrión, eliminar la entrada antigua en /etc/hosts si es necesario
+root@lq-d25:~# sed -i '/mvp5i3.vpd.com/d' /etc/hosts
+```
+
+**Explicación de los comandos**:
+
+- Los comandos del anfitrión permiten eliminar y recrear tanto la interfaz bridge en la VM como el bridge en el sistema anfitrión
+- Los comandos de la máquina virtual permiten forzar la asignación DHCP de varias maneras
+- Se puede reiniciar NetworkManager como último recurso si los otros métodos no funcionan
+- Es fundamental mantener la misma dirección MAC para cumplir con los requisitos de seguridad del laboratorio
 
 ## Bibliografía
 

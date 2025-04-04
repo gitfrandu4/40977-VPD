@@ -342,9 +342,9 @@ Puente:         virbr1
 8. Verificar la configuración del bridge en el sistema:
 
 ```bash
-root@lq-d25:~#  ip addr show virbr1
-5: virbr1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:55:02:69 brd ff:ff:ff:ff:ff:ff
+root@lq-d25:~# ip addr show virbr1
+7: virbr1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:f5:97:55 brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.1/24 brd 192.168.140.255 scope global virbr1
        valid_lft forever preferred_lft forever
 ```
@@ -410,7 +410,7 @@ La interfaz ha sido asociada exitosamente
 root@lq-d25:~# virsh domiflist mvp5
  Interfaz   Tipo      Fuente    Modelo   MAC
 ------------------------------------------------------------
- -          network   Cluster   virtio   52:54:00:1d:94:c0
+ -          network   Cluster   virtio   52:54:00:bd:89:a1
 ```
 
 **Explicación del comando**:
@@ -440,6 +440,18 @@ root@lq-d25:~# virsh console mvp5
 
 ```bash
 [root@mvp1 ~]# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:bd:89:a1 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.17/24 brd 192.168.140.255 scope global dynamic noprefixroute enp1s0
+       valid_lft 3590sec preferred_lft 3590sec
+    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del resultado**:
@@ -500,8 +512,8 @@ rtt min/avg/max/mdev = 29.738/30.110/30.441/0.267 ms
 
 ```bash
 [root@mvp1 ~]# ip route
-default via 192.168.140.1 dev enp7s0 proto dhcp src 192.168.140.25 metric 100
-192.168.140.0/24 dev enp7s0 proto kernel scope link src 192.168.140.25 metric 100
+default via 192.168.140.1 dev enp1s0 proto dhcp src 192.168.140.17 metric 100 
+192.168.140.0/24 dev enp1s0 proto kernel scope link src 192.168.140.17 metric 100 
 ```
 
 ```bash
@@ -635,9 +647,9 @@ Puente:         virbr2
 7. Verificar la configuración del bridge en el sistema:
 
 ```bash
-root@lq-d25:~#  ip addr show virbr2
-7: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:5a:4b:6b brd ff:ff:ff:ff:ff:ff
+root@lq-d25:~# ip addr show virbr2
+9: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:27:63:37 brd ff:ff:ff:ff:ff:ff
     inet 10.22.122.1/24 brd 10.22.122.255 scope global virbr2
        valid_lft forever preferred_lft forever
 ```
@@ -666,6 +678,7 @@ root@lq-d25:~# virsh net-list --all
 root@lq-d25:~# cat > almacenamiento-network.xml << EOF
 <network>
   <name>Almacenamiento</name>
+  <domain name="Almacenamiento"/>
   <bridge name='virbr2' stp='on' delay='0'/>
   <ip address='10.22.122.1' netmask='255.255.255.0'>
   </ip>
@@ -731,6 +744,22 @@ root@lq-d25:~# virsh console mvp5
 
 ```bash
 [root@mvp1 ~]# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:bd:89:a1 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.17/24 brd 192.168.140.255 scope global dynamic noprefixroute enp1s0
+       valid_lft 3587sec preferred_lft 3587sec
+    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:5c:3c:2e brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::4794:a1da:e1e9:98ce/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 Se observa que la interfaz `XXXXXX` está presente pero no tiene asignada una dirección IPv4. A continuación, configuraremos la dirección IP estática.
@@ -738,19 +767,20 @@ Se observa que la interfaz `XXXXXX` está presente pero no tiene asignada una di
 5. Configurar la dirección IP estática para la interfaz eth1:
 
 ```bash
-[root@mvp5 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
-Conexión 'Almacenamiento' (38c98a28-8fa5-4c93-b779-26ede1f914ef) agregada con éxito.
+DEVICE  TYPE      STATE                   CONNECTION 
+enp6s0  ethernet  conectado               enp6s0     
+lo      loopback  connected (externally)  lo         
+virbr0  bridge    connected (externally)  virbr0     
+virbr1  bridge    connected (externally)  virbr1     
+virbr2  bridge    connected (externally)  virbr2     
+root@lq-d25:~# nmcli connection modify Almacenamiento connection.interface-name enp6s0
+root@lq-d25:~# nmcli connection up Almacenamiento
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/14)
 ```
 
 ```bash
-[root@mvp1 ~]# nmcli connection up Almacenamiento
-Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
-```
-
-En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con el siguiente comando:
-
-```bash
-[root@mvp1 ~]# nmcli connection modify Almacenamiento ifname enp1s0
+root@lq-d25:~# nmcli connection up Almacenamiento
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/14)
 ```
 
 **Explicación del comando**:
@@ -765,12 +795,12 @@ En caso de equivocarnos asignando la interfaz de red, podemos solucionarlo con e
 6. Verificar la configuración de la interfaz eth1:
 
 ```bash
-[root@mvp1 ~]# ip addr show enp1s0
-2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:b6:c9:4c brd ff:ff:ff:ff:ff:ff
-    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+root@lq-d25:~# ip addr show enp6s0
+2: enp6s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:bf:b8:ee:b1:69 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp6s0
        valid_lft forever preferred_lft forever
-    inet6 fe80::15d0:c23a:eb4d:644d/64 scope link noprefixroute
+    inet6 fe80::8776:8caa:b69d:fb92/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
@@ -829,47 +859,13 @@ rtt min/avg/max/mdev = 0.152/0.243/0.343/0.073 ms
 
 ```bash
 [root@mvp1 ~]# ip route get 8.8.8.8
-8.8.8.8 via 192.168.140.1 dev enp7s0 src 192.168.140.25 uid 0
-    cache
+8.8.8.8 via 192.168.140.1 dev enp1s0 src 192.168.140.17 uid 0 
+    cache 
 ```
 
 **Explicación**: Los paquetes destinados a Internet siguen utilizando la primera interfaz (eth0) conectada a la red NAT "Cluster", ya que la segunda interfaz (eth1) está conectada a una red aislada sin acceso al exterior.
 
 En resumen, hemos configurado correctamente una segunda interfaz de red en mvp5 conectada a una red aislada llamada "Almacenamiento". Esta interfaz permite la comunicación entre la máquina virtual y el anfitrión, pero no tiene acceso a redes externas, lo que es el comportamiento esperado para una red aislada.
-
-##### Recuperación en caso de errores
-
-Si has cometido errores al añadir la segunda interfaz de red o necesitas volver a configurarla, puedes seguir estos pasos para solucionarlos:
-
-```bash
-# Ver las interfaces de red actuales
-root@lq-d25:~# virsh domiflist mvp5
-
-# Eliminar la interfaz específica (usando su MAC)
-root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:b6:c9:4c
-root@lq-d25:~# virsh detach-interface mvp5 network --mac 52:54:00:b6:c9:4c --config
-
-# Verificar que la interfaz ha sido eliminada
-root@lq-d25:~# virsh domiflist mvp5
-
-# Volver a añadir la interfaz
-root@lq-d25:~# virsh attach-interface mvp5 network Almacenamiento --model virtio --config
-
-# Reiniciar la máquina virtual
-root@lq-d25:~# virsh reboot mvp5
-
-# En la máquina virtual, eliminar la configuración de red anterior si existe
-[root@mvp1 ~]# nmcli connection delete Almacenamiento
-
-# Crear la nueva conexión con dirección IP estática
-[root@mvp1 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
-
-# Activar la conexión
-[root@mvp1 ~]# nmcli connection up Almacenamiento
-
-# En el anfitrión, eliminar la entrada antigua en /etc/hosts si es necesario
-root@lq-d25:~# sed -i '/mvp5i2.vpd.com/d' /etc/hosts
-```
 
 **Explicación de los comandos**:
 
@@ -894,23 +890,47 @@ Conexión «Bridge-Lab» (d650c78e-d202-4461-89ac-bafbb45c6792) añadida con éx
 2. Añadir la interfaz física (eth0) al bridge:
 
 ```bash
-root@lq-d25:~# nmcli con add type bridge-slave ifname eth0 master br0
-Conexión «bridge-slave-eth0» (85772954-8db0-4d6e-bdc5-41f8660941ab) añadida con éxito.
+root@lq-d25:~# nmcli con add type bridge con-name bridge0 ifname bridge0
+Conexión «bridge0» (a41999da-60ce-46e6-8d81-2dc245c7aeb1) añadida con éxito.
 ```
-
-3. Activar el bridge:
 
 ```bash
-root@lq-d25:~# nmcli con up Bridge-Lab
-La conexión se ha activado correctamente (master waiting for slaves) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/11)
+root@lq-d25:~# nmcli device status
+DEVICE   TYPE      STATE                                     CONNECTION     
+enp6s0   ethernet  conectado                                 Almacenamiento 
+lo       loopback  connected (externally)                    lo             
+virbr0   bridge    connected (externally)                    virbr0         
+virbr1   bridge    connected (externally)                    virbr1         
+virbr2   bridge    connected (externally)                    virbr2         
+bridge0  bridge    conectando (obteniendo configuración IP)  bridge0  
 ```
+
+```bash
+root@lq-d25:~# nmcli con mod enp6s0 master bridge0 
+```
+
+```bash
+root@lq-d25:~# nmcli device status
+DEVICE   TYPE      STATE                   CONNECTION 
+bridge0  bridge    conectado               bridge0    
+lo       loopback  connected (externally)  lo         
+virbr0   bridge    connected (externally)  virbr0     
+virbr1   bridge    connected (externally)  virbr1     
+virbr2   bridge    connected (externally)  virbr2     
+enp6s0   ethernet  conectado               enp6s0     
+```
+
 
 4. Verificar la configuración del bridge:
 
 ```bash
-root@lq-d25:~# ip addr show br0
-11: br0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 1e:7d:d4:4c:16:57 brd ff:ff:ff:ff:ff:ff
+root@lq-d25:~#  ip addr show bridge0 
+21: bridge0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 08:bf:b8:ee:b1:69 brd ff:ff:ff:ff:ff:ff
+    inet 10.140.92.125/24 brd 10.140.92.255 scope global dynamic noprefixroute bridge0
+       valid_lft 10723sec preferred_lft 10723sec
+    inet6 fe80::e6e7:c28d:331c:1d14/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del proceso**:
@@ -932,9 +952,9 @@ La interfaz ha sido asociada exitosamente
 root@lq-d25:~# virsh domiflist mvp5
  Interfaz   Tipo      Fuente           Modelo   MAC
 -------------------------------------------------------------------
- -          network   Cluster          virtio   52:54:00:1d:94:c0
- -          network   Almacenamiento   virtio   52:54:00:b6:c9:4c
- -          bridge    br0              virtio   00:16:3e:37:a0:15
+ -          network   Cluster          virtio   52:54:00:bd:89:a1
+ -          network   Almacenamiento   virtio   52:54:00:5c:3c:2e
+ -          bridge    bridge0          virtio   00:16:3e:37:a0:15
 ```
 
 **Explicación del comando**:
@@ -975,32 +995,52 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 
 ```bash
 [root@mvp1 ~]# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:bd:89:a1 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.17/24 brd 192.168.140.255 scope global dynamic noprefixroute enp1s0
+       valid_lft 3549sec preferred_lft 3549sec
+    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:5c:3c:2e brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::4794:a1da:e1e9:98ce/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 00:16:3e:37:a0:15 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::2010:15f0:af45:5545/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del resultado**:
 
-- La interfaz `eth2` ha sido configurada correctamente con una dirección IP `10.10.14.35` de la red del laboratorio
+- La interfaz `XXXX` ha sido configurada correctamente con una dirección IP `XXXXXX` de la red del laboratorio
 - La dirección IP ha sido asignada automáticamente por el servidor DHCP de la infraestructura del laboratorio
 - El estado de la interfaz es `UP`, lo que indica que está funcionando correctamente
 
 ```
 root@lq-d25:~# nmcli device status
-DEVICE  TYPE      STATE                                     CONNECTION
-enp6s0  ethernet  conectado                                 enp6s0
-lo      loopback  connected (externally)                    lo
-virbr0  bridge    connected (externally)                    virbr0
-virbr1  bridge    connected (externally)                    virbr1
-virbr2  bridge    connected (externally)                    virbr2
-vnet7   tun       connected (externally)                    vnet7
-vnet8   tun       connected (externally)                    vnet8
-br0     bridge    conectando (obteniendo configuración IP)  Bridge-Lab
-vnet9   tun       sin gestión                               --
+DEVICE   TYPE      STATE                   CONNECTION 
+bridge0  bridge    conectado               bridge0    
+lo       loopback  connected (externally)  lo         
+virbr0   bridge    connected (externally)  virbr0     
+virbr1   bridge    connected (externally)  virbr1     
+virbr2   bridge    connected (externally)  virbr2     
+vnet12   tun       connected (externally)  vnet12     
+vnet13   tun       connected (externally)  vnet13     
+vnet14   tun       connected (externally)  vnet14     
+enp6s0   ethernet  conectado               enp6s0    
 ```
 
 9. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i3.vpd.com:
 
 ```bash
-root@lq-d25:~# echo "10.10.14.35 mvp5i3.vpd.com mvp5i3" >> /etc/hosts
+root@lq-d25:~# echo "10.140.92.125 mvp5i3.vpd.com mvp5i3" >> /etc/hosts
 
 root@lq-d25:~# cat /etc/hosts | grep mvp5
 192.168.140.2 mvp5i1.vpd.com mvp5i1
@@ -1017,15 +1057,15 @@ root@lq-d25:~# cat /etc/hosts | grep mvp5
 
 ```bash
 root@lq-d25:~# ping -c 4 mvp5i3.vpd.com
-PING mvp5i3.vpd.com (10.10.14.35) 56(84) bytes of data.
-64 bytes from mvp5i3.vpd.com (10.10.14.35): icmp_seq=1 ttl=64 time=0.298 ms
-64 bytes from mvp5i3.vpd.com (10.10.14.35): icmp_seq=2 ttl=64 time=0.312 ms
-64 bytes from mvp5i3.vpd.com (10.10.14.35): icmp_seq=3 ttl=64 time=0.324 ms
-64 bytes from mvp5i3.vpd.com (10.10.14.35): icmp_seq=4 ttl=64 time=0.305 ms
+PING mvp5i3.vpd.com (10.140.92.125) 56(84) bytes of data.
+64 bytes from mvp5i3.vpd.com (10.140.92.125): icmp_seq=1 ttl=64 time=0.058 ms
+64 bytes from mvp5i3.vpd.com (10.140.92.125): icmp_seq=2 ttl=64 time=0.068 ms
+64 bytes from mvp5i3.vpd.com (10.140.92.125): icmp_seq=3 ttl=64 time=0.049 ms
+64 bytes from mvp5i3.vpd.com (10.140.92.125): icmp_seq=4 ttl=64 time=0.059 ms
 
 --- mvp5i3.vpd.com ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3062ms
-rtt min/avg/max/mdev = 0.298/0.310/0.324/0.010 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3085ms
+rtt min/avg/max/mdev = 0.049/0.058/0.068/0.006 ms
 ```
 
 **Resultado**: La máquina virtual responde correctamente a los paquetes ICMP enviados desde el anfitrión, lo que confirma que la conectividad entre ambos sistemas funciona adecuadamente.
@@ -1033,16 +1073,16 @@ rtt min/avg/max/mdev = 0.298/0.310/0.324/0.010 ms
 11. Verificar el acceso a Internet desde la máquina virtual (Comprobación 3):
 
 ```bash
-[root@mvp5 ~]# ping -c 4 google.es
-PING google.es (142.250.184.3) 56(84) bytes of data.
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=1 ttl=117 time=12.8 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=2 ttl=117 time=12.6 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=3 ttl=117 time=12.7 ms
-64 bytes from mad41s09-in-f3.1e100.net (142.250.184.3): icmp_seq=4 ttl=117 time=12.5 ms
+[root@mvp1 ~]# ping -c 4 google.es
+PING google.es (142.250.184.163) 56(84) bytes of data.
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=1 ttl=114 time=30.3 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=2 ttl=114 time=30.3 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=3 ttl=114 time=29.8 ms
+64 bytes from mad07s23-in-f3.1e100.net (142.250.184.163): icmp_seq=4 ttl=114 time=29.9 ms
 
 --- google.es ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3004ms
-rtt min/avg/max/mdev = 12.539/12.659/12.823/0.267 ms
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 29.762/30.058/30.297/0.238 ms
 ```
 
 **Resultado**: La máquina virtual puede acceder a sitios de Internet, lo que confirma que la configuración del bridge funciona correctamente. A diferencia de la configuración NAT, en este caso la máquina virtual tiene acceso directo a la red externa a través del bridge.
@@ -1050,16 +1090,16 @@ rtt min/avg/max/mdev = 12.539/12.659/12.823/0.267 ms
 12. Verificar la conectividad con el sistema anfitrión del profesor (Comprobación 4):
 
 ```bash
-[root@mvp5 ~]# ping -c 4 10.10.14.1
-PING 10.10.14.1 (10.10.14.1) 56(84) bytes of data.
-64 bytes from 10.10.14.1: icmp_seq=1 ttl=64 time=0.587 ms
-64 bytes from 10.10.14.1: icmp_seq=2 ttl=64 time=0.603 ms
-64 bytes from 10.10.14.1: icmp_seq=3 ttl=64 time=0.592 ms
-64 bytes from 10.10.14.1: icmp_seq=4 ttl=64 time=0.608 ms
+[root@mvp1 ~]# ping -c 4 10.22.122.1
+PING 10.22.122.1 (10.22.122.1) 56(84) bytes of data.
+64 bytes from 10.22.122.1: icmp_seq=1 ttl=64 time=0.172 ms
+64 bytes from 10.22.122.1: icmp_seq=2 ttl=64 time=0.223 ms
+64 bytes from 10.22.122.1: icmp_seq=3 ttl=64 time=0.201 ms
+64 bytes from 10.22.122.1: icmp_seq=4 ttl=64 time=0.336 ms
 
---- 10.10.14.1 ping statistics ---
-4 packets transmitted, 4 received, 0% packet loss, time 3058ms
-rtt min/avg/max/mdev = 0.587/0.597/0.608/0.009 ms
+--- 10.22.122.1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 0.172/0.233/0.336/0.062 ms
 ```
 
 **Resultado**: La máquina virtual puede comunicarse con el sistema anfitrión del profesor ubicado en la dirección IP `10.10.14.1`. Esto confirma que la configuración de bridge permite la conexión directa a otros sistemas en la misma red física.
@@ -1067,88 +1107,23 @@ rtt min/avg/max/mdev = 0.587/0.597/0.608/0.009 ms
 13. Comprobar la tabla de enrutamiento en la máquina virtual:
 
 ```bash
-[root@mvp5 ~]# ip route
-default via 10.10.14.1 dev eth2 proto dhcp metric 100
-10.10.14.0/24 dev eth2 proto kernel scope link src 10.10.14.35 metric 100
-10.22.122.0/24 dev eth1 proto kernel scope link src 10.22.122.2 metric 101
-192.168.140.0/24 dev eth0 proto kernel scope link src 192.168.140.2 metric 102
+[root@mvp1 ~]# ip route
+default via 192.168.140.1 dev enp1s0 proto dhcp src 192.168.140.17 metric 100 
+192.168.140.0/24 dev enp1s0 proto kernel scope link src 192.168.140.17 metric 100 
 ```
 
 **Explicación**:
 
-- La ruta por defecto está configurada a través de la interfaz eth2 (bridge) usando la puerta de enlace `10.10.14.1`
-- Cada interfaz tiene su propia ruta para la red a la que está conectada, con diferentes métricas
-- La interfaz eth2 tiene la métrica más baja (100), lo que indica que es la interfaz preferida para el tráfico saliente
+--- ¿¿??
 
 En resumen, hemos configurado correctamente una tercera interfaz de red de tipo bridge en mvp5, que le permite conectarse directamente a la red física del laboratorio. Esta configuración permite que la máquina virtual obtenga una dirección IP de la infraestructura DHCP del laboratorio y tenga acceso directo a Internet y a otros sistemas en la misma red física, como si fuera un equipo físico más conectado a la red.
 
-##### Recuperación en caso de errores
-
-Si has cometido errores al añadir la tercera interfaz de red o tienes problemas con el DHCP, puedes seguir estos pasos para solucionarlos:
-
 ```bash
-# En el sistema anfitrión:
-
-# Ver las interfaces de red actuales
-root@lq-d25:~# virsh domiflist mvp5
-
-# Eliminar la interfaz bridge si es necesario
-root@lq-d25:~# virsh detach-interface mvp5 bridge --mac 00:16:3e:37:a0:15
-root@lq-d25:~# virsh detach-interface mvp5 bridge --mac 00:16:3e:37:a0:15 --config
-
-# Verificar que la interfaz ha sido eliminada
-root@lq-d25:~# virsh domiflist mvp5
-
-# Eliminar la configuración del bridge si es necesario
-root@lq-d25:~# nmcli con del Bridge-Lab
-root@lq-d25:~# nmcli con del bridge-slave-eth0
-
-# Volver a crear el bridge correctamente
-root@lq-d25:~# nmcli con add type bridge ifname br0 con-name Bridge-Lab
-root@lq-d25:~# nmcli con add type bridge-slave ifname eth0 master br0
-
-# Desactivar la conexión original antes de activar el bridge
-root@lq-d25:~# nmcli con down "nombre-conexión-original"
-root@lq-d25:~# nmcli con up Bridge-Lab
-
-# Verificar que el bridge tiene IP
-root@lq-d25:~# ip addr show br0
-
-# Si no tiene IP, forzar renovación DHCP
-root@lq-d25:~# nmcli con down Bridge-Lab
-root@lq-d25:~# nmcli con up Bridge-Lab
-
-# Volver a añadir la interfaz bridge a la máquina virtual
-root@lq-d25:~# virsh attach-interface mvp5 bridge br0 --model virtio --config --mac 00:16:3e:37:a0:15
-
-# Reiniciar la máquina virtual
-root@lq-d25:~# virsh reboot mvp5
-
-# En la máquina virtual (a través de virsh console mvp5):
-
-# Identificar el nombre de la interfaz
-[root@mvp1 ~]# ip addr
-
-# Si la interfaz no tiene IP, forzar la configuración DHCP:
-[root@mvp1 ~]# nmcli device status
-[root@mvp1 ~]# nmcli con show
-
-# Si la conexión existe, reiniciarla:
-[root@mvp1 ~]# nmcli con down "nombre-conexión-eth2"
-[root@mvp1 ~]# nmcli con up "nombre-conexión-eth2"
-
-# Si la conexión no existe, crearla:
-[root@mvp1 ~]# nmcli con add type ethernet con-name Bridge-Lab ifname eth2 ipv4.method auto
-
-# Si sigue sin funcionar, reiniciar NetworkManager:
-[root@mvp1 ~]# systemctl restart NetworkManager
-
-# Verificar la configuración
-[root@mvp1 ~]# ip addr
-[root@mvp1 ~]# ip route
-
-# En el anfitrión, eliminar la entrada antigua en /etc/hosts si es necesario
-root@lq-d25:~# sed -i '/mvp5i3.vpd.com/d' /etc/hosts
+ Interfaz   Tipo      Fuente           Modelo   MAC
+-------------------------------------------------------------------
+ vnet12     network   Cluster          virtio   52:54:00:bd:89:a1
+ vnet13     network   Almacenamiento   virtio   52:54:00:5c:3c:2e
+ vnet14     bridge    bridge0          virtio   00:16:3e:37:a0:15
 ```
 
 **Explicación de los comandos**:

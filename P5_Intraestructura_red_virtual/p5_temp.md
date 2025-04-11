@@ -882,17 +882,28 @@ Conexión «bridge0» (a41999da-60ce-46e6-8d81-2dc245c7aeb1) añadida con éxito
 
 ```bash
 root@lq-d25:~# nmcli device status
-DEVICE   TYPE      STATE                                     CONNECTION
-enp6s0   ethernet  conectado                                 Almacenamiento
-lo       loopback  connected (externally)                    lo
-virbr0   bridge    connected (externally)                    virbr0
-virbr1   bridge    connected (externally)                    virbr1
-virbr2   bridge    connected (externally)                    virbr2
-bridge0  bridge    conectando (obteniendo configuración IP)  bridge0
+DEVICE   TYPE      STATE                   CONNECTION 
+bridge0  bridge    conectado               bridge0    
+lo       loopback  connected (externally)  lo         
+virbr0   bridge    connected (externally)  virbr0     
+virbr1   bridge    connected (externally)  virbr1     
+virbr2   bridge    connected (externally)  virbr2     
+vnet18   tun       connected (externally)  vnet18     
+vnet19   tun       connected (externally)  vnet19     
+vnet20   tun       connected (externally)  vnet20     
+enp6s0   ethernet  conectado               enp6s0
 ```
 
 ```bash
 root@lq-d25:~# nmcli con mod enp6s0 master bridge0
+```
+
+```bash
+root@lq-d25:~# nmcli con show enp6s0
+# ...
+connection.master:                      bridge0
+connection.slave-type:                  bridge
+# ...
 ```
 
 ```bash
@@ -910,11 +921,11 @@ enp6s0   ethernet  conectado               enp6s0
 
 ```bash
 root@lq-d25:~#  ip addr show bridge0
-21: bridge0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+3: bridge0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
     link/ether 08:bf:b8:ee:b1:69 brd ff:ff:ff:ff:ff:ff
     inet 10.140.92.125/24 brd 10.140.92.255 scope global dynamic noprefixroute bridge0
-       valid_lft 10723sec preferred_lft 10723sec
-    inet6 fe80::e6e7:c28d:331c:1d14/64 scope link noprefixroute
+       valid_lft 8501sec preferred_lft 8501sec
+    inet6 fe80::e6e7:c28d:331c:1d14/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
@@ -923,33 +934,27 @@ root@lq-d25:~#  ip addr show bridge0
 <<EXPLICAR>>
 
 ```bash
-
 root@lq-d25:~# virsh domiflist mvp5
  Interfaz   Tipo      Fuente           Modelo   MAC
 -------------------------------------------------------------------
- -          network   Cluster          virtio   52:54:00:bd:89:a1
- -          network   Almacenamiento   virtio   52:54:00:5c:3c:2e
- -          bridge    bridge0          virtio   00:16:3e:37:a0:15
+ vnet18     network   Cluster          virtio   52:54:00:bd:89:a1
+ vnet19     bridge    bridge0          virtio   00:16:3e:6b:8b:d9
+ vnet20     network   Almacenamiento   virtio   52:54:00:e4:bf:90
 ```
 
 5. Añadir una interfaz de red a la máquina virtual mvp5 utilizando virsh para conectarla al bridge:
 
-```bash
-root@lq-d25:~# virsh attach-interface mvp5 bridge bridge0 --model virtio --mac 08:bf:b8:ee:b1:69 --config
-La interfaz ha sido asociada exitosamente
+```
+root@lq-d25:~# python ./macgen.py
+00:16:3e:6b:8b:d9 
 ```
 
-> **Nota**: Es importante mantener siempre la misma dirección MAC para esta interfaz, ya que los filtros de seguridad del laboratorio permiten la conexión de un número limitado de máquinas desde cada boca de red.
+```bash
+root@lq-d25:~# virsh attach-interface mvp5 bridge bridge0 --model virtio --mac 00:16:3e:6b:8b:d9 --config
+La interfaz ha sido asociada exitosamente
+```
 
 **Explicación del comando**:
-
-<<EXPLICAR>>
-Siguiente:
-
-```
-root@lq-d25:~# virsh attach-interface mvp5 bridge bridge0 --model virtio --config --mac 00:16:3e:68:29:bd
-La interfaz ha sido asociada exitosamente
-```
 
 6. Reiniciar la máquina virtual para aplicar los cambios:
 
@@ -982,21 +987,25 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute
+    inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
 2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:bd:89:a1 brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.17/24 brd 192.168.140.255 scope global dynamic noprefixroute enp1s0
-       valid_lft 3549sec preferred_lft 3549sec
-    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute
+       valid_lft 3174sec preferred_lft 3174sec
+    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:5c:3c:2e brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::4794:a1da:e1e9:98ce/64 scope link noprefixroute
+    link/ether 52:54:00:e4:bf:90 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp7s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::8046:bb5d:3e14:c0dc/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 00:16:3e:37:a0:15 brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::2010:15f0:af45:5545/64 scope link noprefixroute
+    link/ether 00:16:3e:6b:8b:d9 brd ff:ff:ff:ff:ff:ff
+    inet 10.140.92.178/24 brd 10.140.92.255 scope global dynamic noprefixroute enp8s0
+       valid_lft 10392sec preferred_lft 10392sec
+    inet6 fe80::f0dc:8e70:5631:d16d/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
@@ -1008,27 +1017,29 @@ Last login: Mon Mar 25 14:28:15 on ttyS0
 
 ```
 root@lq-d25:~# nmcli device status
-DEVICE   TYPE      STATE                   CONNECTION
-bridge0  bridge    conectado               bridge0
-lo       loopback  connected (externally)  lo
-virbr0   bridge    connected (externally)  virbr0
-virbr1   bridge    connected (externally)  virbr1
-virbr2   bridge    connected (externally)  virbr2
-vnet12   tun       connected (externally)  vnet12
-vnet13   tun       connected (externally)  vnet13
-vnet14   tun       connected (externally)  vnet14
-enp6s0   ethernet  conectado               enp6s0
+DEVICE   TYPE      STATE                   CONNECTION 
+bridge0  bridge    conectado               bridge0    
+lo       loopback  connected (externally)  lo         
+virbr0   bridge    connected (externally)  virbr0     
+virbr1   bridge    connected (externally)  virbr1     
+virbr2   bridge    connected (externally)  virbr2     
+vnet18   tun       connected (externally)  vnet18     
+vnet19   tun       connected (externally)  vnet19     
+vnet20   tun       connected (externally)  vnet20     
+enp6s0   ethernet  conectado               enp6s0 
 ```
 
 9. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i3.vpd.com:
 
 ```bash
 root@lq-d25:~# echo "10.140.92.178 mvp5i3.vpd.com mvp5i3" >> /etc/hosts
+```
 
+```bash
 root@lq-d25:~# cat /etc/hosts | grep mvp5
-192.168.140.2 mvp5i1.vpd.com mvp5i1
+192.168.140.17 mvp5i1.vpd.com mvp5i1
 10.22.122.2 mvp5i2.vpd.com mvp5i2
-10.10.14.35 mvp5i3.vpd.com mvp5i3
+10.140.92.178 mvp5i3.vpd.com mvp5i3
 ```
 
 **Explicación**:
@@ -1091,23 +1102,19 @@ rtt min/avg/max/mdev = 0.172/0.233/0.336/0.062 ms
 
 ```bash
 [root@mvp1 ~]# ip route
-default via 192.168.140.1 dev enp1s0 proto dhcp src 192.168.140.17 metric 100
-192.168.140.0/24 dev enp1s0 proto kernel scope link src 192.168.140.17 metric 100
+root@lq-d25:~# ip route
+default via 10.140.92.1 dev bridge0 proto dhcp src 10.140.92.125 metric 425 
+10.22.122.0/24 dev virbr2 proto kernel scope link src 10.22.122.1 
+10.140.92.0/24 dev bridge0 proto kernel scope link src 10.140.92.125 metric 425 
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown 
+192.168.140.0/24 dev virbr1 proto kernel scope link src 192.168.140.1 
 ```
 
 **Explicación**:
 
 --- ¿¿??
 
-En resumen, hemos configurado correctamente una tercera interfaz de red de tipo bridge en mvp5, que le permite conectarse directamente a la red física del laboratorio. Esta configuración permite que la máquina virtual obtenga una dirección IP de la infraestructura DHCP del laboratorio y tenga acceso directo a Internet y a otros sistemas en la misma red física, como si fuera un equipo físico más conectado a la red.
-
-```bash
- Interfaz   Tipo      Fuente           Modelo   MAC
--------------------------------------------------------------------
- vnet12     network   Cluster          virtio   52:54:00:bd:89:a1
- vnet13     network   Almacenamiento   virtio   52:54:00:5c:3c:2e
- vnet14     bridge    bridge0          virtio   00:16:3e:37:a0:15
-```
+En resumen, ...
 
 **Explicación de los comandos**:
 

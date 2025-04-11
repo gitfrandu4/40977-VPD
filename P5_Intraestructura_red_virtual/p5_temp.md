@@ -646,8 +646,8 @@ Puente:         virbr2
 
 ```bash
 root@lq-d25:~# ip addr show virbr2
-9: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
-    link/ether 52:54:00:27:63:37 brd ff:ff:ff:ff:ff:ff
+19: virbr2: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:fc:4f:fa brd ff:ff:ff:ff:ff:ff
     inet 10.22.122.1/24 brd 10.22.122.255 scope global virbr2
        valid_lft forever preferred_lft forever
 ```
@@ -740,45 +740,35 @@ root@lq-d25:~# virsh console mvp5
 
 4. Verificar la configuración de red en mvp5 (Comprobación 1):
 
+-- Ahora en la Máquina Virtual: --
+
 ```bash
 [root@mvp1 ~]# ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
        valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host noprefixroute
+    inet6 ::1/128 scope host noprefixroute 
        valid_lft forever preferred_lft forever
 2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:bd:89:a1 brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.17/24 brd 192.168.140.255 scope global dynamic noprefixroute enp1s0
-       valid_lft 3587sec preferred_lft 3587sec
-    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute
+       valid_lft 3474sec preferred_lft 3474sec
+    inet6 fe80::5054:ff:febd:89a1/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:5c:3c:2e brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::4794:a1da:e1e9:98ce/64 scope link noprefixroute
+    link/ether 52:54:00:e4:bf:90 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::b6f4:4b5d:b647:cfbd/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
-Se observa que la interfaz `XXXXXX` está presente pero no tiene asignada una dirección IPv4. A continuación, configuraremos la dirección IP estática.
+Se observa que la interfaz `enp7s0` está presente pero no tiene asignada una dirección IPv4. A continuación, configuraremos la dirección IP estática.
 
 5. Configurar la dirección IP estática para la interfaz eth1:
 
 ```bash
-DEVICE  TYPE      STATE                   CONNECTION
-enp6s0  ethernet  conectado               enp6s0
-lo      loopback  connected (externally)  lo
-virbr0  bridge    connected (externally)  virbr0
-virbr1  bridge    connected (externally)  virbr1
-virbr2  bridge    connected (externally)  virbr2
-root@lq-d25:~# nmcli connection modify Almacenamiento connection.interface-name enp6s0
-root@lq-d25:~# nmcli connection up Almacenamiento
-Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/14)
-```
+[root@mvp1 ~]# nmcli connection add type ethernet con-name Almacenamiento ifname enp7s0 ipv4.method manual ipv4.addresses 10.22.122.2/24
 
-```bash
-root@lq-d25:~# nmcli connection up Almacenamiento
-Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/14)
 ```
 
 **Explicación del comando**:
@@ -790,19 +780,24 @@ Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManage
 - `ipv4.method manual`: Configuración manual (estática) de IP
 - `ipv4.addresses 10.22.122.2/24`: Dirección IP y máscara de red
 
+```bash
+[root@mvp1 ~]# nmcli connection up Almacenamiento 
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/7)
+```
+
 6. Verificar la configuración de la interfaz eth1:
 
 ```bash
-root@lq-d25:~# ip addr show enp6s0
-2: enp6s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 08:bf:b8:ee:b1:69 brd ff:ff:ff:ff:ff:ff
-    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp6s0
+[root@mvp1 ~]# ip addr show enp7s0 
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:e4:bf:90 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.2/24 brd 10.22.122.255 scope global noprefixroute enp7s0
        valid_lft forever preferred_lft forever
-    inet6 fe80::8776:8caa:b69d:fb92/64 scope link noprefixroute
+    inet6 fe80::8046:bb5d:3e14:c0dc/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
-**Resultado**: La interfaz `enp1s0` ahora tiene configurada la dirección IP estática `10.22.122.2/24`.
+**Resultado**: La interfaz `enp7s0` ahora tiene configurada la dirección IP estática `10.22.122.2/24`.
 
 7. Configurar el archivo hosts en el sistema anfitrión para resolver el nombre mvp5i2.vpd.com:
 

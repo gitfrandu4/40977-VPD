@@ -1160,6 +1160,158 @@ En resumen, ...
 - Se puede reiniciar NetworkManager como último recurso si los otros métodos no funcionan
 - Es fundamental mantener la misma dirección MAC para cumplir con los requisitos de seguridad del laboratorio
 
+## Cosas para validación
+
+### Verificamos todas las interfaces de red:
+
+```bash
+root@lq-d25:~# ip -br addr show
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+enp6s0           UP             
+bridge0          UP             10.140.92.125/24 fe80::e6e7:c28d:331c:1d14/64 
+virbr1           UP             192.168.140.1/24 
+virbr0           DOWN           192.168.122.1/24 
+virbr2           UP             10.22.122.1/24 
+vnet18           UNKNOWN        fe80::fc54:ff:febd:89a1/64 
+vnet19           UNKNOWN        fe80::fc16:3eff:fe6b:8bd9/64 
+vnet20           UNKNOWN        fe80::fc54:ff:fee4:bf90/64 
+```
+
+Verificamos la tabla de enrutamiento
+
+```bash
+root@lq-d25:~# ip route
+default via 10.140.92.1 dev bridge0 proto dhcp src 10.140.92.125 metric 425 
+10.22.122.0/24 dev virbr2 proto kernel scope link src 10.22.122.1 
+10.140.92.0/24 dev bridge0 proto kernel scope link src 10.140.92.125 metric 425 
+192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown 
+192.168.140.0/24 dev virbr1 proto kernel scope link src 192.168.140.1
+```
+
+### Análisis de las reglas de firewall:
+
+```bash
+root@lq-d25:~# firewall-cmd --list-all
+FedoraServer (default, active)
+  target: default
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: bridge0 enp6s0
+  sources: 
+  services: cockpit dhcpv6-client libvirt ssh
+  ports: 49152-49216/tcp
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+```
+
+En el host anfitrión, 
+
+verificar las reglas de iptables relacionadas con la virtualizació:
+
+```bash
+root@lq-d25:~# iptables -t nat -L -v
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3897  363K LIBVIRT_PRT  all  --  any    any     anywhere             anywhere            
+
+Chain LIBVIRT_PRT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    1    40 RETURN     all  --  any    any     192.168.122.0/24     base-address.mcast.net/24 
+    0     0 RETURN     all  --  any    any     192.168.122.0/24     255.255.255.255     
+    0     0 MASQUERADE  tcp  --  any    any     192.168.122.0/24    !192.168.122.0/24     masq ports: 1024-65535
+    0     0 MASQUERADE  udp  --  any    any     192.168.122.0/24    !192.168.122.0/24     masq ports: 1024-65535
+    0     0 MASQUERADE  all  --  any    any     192.168.122.0/24    !192.168.122.0/24    
+    4   160 RETURN     all  --  any    any     192.168.140.0/24     base-address.mcast.net/24 
+    0     0 RETURN     all  --  any    any     192.168.140.0/24     255.255.255.255     
+    0     0 MASQUERADE  tcp  --  any    any     192.168.140.0/24    !192.168.140.0/24     masq ports: 1024-65535
+  663 50388 MASQUERADE  udp  --  any    any     192.168.140.0/24    !192.168.140.0/24     masq ports: 1024-65535
+    0     0 MASQUERADE  all  --  any    any     192.168.140.0/24    !192.168.140.0/24
+```
+
+
+### Exploración de las redes virtuales
+
+```bash
+root@lq-d25:~# virsh net-dumpxml Cluster 
+<network connections='1'>
+  <name>Cluster</name>
+  <uuid>eca302af-e62c-4b0f-9823-6f06fa5e9282</uuid>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='virbr1' stp='on' delay='0'/>
+  <mac address='52:54:00:f5:97:55'/>
+  <ip address='192.168.140.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.140.2' end='192.168.140.149'/>
+    </dhcp>
+  </ip>
+</network>
+
+root@lq-d25:~# virsh net-dumpxml Almacenamiento 
+<network connections='1'>
+  <name>Almacenamiento</name>
+  <uuid>1f78a08c-c862-4419-98ed-bde618c88f6e</uuid>
+  <bridge name='virbr2' stp='on' delay='0'/>
+  <mac address='52:54:00:fc:4f:fa'/>
+  <domain name='Almacenamiento'/>
+  <ip address='10.22.122.1' netmask='255.255.255.0'>
+  </ip>
+</network>
+```
+
+Verificar servicio DHCP para redes NAT
+
+```bash
+root@lq-d25:~# ps aux | grep dnsmasq
+dnsmasq     1261  0.0  0.0   8900  2052 ?        S    19:00   0:00 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/Cluster.conf --leasefile-ro --dhcp-script=/usr/libexec/libvirt_leaseshelper
+root        1262  0.0  0.0   8900  1540 ?        S    19:00   0:00 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/Cluster.conf --leasefile-ro --dhcp-script=/usr/libexec/libvirt_leaseshelper
+dnsmasq     1307  0.0  0.0   8900  1924 ?        S    19:00   0:00 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/libexec/libvirt_leaseshelper
+root        1308  0.0  0.0   8900  1028 ?        S    19:00   0:00 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/default.conf --leasefile-ro --dhcp-script=/usr/libexec/libvirt_leaseshelper
+dnsmasq     7221  0.0  0.0   8928  1804 ?        S    19:59   0:00 /usr/sbin/dnsmasq --conf-file=/var/lib/libvirt/dnsmasq/Almacenamiento.conf --leasefile-ro --dhcp-script=/usr/libexec/libvirt_leaseshelper
+root       10266  0.0  0.0   6404  2048 pts/2    S+   20:49   0:00 grep --color=auto dnsmasq
+```
+
+```bash
+root@lq-d25:~# cat /var/lib/libvirt/dnsmasq/virbr1.status 
+[
+  {
+    "ip-address": "192.168.140.17",
+    "mac-address": "52:54:00:bd:89:a1",
+    "hostname": "mvp1",
+    "client-id": "01:52:54:00:bd:89:a1",
+    "expiry-time": 1744403512
+  }
+]
+```
+
+### Otros
+
+```bash
+root@lq-d25:~# virsh net-dhcp-leases Cluster 
+ Expiry Time           dirección MAC       Protocol   IP address          Hostname   Client ID or DUID
+-----------------------------------------------------------------------------------------------------------
+ 2025-04-11 21:31:52   52:54:00:bd:89:a1   ipv4       192.168.140.17/24   mvp1       01:52:54:00:bd:89:a1
+```
+
+
 ## Bibliografía
 
 1. Red Hat Enterprise Linux 9. (2024). "Configuring and managing virtualization. Setting up your host, creating and administering virtual machines, and understanding virtualization features". Red Hat. Disponible en: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/configuring_and_managing_virtualization/index [accedido el 24/03/2025]

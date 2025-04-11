@@ -1110,6 +1110,43 @@ default via 10.140.92.1 dev bridge0 proto dhcp src 10.140.92.125 metric 425
 192.168.140.0/24 dev virbr1 proto kernel scope link src 192.168.140.1 
 ```
 
+```md
+Esta salida del comando `ip route` muestra la tabla de enrutamiento de tu sistema. Voy a explicar cada línea:
+
+1. `default via 10.140.92.1 dev bridge0 proto dhcp src 10.140.92.125 metric 425`
+   - Esta es tu ruta predeterminada (default gateway)
+   - Todo el tráfico que no coincida con otras rutas se enviará a través de 10.140.92.1
+   - Usa la interfaz `bridge0` (tu interfaz puente)
+   - Se configuró mediante DHCP (`proto dhcp`)
+   - La dirección IP de origen es 10.140.92.125
+   - La métrica es 425 (valor que determina la prioridad de la ruta)
+
+2. `10.22.122.0/24 dev virbr2 proto kernel scope link src 10.22.122.1`
+   - Ruta para la red 10.22.122.0/24
+   - Usa la interfaz virtual de puente `virbr2` (probablemente para virtualización)
+   - La dirección IP de origen es 10.22.122.1
+   - Fue configurada por el kernel automáticamente
+
+3. `10.140.92.0/24 dev bridge0 proto kernel scope link src 10.140.92.125 metric 425`
+   - Ruta para la red local 10.140.92.0/24
+   - Usa la interfaz `bridge0`
+   - La dirección IP de origen es 10.140.92.125
+   - Métrica 425
+
+4. `192.168.122.0/24 dev virbr0 proto kernel scope link src 192.168.122.1 linkdown`
+   - Ruta para la red 192.168.122.0/24
+   - Usa la interfaz virtual `virbr0`
+   - La dirección IP de origen es 192.168.122.1
+   - El estado `linkdown` indica que esta interfaz no está activa actualmente
+
+5. `192.168.140.0/24 dev virbr1 proto kernel scope link src 192.168.140.1`
+   - Ruta para la red 192.168.140.0/24
+   - Usa la interfaz virtual `virbr1`
+   - La dirección IP de origen es 192.168.140.1
+
+Esta configuración muestra que tu tráfico de internet está saliendo a través de `bridge0`, que parece estar configurado correctamente. Las interfaces `virbr0`, `virbr1` y `virbr2` son interfaces virtuales de puente típicamente usadas por KVM/QEMU para la virtualización.
+```
+
 **Explicación**:
 
 --- ¿¿??

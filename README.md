@@ -214,7 +214,63 @@ virsh vol-dumpxml [vol_name] --pool [pool_name]
 
 ### Práctica 4: Migración de máquinas virtuales
 
-Próximamente...
+**Descripción:** Realización de migraciones en vivo (_live migration_) de máquinas virtuales KVM entre diferentes hosts físicos. Esta práctica aborda la configuración de requisitos esenciales como el almacenamiento compartido mediante NFS, la configuración adecuada de nombres de host (FQDN) y las reglas de cortafuegos (_firewalld_) necesarias para permitir la comunicación entre anfitriones.
+
+**Logros principales:**
+
+- Creación de una máquina virtual cuyo disco reside en un pool de almacenamiento compartido NFS (`CONT_VOL_COMP`).
+- Configuración de nombres de host FQDN en los hosts origen y destino.
+- Ajuste de las reglas de `firewalld` para permitir el tráfico necesario para la migración (`libvirt`, `ssh` y el rango de puertos 49152-49216).
+- Generación y distribución de claves SSH para permitir la autenticación sin contraseña entre hosts.
+- Ejecución de migraciones en vivo utilizando `virsh migrate` con diferentes opciones (`--live`, `--persistent`, `--undefinesource`).
+- Validación del éxito de la migración y verificación del estado de la máquina virtual en el host destino.
+- Revocación de los accesos temporales por SSH como buena práctica de seguridad.
+
+**Conceptos clave:**
+
+- **Migración en vivo**: Proceso de mover una VM en ejecución entre hosts sin interrupción perceptible.
+- **Almacenamiento compartido**: Requisito fundamental para la migración, permitiendo a ambos hosts acceder al disco de la VM.
+- **Configuración de red para migración**: Necesidad de FQDN, resolución DNS/hosts y reglas de cortafuegos específicas.
+- **Autenticación SSH sin contraseña**: Facilita la automatización y mejora la seguridad del proceso de migración.
+- **Parámetros de `virsh migrate`**: Comprensión de las diferentes opciones para controlar el comportamiento de la migración.
+
+**Comandos principales:**
+
+```bash
+# Verificar pool NFS
+virsh pool-info CONT_VOL_COMP
+
+# Clonar VM a pool compartido
+virt-clone --original [vm_origen] --name [vm_destino] --file [ruta_nfs_qcow2] --mac [nueva_mac]
+
+# Configurar hostname FQDN
+hostnamectl set-hostname [nombre.fqdn.com]
+
+# Configurar firewalld
+firewall-cmd --add-service=libvirt --permanent
+firewall-cmd --add-port=49152-49216/tcp --permanent
+firewall-cmd --add-service=ssh --permanent
+firewall-cmd --reload
+firewall-cmd --list-all
+
+# Generar y copiar claves SSH
+ssh-keygen -t rsa -b 4096
+ssh-copy-id root@[host_destino.fqdn.com]
+
+# Realizar migración en vivo
+virsh migrate --live [vm_name] qemu+ssh://[host_destino.fqdn.com]/system --verbose [--persistent] [--undefinesource]
+
+# Validar migración
+virsh list --all # (en host destino)
+virsh dominfo [vm_name] # (en host destino)
+
+# Revocar clave SSH
+ssh root@[host_destino.fqdn.com] "sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)/d' ~/.ssh/authorized_keys"
+```
+
+**Recursos:**
+
+- [Documentación completa](P4_Migracion/p4.md)
 
 ### Práctica 5: Infraestructura de red virtual
 

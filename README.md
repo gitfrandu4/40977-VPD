@@ -274,7 +274,75 @@ ssh root@[host_destino.fqdn.com] "sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -
 
 ### Práctica 5: Infraestructura de red virtual
 
-Próximamente...
+**Descripción:** Configuración de diferentes tipos de redes virtuales en un entorno KVM/libvirt, incluyendo redes NAT, redes aisladas y conexiones puente (bridge) a la red física del anfitrión. Se prepara una máquina virtual (`mvp5`) sin interfaz de red inicial y se configura el acceso mediante consola serie para realizar las configuraciones de red posteriores.
+
+**Logros principales:**
+
+- Clonación de una VM y eliminación de su interfaz de red inicial.
+- Configuración del acceso a la VM mediante consola serie (`virsh console`) modificando la configuración de GRUB.
+- Creación de una red virtual de tipo NAT (`Cluster`) con DHCP usando `virsh net-define` y un archivo XML.
+- Creación de una red virtual aislada (`Almacenamiento`) sin DHCP usando `virsh net-define` y un archivo XML.
+- Adición de interfaces de red (`virtio`) a la VM conectadas a las redes NAT y aislada (`virsh attach-interface`).
+- Configuración de las interfaces dentro de la VM usando `nmcli`: una con DHCP (para la red NAT) y otra con IP estática (para la red aislada).
+- Creación de una interfaz bridge (`bridge0`) en el host anfitrión y vinculación de la interfaz física (`enp6s0`) a ella usando `nmcli`.
+- Adición de una tercera interfaz a la VM conectada directamente al bridge del host, obteniendo una IP de la red física del laboratorio.
+- Verificación exhaustiva de la conectividad entre la VM, el host y redes externas a través de las diferentes interfaces.
+- Análisis de las configuraciones de red resultantes (bridges `virbrX`, `bridge0`), tablas de enrutamiento y reglas de `iptables`.
+
+**Conceptos clave:**
+
+- **Consola Serie**: Acceso a la VM sin interfaz de red.
+- **Redes Virtuales libvirt**: Tipos NAT, Aislada y Puente (Bridge).
+- **Switch Virtual**: `virbrX` creados por libvirt.
+- **Configuración de Red XML**: Definición declarativa de redes virtuales.
+- **Interfaz Bridge en Host**: Conexión directa de VMs a la red física.
+- **`nmcli`**: Gestión de la configuración de red en el host y en la VM.
+- **`virtio`**: Controladores paravirtualizados para mejor rendimiento de red.
+
+**Comandos principales:**
+
+```bash
+# Clonar VM sin red inicial
+virt-clone --original mvp1 --name mvp5 --file /var/lib/libvirt/images/mvp5.qcow2
+virsh detach-interface mvp5 network --mac [MAC] --config
+
+# Configurar consola serie (dentro de VM)
+vi /etc/default/grub # Añadir console=ttyS0 a GRUB_CMDLINE_LINUX
+grub2-editenv - unset kernelopts
+grub2-mkconfig -o /boot/grub2/grub.cfg
+reboot
+
+# Acceder por consola
+virsh console mvp5
+
+# Definir/Iniciar/Autostart red virtual
+virsh net-define [network.xml]
+virsh net-start [network_name]
+virsh net-autostart [network_name]
+
+# Añadir interfaz a VM
+virsh attach-interface mvp5 [network|bridge] [source_name] --model virtio --config [--mac [MAC]]
+
+# Configurar IP en VM (nmcli)
+nmcli connection add type ethernet con-name [ConName] ifname [iface] ipv4.method [auto|manual] [ipv4.addresses IP/Mask]
+nmcli connection up [ConName]
+
+# Crear bridge en Host (nmcli)
+nmcli con add type bridge con-name bridge0 ifname bridge0
+nmcli con mod [physical_iface] master bridge0
+nmcli con mod bridge0 ipv4.method [auto|manual] [ipv4.addresses IP/Mask] [ipv4.gateway GW] [ipv4.dns DNS]
+nmcli con down [physical_iface] && nmcli con up bridge0
+
+# Verificar redes y interfaces
+virsh net-list --all
+virsh domiflist mvp5
+ip addr show [bridge_name]
+ip route
+```
+
+**Recursos:**
+
+- [Documentación completa](P5_Intraestructura_red_virtual/p5_temp.md) # Aún en desarrollo
 
 ### Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)
 

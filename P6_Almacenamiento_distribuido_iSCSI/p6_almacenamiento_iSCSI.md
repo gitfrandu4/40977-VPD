@@ -427,6 +427,33 @@ Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManage
 
 ```
 
+Algunas validaciones:
+
+```bash
+[root@nodo1 ~]# ip addr show enp1s0 
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:f9:be:78 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.11/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::698a:e0e6:e8b0:d494/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@nodo1 ~]# ip addr show enp7s0 
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.116/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 2937sec preferred_lft 2937sec
+    inet6 fe80::81:d839:b5cd:6ff5/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@nodo1 ~]# ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=114 time=34.0 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=114 time=34.1 ms
+
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 34.041/34.078/34.115/0.037 ms
+```
+
 Ahora ejecución de los comandos para Nodo2
 
 ```bash
@@ -457,6 +484,35 @@ Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManage
        valid_lft forever preferred_lft forever
 ```
 
+Algunas validaciones:
+
+```bash
+[root@mvp1 ~]# hostname
+nodo2.vpd.com
+[root@mvp1 ~]# ip addr show enp1s0 
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:a3:82:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.12/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4c9f:ac5d:73af:d24f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@mvp1 ~]# ip addr show enp7s0 
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:33:fd:52 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.120/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3120sec preferred_lft 3120sec
+    inet6 fe80::da77:319b:6a4c:659/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@mvp1 ~]# ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=114 time=33.9 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=114 time=34.2 ms
+
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 33.855/34.041/34.228/0.186 ms
+```
+
 **Explicación del comando**:
 
 - `comando`: Descripción general del comando
@@ -473,32 +529,117 @@ Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManage
 #### Paso 2: Instalación del software iSCSI en el nodo target
 
 ```bash
-# Comandos utilizados para instalar el software
+[root@almacenamiento ~]# dnf install targetcli
+Actualizando y cargando repositorios:
+...
+Installing:
+ targetcli                 noarch 2.1.58-3.fc41           fedora       275.7 KiB
+...
+Installing:
+ targetcli                 noarch 2.1.58-3.fc41           fedora       275.7 KiB
 ```
 
 #### Paso 3: Inicio del servicio target
 
 ```bash
-# Comandos utilizados para iniciar el servicio
+[root@almacenamiento ~]# systemctl start target
 ```
 
 #### Paso 4: Configuración del arranque automático
 
 ```bash
-# Comandos utilizados para configurar el arranque automático
+[root@almacenamiento ~]# systemctl enable target
+Created symlink '/etc/systemd/system/multi-user.target.wants/target.service' → '/usr/lib/systemd/system/target.service'.
 ```
 
 #### Paso 5: Configuración del cortafuegos
 
 ```bash
-# Comandos utilizados para configurar el cortafuegos
+[root@almacenamiento ~]# firewall-cmd --permanent --add-port=3260/tcp
+success
+[root@almacenamiento ~]# firewall-cmd --reload
+success
 ```
 
 #### Paso 6: Configuración del recurso de almacenamiento a exportar
 
 ```bash
-# Comandos utilizados para configurar el recurso de almacenamiento
+[root@almacenamiento ~]# targetcli
+targetcli shell version 2.1.58
+Copyright 2011-2013 by Datera, Inc and others.
+For help on commands, type 'help'.
+/> ls
+o- / ..................................................................... [...]
+  o- backstores .......................................................... [...]
+  | o- block .............................................. [Storage Objects: 0]
+  | o- fileio ............................................. [Storage Objects: 0]
+  | o- pscsi .............................................. [Storage Objects: 0]
+  | o- ramdisk ............................................ [Storage Objects: 0]
+  o- iscsi ........................................................ [Targets: 0]
+  o- loopback ..................................................... [Targets: 0]
+  o- vhost ........................................................ [Targets: 0]
+/> cd /backstores/block 
+/backstores/block> 
 ```
+
+```bash
+/backstores/block> cd /iscsi 
+/iscsi> create wwn=iqn.2025-04.com.vpd:discosda
+Created target iqn.2025-04.com.vpd:discosda.
+Created TPG 1.
+Global pref auto_add_default_portal=true
+Created default portal listening on all IPs (0.0.0.0), port 3260.
+/iscsi> ls
+o- iscsi .......................................................... [Targets: 1]
+  o- iqn.2025-04.com.vpd:discosda .................................... [TPGs: 1]
+    o- tpg1 ............................................. [no-gen-acls, no-auth]
+      o- acls ........................................................ [ACLs: 0]
+      o- luns ........................................................ [LUNs: 0]
+      o- portals .................................................. [Portals: 1]
+        o- 0.0.0.0:3260 ................................................... [OK]
+```
+
+```bash
+/iscsi> cd iqn.2025-04.com.vpd:discosda/tpg1/portals
+/iscsi/iqn.20.../tpg1/portals> delete 0.0.0.0 3260
+Deleted network portal 0.0.0.0:3260
+```
+
+```bash
+/iscsi/iqn.20.../tpg1/portals> create 10.22.122.10
+Using default IP port 3260
+Created network portal 10.22.122.10:3260.
+```
+
+```bash
+/iscsi/iqn.20.../tpg1/portals> cd ../luns 
+/iscsi/iqn.20...sda/tpg1/luns> create /backstores/block/discosda 
+Created LUN 0.
+```
+
+```bash
+/iscsi/iqn.20...sda/tpg1/luns> cd ../acls 
+/iscsi/iqn.20...sda/tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo1
+Created Node ACL for iqn.2025-04.com.vpd:nodo1
+Created mapped LUN 0.
+/iscsi/iqn.20...sda/tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo2
+Created Node ACL for iqn.2025-04.com.vpd:nodo2
+Created mapped LUN 0.
+```
+
+```
+/iscsi/iqn.20...sda/tpg1/acls> cd /
+/> saveconfig 
+Configuration saved to /etc/target/saveconfig.json
+/> exit
+Global pref auto_save_on_exit=true
+Last 10 configs saved in /etc/target/backup/.
+Configuration saved to /etc/target/saveconfig.json
+[root@almacenamiento ~]# 
+
+```
+
+
 
 ### Tarea 3: Instalación del soporte iSCSI en los nodos initiator
 

@@ -22,6 +22,27 @@
 
 ### Tarea 1: Creación de la infraestructura básica iSCSI
 
+```bash
+root@lq-d25:~# virt-clone --original mvp1 --name Almacenamiento --file /var/lib/libvirt/images/Almacenamiento.qcow2 --mac 00:16:3e:76:57:a0
+Allocating 'Almacenamiento.qcow2'                           | 1.6 GB  00:00 ... 
+
+El clon 'Almacenamiento' ha sido creado exitosamente.
+```
+
+```bash
+root@lq-d25:~# virt-clone --original mvp1 --name Nodo1 --file /var/lib/libvirt/images/Nodo1.qcow2 --mac 00:16:3e:2a:bc:c9
+Allocating 'Nodo1.qcow2'                                    | 1.6 GB  00:00 ... 
+
+El clon 'Nodo1' ha sido creado exitosamente.
+```
+
+```bash
+root@lq-d25:~# virt-clone --original mvp1 --name Nodo2 --file /var/lib/libvirt/images/Nodo2.qcow2 --mac 00:16:3e:35:90:9c
+Allocating 'Nodo2.qcow2'                                    | 1.5 GB  00:00 ... 
+
+El clon 'Nodo2' ha sido creado exitosamente.
+```
+
 #### Configuración del nodo Almacenamiento (target)
 
 ```bash

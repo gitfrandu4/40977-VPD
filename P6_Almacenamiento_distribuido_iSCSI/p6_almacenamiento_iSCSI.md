@@ -127,6 +127,46 @@ nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
 nmcli con up ens8
 ```
 
+Ejecución de los comandos:
+
+```bash
+root@lq-d25:~# virsh console Almacenamiento
+Connected to domain 'Almacenamiento'
+Escape character is ^] (Ctrl + ])
+
+mvp1 login: 
+mvp1 login: root
+Contraseña: 
+Last login: Thu Apr 24 19:40:12 on tty1
+```
+
+
+```bash
+[root@mvp1 ~]# ip link show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:48:9c:c6 brd ff:ff:ff:ff:ff:ff
+3: enp9s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:52:44:62 brd ff:ff:ff:ff:ff:ff
+[root@mvp1 ~]# hostnamectl set-hostname almacenamiento.vpd.com
+```
+
+```bash
+[root@mvp1 ~]# nmcli con add type ethernet con-name enp8s0 ifname enp8s0 ipv4.method manual ipv4.addresses 10.22.122.10/24
+Conexión «enp8s0» (5dbc051d-b4f5-4990-905f-472a9ef38463) añadida con éxito.
+[root@mvp1 ~]# nmcli con up enp8s0
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/8)
+```
+
+```bash
+[root@mvp1 ~]# nmcli con add type ethernet con-name enp9s0 ifname enp9s0 ipv4.method  auto
+Conexión «enp9s0» (d39257b3-3a45-4262-91ff-9401751d0e90) añadida con éxito.
+[root@mvp1 ~]# nmcli con up enp9s0
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+```
+
+
 **Explicación del comando**:
 
 - `comando`: Descripción general del comando

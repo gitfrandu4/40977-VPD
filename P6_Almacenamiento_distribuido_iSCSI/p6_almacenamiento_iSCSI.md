@@ -65,6 +65,39 @@ virsh attach-interface Almacenamiento --type network --source Almacenamiento --m
 virsh attach-interface Almacenamiento --type network --source Cluster --model virtio --persistent
 ```
 
+Ejecución de los comandos: 
+
+```bash
+root@lq-d25:~# virsh detach-disk Almacenamiento sda --persistent
+El disco ha sido desmontado exitosamente
+
+root@lq-d25:~# virsh domiflist Almacenamiento
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ -          network   default   virtio   00:16:3e:76:57:a0
+
+root@lq-d25:~# virsh detach-interface Almacenamiento --type network --mac 00:16:3e:76:57:a0 --persistent
+La interfaz ha sido desmontada exitosamente
+
+root@lq-d25:~# virsh vol-create-as default vol1_p6.qcow2 1G --format qcow2
+Se ha creado el volumen vol1_p6.qcow2
+
+root@lq-d25:~# virsh vol-create-as default vol2_p6.img 1G --format raw
+Se ha creado el volumen vol2_p6.img
+
+root@lq-d25:~# virsh attach-disk Almacenamiento /var/lib/libvirt/images/vol1_p6.qcow2 sda --driver qemu --type disk --subdriver qcow2 --persistent
+El disco ha sido asociado exitosamente
+
+root@lq-d25:~# virsh attach-disk Almacenamiento /var/lib/libvirt/images/vol2_p6.img sdb --driver qemu --type disk --subdriver raw --persistent
+El disco ha sido asociado exitosamente
+
+root@lq-d25:~# virsh attach-interface Almacenamiento --type network --source Almacenamiento --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+
+root@lq-d25:~# virsh attach-interface Almacenamiento --type network --source Cluster --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+```
+
 **Explicación del comando**:
 
 - `comando`: Descripción general del comando

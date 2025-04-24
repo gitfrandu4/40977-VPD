@@ -377,7 +377,7 @@ nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
 nmcli con up ens8
 ```
 
-Ejecución de los comandos
+Ejecución de los comandos para Nodo1
 
 ```bash
 root@lq-d25:~# virsh console Nodo1
@@ -404,6 +404,57 @@ Conexión «enp1s0» (a8ab3908-5526-4f91-8171-762e42ac49ea) añadida con éxito.
 [root@nodo1 ~]# nmcli con add type ethernet con-name enp7s0 ifname enp7s0 ipv4.method auto
 [root@nodo1 ~]# nmcli con up enp7s0
 Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+
+[root@nodo1 ~]# ip a show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:f9:be:78 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.11/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::698a:e0e6:e8b0:d494/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.116/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3154sec preferred_lft 3154sec
+    inet6 fe80::81:d839:b5cd:6ff5/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+```
+
+Ahora ejecución de los comandos para Nodo2
+
+```bash
+[root@mvp1 ~]# nmcli con add type ethernet con-name enp1s0 ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.12/24
+Conexión «enp1s0» (e695cda7-3af3-4246-b5fb-88d7f0ecfbcd) añadida con éxito.
+[root@mvp1 ~]# nmcli con add type ethernet con-name enp7s0 ifname enp7s0 ipv4.method auto
+[root@mvp1 ~]# nmcli con up enp7s0
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/6)
+
+[root@mvp1 ~]# ip a show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:a3:82:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.12/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4c9f:ac5d:73af:d24f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:33:fd:52 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.120/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3429sec preferred_lft 3429sec
+    inet6 fe80::da77:319b:6a4c:659/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 **Explicación del comando**:

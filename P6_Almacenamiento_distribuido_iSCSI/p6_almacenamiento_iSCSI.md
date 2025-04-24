@@ -166,6 +166,72 @@ Conexión «enp9s0» (d39257b3-3a45-4262-91ff-9401751d0e90) añadida con éxito.
 Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
 ```
 
+##### Validaciones:
+
+```bash
+[root@mvp1 ~]# hostnamectl
+     Static hostname: almacenamiento.vpd.com
+           Icon name: computer-vm
+             Chassis: vm 🖴
+          Machine ID: 6d2630bf3d2046a589c37eaa7313994b
+             Boot ID: 3392fb66d8a846e28e308c314b46b009
+        Product UUID: 9ac8572e-eda5-44f9-8282-5acbbb68449e
+      Virtualization: kvm
+    Operating System: Fedora Linux 41 (Server Edition)    
+         CPE OS Name: cpe:/o:fedoraproject:fedora:41
+      OS Support End: Mon 2025-12-15
+OS Support Remaining: 7month 3w
+              Kernel: Linux 6.12.11-200.fc41.x86_64
+        Architecture: x86-64
+     Hardware Vendor: QEMU
+      Hardware Model: Standard PC _Q35 + ICH9, 2009_
+    Firmware Version: 1.16.3-1.fc39
+       Firmware Date: Tue 2014-04-01
+        Firmware Age: 11y 3w 3d                           
+[root@mvp1 ~]# nmcli device status
+DEVICE  TYPE      STATE                   CONNECTION 
+enp9s0  ethernet  conectado               enp9s0     
+enp8s0  ethernet  conectado               enp8s0     
+lo      loopback  connected (externally)  lo         
+[root@mvp1 ~]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:48:9c:c6 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.10/24 brd 10.22.122.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::37b9:2f10:35ed:596c/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp9s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:52:44:62 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.80/24 brd 192.168.140.255 scope global dynamic noprefixroute enp9s0
+       valid_lft 2218sec preferred_lft 2218sec
+    inet6 fe80::3f3d:da7f:2578:6085/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@mvp1 ~]# ping -c 3 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=114 time=33.8 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=114 time=34.3 ms
+
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 33.839/34.090/34.341/0.251 ms
+[root@mvp1 ~]# nmcli con show --active
+NAME    UUID                                  TYPE      DEVICE 
+enp9s0  d39257b3-3a45-4262-91ff-9401751d0e90  ethernet  enp9s0 
+enp8s0  5dbc051d-b4f5-4990-905f-472a9ef38463  ethernet  enp8s0 
+lo      4ccd3034-48b7-4ca9-af3e-6c44e0aa7acb  loopback  lo     
+[root@mvp1 ~]# ip route
+default via 192.168.140.1 dev enp9s0 proto dhcp src 192.168.140.80 metric 103 
+10.22.122.0/24 dev enp8s0 proto kernel scope link src 10.22.122.10 metric 102 
+192.168.140.0/24 dev enp9s0 proto kernel scope link src 192.168.140.80 metric 103 
+
+```
+
 
 **Explicación del comando**:
 
@@ -309,6 +375,35 @@ nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
 
 # Activar la conexión de la segunda interfaz
 nmcli con up ens8
+```
+
+Ejecución de los comandos
+
+```bash
+root@lq-d25:~# virsh console Nodo1
+Connected to domain 'Nodo1'
+Escape character is ^] (Ctrl + ])
+Web console: https://localhost:9090/
+
+mvp1 login: root
+Contraseña: 
+Last login: Thu Apr 24 19:58:47 on ttyS0
+[root@mvp1 ~]# hostnamectl set-hostname nodo1.vpd.com
+[root@mvp1 ~]# ip link show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:f9:be:78 brd ff:ff:ff:ff:ff:ff
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
+
+[root@mvp1 ~]# nmcli con add type ethernet con-name enp1s0 ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.11/24
+Aviso: hay otra conexión con el nombre «enp1s0». Haga referencia a la conexión por su uuid «a8ab3908-5526-4f91-8171-762e42ac49ea»
+Conexión «enp1s0» (a8ab3908-5526-4f91-8171-762e42ac49ea) añadida con éxito.
+
+[root@nodo1 ~]# nmcli con add type ethernet con-name enp7s0 ifname enp7s0 ipv4.method auto
+[root@nodo1 ~]# nmcli con up enp7s0
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
 ```
 
 **Explicación del comando**:

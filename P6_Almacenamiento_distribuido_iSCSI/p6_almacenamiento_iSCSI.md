@@ -185,7 +185,51 @@ virsh detach-interface Nodo1 --type network --mac <MAC_INTERFAZ_POR_DEFECTO> --p
 # Añadir interfaces de red paravirtualizadas
 virsh attach-interface Nodo1 --type network --source Almacenamiento --model virtio --persistent
 virsh attach-interface Nodo1 --type network --source Cluster --model virtio --persistent
+```
 
+Ejecución de los comandos:
+
+```bash
+root@lq-d25:~# virsh detach-disk Nodo1 sda --persistent
+El disco ha sido desmontado exitosamente
+
+root@lq-d25:~# virsh dom
+domblkerror           domdisplay            domifaddr             domjobinfo            domstate
+domblkinfo            dom-fd-associate      domif-getlink         domlaunchsecinfo      domstats
+domblklist            domfsfreeze           domiflist             dommemstat            domtime
+domblkstat            domfsinfo             domif-setlink         domname               domuuid
+domblkthreshold       domfsthaw             domifstat             dompmsuspend          domxml-from-native
+domcapabilities       domfstrim             domiftune             dompmwakeup           domxml-to-native
+domcontrol            domhostname           dominfo               domrename             
+domdirtyrate-calc     domid                 domjobabort           domsetlaunchsecstate  
+root@lq-d25:~# virsh domblklist Nodo1
+ Destino   Fuente
+------------------------------------------------
+ vda       /var/lib/libvirt/images/Nodo1.qcow2
+
+root@lq-d25:~# virsh domiflist Nodo1
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ -          network   default   virtio   00:16:3e:2a:bc:c9
+
+root@lq-d25:~# 
+root@lq-d25:~# virsh detach-interface Nodo1 --type network --mac 00:16:3e:2a:bc:c9 --persistent
+La interfaz ha sido desmontada exitosamente
+
+root@lq-d25:~# virsh attach-interface Nodo1 --type network --source Almacenamiento --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+
+root@lq-d25:~# virsh attach-interface Nodo1 --type network --source Cluster --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+
+root@lq-d25:~# virsh domiflist Nodo1
+ Interfaz   Tipo      Fuente           Modelo   MAC
+-------------------------------------------------------------------
+ -          network   Almacenamiento   virtio   52:54:00:f9:be:78
+ -          network   Cluster          virtio   52:54:00:05:fd:ec
+```
+
+```bash
 # Configuración para Nodo2
 # Eliminar el dispositivo lector de CD-ROM del bus SATA
 virsh detach-disk Nodo2 sda --persistent
@@ -196,6 +240,33 @@ virsh detach-interface Nodo2 --type network --mac <MAC_INTERFAZ_POR_DEFECTO> --p
 # Añadir interfaces de red paravirtualizadas
 virsh attach-interface Nodo2 --type network --source Almacenamiento --model virtio --persistent
 virsh attach-interface Nodo2 --type network --source Cluster --model virtio --persistent
+```
+
+Ejecución de los comandos:
+
+```bash
+root@lq-d25:~# virsh detach-disk Nodo2 sda --persistent
+El disco ha sido desmontado exitosamente
+
+root@lq-d25:~# virsh domiflist Nodo2
+ Interfaz   Tipo      Fuente    Modelo   MAC
+------------------------------------------------------------
+ -          network   default   virtio   00:16:3e:35:90:9c
+
+root@lq-d25:~# virsh detach-interface Nodo2 --type network --mac 00:16:3e:35:90:9c --persistent
+La interfaz ha sido desmontada exitosamente
+
+root@lq-d25:~# virsh attach-interface Nodo2 --type network --source Almacenamiento --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+
+root@lq-d25:~# virsh attach-interface Nodo2 --type network --source Cluster --model virtio --persistent
+La interfaz ha sido asociada exitosamente
+
+root@lq-d25:~# virsh domiflist Nodo2
+ Interfaz   Tipo      Fuente           Modelo   MAC
+-------------------------------------------------------------------
+ -          network   Almacenamiento   virtio   52:54:00:a3:82:83
+ -          network   Cluster          virtio   52:54:00:33:fd:52
 ```
 
 #### Configuración de red en los nodos initiator

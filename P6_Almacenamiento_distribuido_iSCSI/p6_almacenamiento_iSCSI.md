@@ -46,7 +46,23 @@ El clon 'Nodo2' ha sido creado exitosamente.
 #### Configuración del nodo Almacenamiento (target)
 
 ```bash
-# Comandos utilizados para la creación y configuración de la máquina virtual
+# Eliminar el dispositivo lector de CD-ROM del bus ATA
+virsh detach-disk Almacenamiento sda --persistent
+
+# Eliminar la interfaz de red por defecto para reconfigurarla 
+virsh detach-interface Almacenamiento --type network --mac <MAC_INTERFAZ_POR_DEFECTO> --persistent
+
+# Crear los volúmenes de almacenamiento adicionales
+virsh vol-create-as default vol1_p6.qcow2 1G --format qcow2
+virsh vol-create-as default vol2_p6.img 1G --format raw
+
+# Añadir los nuevos volúmenes a la máquina virtual
+virsh attach-disk Almacenamiento /var/lib/libvirt/images/vol1_p6.qcow2 sda --driver qemu --type disk --subdriver qcow2 --persistent
+virsh attach-disk Almacenamiento /var/lib/libvirt/images/vol2_p6.img sdb --driver qemu --type disk --subdriver raw --persistent
+
+# Añadir las interfaces de red paravirtualizadas
+virsh attach-interface Almacenamiento --type network --source Almacenamiento --model virtio --persistent
+virsh attach-interface Almacenamiento --type network --source Cluster --model virtio --persistent
 ```
 
 **Explicación del comando**:
@@ -57,7 +73,25 @@ El clon 'Nodo2' ha sido creado exitosamente.
 #### Configuración de interfaces de red en el nodo Almacenamiento
 
 ```bash
-# Comandos utilizados para configurar las interfaces de red
+# Iniciar la máquina Almacenamiento
+virsh start Almacenamiento
+
+# Configurar el nombre del host
+virsh console Almacenamiento
+# En la consola ejecutar:
+hostnamectl set-hostname almacenamiento.vpd.com
+
+# Configurar la primera interfaz (red Almacenamiento) con IP estática
+nmcli con add type ethernet con-name ens7 ifname ens7 ipv4.method manual ipv4.addresses 10.22.122.10/24
+
+# Activar la conexión de la primera interfaz
+nmcli con up ens7
+
+# Configurar la segunda interfaz (red Cluster) con DHCP
+nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
+
+# Activar la conexión de la segunda interfaz
+nmcli con up ens8
 ```
 
 **Explicación del comando**:
@@ -68,7 +102,69 @@ El clon 'Nodo2' ha sido creado exitosamente.
 #### Configuración de nodos initiator (Nodo1 y Nodo2)
 
 ```bash
-# Comandos utilizados para la creación y configuración de las máquinas virtuales
+# Configuración para Nodo1
+# Eliminar el dispositivo lector de CD-ROM del bus SATA
+virsh detach-disk Nodo1 sda --persistent
+
+# Eliminar la interfaz de red por defecto
+virsh detach-interface Nodo1 --type network --mac <MAC_INTERFAZ_POR_DEFECTO> --persistent
+
+# Añadir interfaces de red paravirtualizadas
+virsh attach-interface Nodo1 --type network --source Almacenamiento --model virtio --persistent
+virsh attach-interface Nodo1 --type network --source Cluster --model virtio --persistent
+
+# Configuración para Nodo2
+# Eliminar el dispositivo lector de CD-ROM del bus SATA
+virsh detach-disk Nodo2 sda --persistent
+
+# Eliminar la interfaz de red por defecto
+virsh detach-interface Nodo2 --type network --mac <MAC_INTERFAZ_POR_DEFECTO> --persistent
+
+# Añadir interfaces de red paravirtualizadas
+virsh attach-interface Nodo2 --type network --source Almacenamiento --model virtio --persistent
+virsh attach-interface Nodo2 --type network --source Cluster --model virtio --persistent
+```
+
+#### Configuración de red en los nodos initiator
+
+```bash
+# Iniciar Nodo1
+virsh start Nodo1
+virsh console Nodo1
+
+# En la consola de Nodo1 ejecutar:
+hostnamectl set-hostname nodo1.vpd.com
+
+# Configurar la primera interfaz (red Almacenamiento) con IP estática
+nmcli con add type ethernet con-name ens7 ifname ens7 ipv4.method manual ipv4.addresses 10.22.122.11/24
+
+# Activar la conexión de la primera interfaz
+nmcli con up ens7
+
+# Configurar la segunda interfaz (red Cluster) con DHCP
+nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
+
+# Activar la conexión de la segunda interfaz
+nmcli con up ens8
+
+# Iniciar Nodo2
+virsh start Nodo2
+virsh console Nodo2
+
+# En la consola de Nodo2 ejecutar:
+hostnamectl set-hostname nodo2.vpd.com
+
+# Configurar la primera interfaz (red Almacenamiento) con IP estática
+nmcli con add type ethernet con-name ens7 ifname ens7 ipv4.method manual ipv4.addresses 10.22.122.12/24
+
+# Activar la conexión de la primera interfaz
+nmcli con up ens7
+
+# Configurar la segunda interfaz (red Cluster) con DHCP
+nmcli con add type ethernet con-name ens8 ifname ens8 ipv4.method auto
+
+# Activar la conexión de la segunda interfaz
+nmcli con up ens8
 ```
 
 **Explicación del comando**:

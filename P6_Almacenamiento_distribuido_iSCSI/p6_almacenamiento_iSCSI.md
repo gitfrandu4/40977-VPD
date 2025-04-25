@@ -837,10 +837,65 @@ targetcli
 /> exit
 ```
 
-Ejecición:
+Ejecución:
 
 ```bash
-# Comandos utilizados para exportar el disco
+[root@almacenamiento ~]# targetcli
+targetcli shell version 2.1.58
+Copyright 2011-2013 by Datera, Inc and others.
+For help on commands, type 'help'.
+
+/> cd backstores/block/
+/backstores/block> 
+
+/backstores/block> create name=discosdb dev=/dev/sdb
+Created block storage object discosdb using /dev/sdb.
+
+/backstores/block> cd /iscsi
+
+/iscsi> create wwn=iqn.2025-04.com.vpd:servidorapache
+Created target iqn.2025-04.com.vpd:servidorapache.
+Created TPG 1.
+Default portal not created, TPGs within a target cannot share ip:port.
+```
+
+```bash
+/iscsi> cd iqn.2025-04.com.vpd:servidorapache/tpg1/portals
+
+/iscsi/iqn.20.../tpg1/portals> delete 0.0.0.0 3260
+No such NetworkPortal in configfs: /sys/kernel/config/target/iscsi/iqn.2025-04.com.vpd:servidorapache/tpgt_1/np/0.0.0.0:3260
+
+/iscsi/iqn.20.../tpg1/portals> create 10.22.122.10
+Using default IP port 3260
+Created network portal 10.22.122.10:3260.
+```
+
+```bash
+/iscsi/iqn.20.../tpg1/portals> cd ..
+/iscsi/iqn.20...orapache/tpg1> cd luns 
+/iscsi/iqn.20...che/tpg1/luns> create /backstores/block/discosdb
+Created LUN 0.
+```
+
+```bash
+/iscsi/iqn.20...che/tpg1/luns> cd ..
+/iscsi/iqn.20...orapache/tpg1> cd acls 
+/iscsi/iqn.20...che/tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo1
+Created Node ACL for iqn.2025-04.com.vpd:nodo1
+Created mapped LUN 0.
+/iscsi/iqn.20...che/tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo2
+Created Node ACL for iqn.2025-04.com.vpd:nodo2
+Created mapped LUN 0.
+```
+
+```bash
+/iscsi/iqn.20...che/tpg1/acls> cd /
+/> saveconfig 
+Configuration saved to /etc/target/saveconfig.json
+/> exit
+Global pref auto_save_on_exit=true
+Last 10 configs saved in /etc/target/backup/.
+Configuration saved to /etc/target/saveconfig.json
 ```
 
 **Explicación del comando**:

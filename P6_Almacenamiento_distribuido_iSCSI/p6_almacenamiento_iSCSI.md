@@ -923,7 +923,59 @@ lsblk -o NAME,TRAN,SIZE,TYPE
 Ejecución:
 
 ```bash
-# Comandos utilizados para comprobar la exportación
+[root@nodo1 ~]# iscsiadm --mode discovery --type sendtargets --portal 10.22.122.10 --discover
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:servidorapache
+```
+
+```bash
+[root@nodo2 ~]# iscsiadm --mode discovery --type sendtargets --portal 10.22.122.10 --discover
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:servidorapache
+```
+
+```bash
+[root@nodo1 ~]# iscsiadm --mode node \
+         --targetname iqn.2025-04.com.vpd:servidorapache \
+         --portal 10.22.122.10 --login
+Logging in to [iface: default, target: iqn.2025-04.com.vpd:servidorapache, portal: 10.22.122.10,3260]
+Login to [iface: default, target: iqn.2025-04.com.vpd:servidorapache, portal: 10.22.122.10,3260] successful.
+```
+
+```bash
+[root@nodo2 ~]# iscsiadm --mode node \
+         --targetname iqn.2025-04.com.vpd:servidorapache \
+         --portal 10.22.122.10 --login
+Logging in to [iface: default, target: iqn.2025-04.com.vpd:servidorapache, portal: 10.22.122.10,3260]
+Login to [iface: default, target: iqn.2025-04.com.vpd:servidorapache, portal: 10.22.122.10,3260] successful.
+```
+
+Verificación:
+
+```bash
+[root@nodo1 ~]# lsblk -o NAME,TRAN,SIZE,TYPE
+NAME            TRAN    SIZE TYPE
+sda             iscsi     1G disk
+sdb             iscsi     1G disk
+zram0                   1,9G disk
+vda             virtio   10G disk
+├─vda1          virtio    1M part
+├─vda2          virtio    1G part
+└─vda3          virtio    9G part
+  └─fedora-root           9G lvm
+```
+
+```
+[root@nodo2 ~]# lsblk -o NAME,TRAN,SIZE,TYPE
+NAME            TRAN    SIZE TYPE
+sda             iscsi     1G disk
+sdb             iscsi     1G disk
+zram0                   1,9G disk
+vda             virtio   10G disk
+├─vda1          virtio    1M part
+├─vda2          virtio    1G part
+└─vda3          virtio    9G part
+  └─fedora-root           9G lvm
 ```
 
 #### 3. Creación del volumen lógico

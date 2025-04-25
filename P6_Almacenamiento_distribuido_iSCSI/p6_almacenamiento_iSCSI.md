@@ -1101,7 +1101,21 @@ Ejecución:
 #### 5. Comprobación de activación en ambos nodos
 
 ```bash
-# Comandos utilizados para comprobar la activación
+[root@nodo1 ~]# vgchange -ay ApacheVG 
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo1 ~]# mount /dev/ApacheVG/ApacheLV /mnt
+[root@nodo1 ~]# df -h /mnt
+S.ficheros                    Tamaño Usados  Disp Uso% Montado en
+/dev/mapper/ApacheVG-ApacheLV   836M    49M  788M   6% /mnt
+```
+
+```bash
+[root@nodo2 ~]# vgchange -ay ApacheVG 
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo2 ~]# mount /dev/ApacheVG/ApacheLV /mnt
+[root@nodo2 ~]# df -h /mnt
+S.ficheros                    Tamaño Usados  Disp Uso% Montado en
+/dev/mapper/ApacheVG-ApacheLV   836M    49M  788M   6% /mnt
 ```
 
 ## 4. Pruebas y Validación

@@ -646,37 +646,98 @@ Configuration saved to /etc/target/saveconfig.json
 #### Paso 1: Instalación del software del cliente iSCSI
 
 ```bash
-# Comandos utilizados para instalar el software
+[root@nodo1 ~]# dnf install iscsi-initiator-utils
+Actualizando y cargando repositorios:
+ Fedora 41 openh264 (From Cisco) - x86_ 100% |   3.1 KiB/s | 989.0   B |  00m00s
+ Fedora 41 - x86_64 - Updates           100% |  40.7 KiB/s |  23.9 KiB |  00m01s
+ Fedora 41 - x86_64                     100% |  84.9 KiB/s |  26.2 KiB |  00m00s
+ Fedora 41 - x86_64 - Updates           100% |   3.2 MiB/s |   8.5 MiB |  00m03s
+Repositorios cargados.
+Package "iscsi-initiator-utils-6.2.1.10-0.gitd0f04ae.fc41.1.x86_64" is already installed.
+
+Nothing to do.
 ```
 
 #### Paso 2: Ejecución del servicio iscsid
 
 ```bash
-# Comandos utilizados para ejecutar el servicio
+[root@nodo1 ~]# systemctl restart iscsid
+```
+
+Como resultado de la ejecución del servicio se creará el archivo de configuración `/etc/iscsi/initiatorname.iscsi`.
+
+```bash
+[root@nodo1 ~]# cat /etc/iscsi/initiatorname.iscsi 
+InitiatorName=iqn.1994-05.com.redhat:265ed95a5ff3
+```
+
+```bash
+[root@nodo2 ~]# cat /etc/iscsi/initiatorname.iscsi 
+InitiatorName=iqn.1994-05.com.redhat:a66dcccd74dc
 ```
 
 #### Paso 3: Configuración del nombre del nodo
 
+Configurar el nombre del nodo de cara al servicio iSCSI
+
+Nodo 1:
+
 ```bash
-# Comandos utilizados para configurar el nombre del nodo
+[root@nodo1 ~]# cat /etc/iscsi/initiatorname.iscsi 
+InitiatorName=iqn.2025-04.com.vpd:nodo1
+```
+
+Nodo 2:
+
+```
+[root@nodo2 ~]# cat /etc/iscsi/initiatorname.iscsi 
+InitiatorName=iqn.2025-04.com.vpd:nodo2
 ```
 
 #### Paso 4: Descubrimiento de LUNs exportados
 
 ```bash
-# Comandos utilizados para descubrir los LUNs
+[root@nodo1 ~]# iscsiadm --mode discovery --type sendtargets --portal 10.22.122.10 --discover
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda
 ```
+
+```bash
+[root@nodo2 ~]# iscsiadm --mode discovery --type sendtargets --portal 10.22.122.10 --discover
+10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda
+```
+
 
 #### Paso 5: Conexión de unidades LUNs
 
+
+Ahora:
+
 ```bash
-# Comandos utilizados para conectar las unidades
+[root@nodo1 ~]# sudo iscsiadm --mode node --targetname iqn.2025-04.com.vpd:discosda --portal 10.22.122.10 --login
+Logging in to [iface: default, target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260]
+Login to [iface: default, target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260] successful.
+```
+
+```bash
+[root@nodo2 ~]# sudo iscsiadm --mode node --targetname iqn.2025-04.com.vpd:discosda --portal 10.22.122.10 --login
+Logging in to [iface: default, target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260]
+Login to [iface: default, target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260] successful.
 ```
 
 #### Paso 6: Comprobación de la conexión
 
 ```bash
-# Comandos utilizados para comprobar la conexión
+[root@nodo1 ~]# sudo journalctl --since today | grep -i iscsi
+abr 25 19:15:55 nodo1.vpd.com sudo[1323]:     root : TTY=ttyS0 ; PWD=/root ; USER=root ; COMMAND=/usr/sbin/iscsiadm --mode node --targetname iqn.2025-04.com.vpd:discosda --portal 10.22.122.10 --login
+abr 25 19:15:55 nodo1.vpd.com kernel: scsi host6: iSCSI Initiator over TCP/IP
+abr 25 19:15:55 nodo1.vpd.com iscsid[1286]: iscsid: Connection1:0 to [target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260] through [iface: default] is operational now
+```
+
+```bash
+[root@nodo2 ~]# sudo journalctl --since today | grep -i iscsi
+abr 25 19:16:00 nodo2.vpd.com sudo[1243]:     root : TTY=ttyS0 ; PWD=/root ; USER=root ; COMMAND=/usr/sbin/iscsiadm --mode node --targetname iqn.2025-04.com.vpd:discosda --portal 10.22.122.10 --login
+abr 25 19:16:00 nodo2.vpd.com kernel: scsi host6: iSCSI Initiator over TCP/IP
+abr 25 19:16:00 nodo2.vpd.com iscsid[1234]: iscsid: Connection1:0 to [target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260] through [iface: default] is operational now
 ```
 
 ### Tarea 4: Creación de sistema de archivos tipo ext4 en la unidad iSCSI importada

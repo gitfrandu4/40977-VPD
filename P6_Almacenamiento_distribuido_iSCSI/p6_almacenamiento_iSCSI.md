@@ -578,8 +578,15 @@ o- / ..................................................................... [...]
   o- iscsi ........................................................ [Targets: 0]
   o- loopback ..................................................... [Targets: 0]
   o- vhost ........................................................ [Targets: 0]
+```
+
+```bash
 /> cd /backstores/block 
-/backstores/block> 
+/backstores/block>
+```
+
+```bash
+/backstores/block> create name=discosda dev=/dev/sdb
 ```
 
 ```bash

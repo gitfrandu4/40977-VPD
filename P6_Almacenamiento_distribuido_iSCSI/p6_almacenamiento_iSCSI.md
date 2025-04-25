@@ -740,10 +740,62 @@ abr 25 19:16:00 nodo2.vpd.com kernel: scsi host6: iSCSI Initiator over TCP/IP
 abr 25 19:16:00 nodo2.vpd.com iscsid[1234]: iscsid: Connection1:0 to [target: iqn.2025-04.com.vpd:discosda, portal: 10.22.122.10,3260] through [iface: default] is operational now
 ```
 
+Comprobación con `iscsiadm -m session`:
+
+```bash
+[root@nodo1 ~]#  iscsiadm -m session 
+tcp: [1] 10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda (non-flash)
+```
+
+```
+[root@nodo2 ~]# iscsiadm -m session 
+tcp: [1] 10.22.122.10:3260,1 iqn.2025-04.com.vpd:discosda (non-flash)
+```
+
+Con lsblk
+
+```
+[root@nodo1 ~]# lsblk -o NAME,TRAN,SIZE,TYPE,MOUNTPOINT
+NAME            TRAN    SIZE TYPE MOUNTPOINT
+sda             iscsi     1G disk 
+zram0                   1,9G disk [SWAP]
+vda             virtio   10G disk 
+├─vda1          virtio    1M part 
+├─vda2          virtio    1G part /boot
+└─vda3          virtio    9G part 
+  └─fedora-root           9G lvm  /
+```
+
+```
+[root@nodo2 ~]# lsblk -o NAME,TRAN,SIZE,TYPE,MOUNTPOINT
+NAME            TRAN    SIZE TYPE MOUNTPOINT
+sda             iscsi     1G disk 
+zram0                   1,9G disk [SWAP]
+vda             virtio   10G disk 
+├─vda1          virtio    1M part 
+├─vda2          virtio    1G part /boot
+└─vda3          virtio    9G part 
+  └─fedora-root           9G lvm  /
+```
+
 ### Tarea 4: Creación de sistema de archivos tipo ext4 en la unidad iSCSI importada
 
 ```bash
-# Comandos utilizados para crear el sistema de archivos
+[root@nodo1 ~]# mkfs.ext4 /dev/sda
+mke2fs 1.47.1 (20-May-2024)
+Se está creando un sistema de ficheros con 262144 bloques de 4k y 65536 nodos-i
+UUID del sistema de ficheros: 733dd613-51be-4533-9245-f71c2afe9bb2
+Respaldos del superbloque guardados en los bloques: 
+	32768, 98304, 163840, 229376
+
+Reservando las tablas de grupo: hecho                           
+Escribiendo las tablas de nodos-i: hecho                           
+Creando el fichero de transacciones (8192 bloques): hecho
+Escribiendo superbloques y la información contable del sistema de ficheros: hecho
+```
+
+```bash
+[root@nodo1 ~]# mount /dev/sda /mnt
 ```
 
 ### Tarea 5: Exportación del segundo disco iSCSI y creación de un volumen lógico

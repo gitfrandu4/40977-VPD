@@ -1006,28 +1006,30 @@ mount /dev/ApacheVG/ApacheLV /mnt
 
 Ejecución:
 
-```bash
-# Comandos utilizados para crear el volumen lógico
-```
-
-
 ##### I. Creación del volumen físico
 
+
 ```bash
-# Comandos utilizados para crear el volumen físico
+[root@nodo1 ~]# pvcreate /dev/sdb
+  Physical volume "/dev/sdb" successfully created.
 ```
 
 ##### II. Creación del grupo de volúmenes ApacheVG
 
 ```bash
-# Comandos utilizados para crear el grupo de volúmenes
+[root@nodo1 ~]# vgcreate --setautoactivation n --locktype none ApacheVG /dev/sdb
+  Volume group "ApacheVG" successfully created
 ```
 
 ##### III. Creación del volumen lógico ApacheLV
 
-```bash
-# Comandos utilizados para crear el volumen lógico
 ```
+[root@nodo1 ~]# lvs
+  LV       VG       Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  ApacheLV ApacheVG -wi-a----- 900,00m                                                    
+  root     fedora   -wi-ao----  <9,00g
+```
+
 
 ##### IV. Comprobación del volumen lógico
 
@@ -1038,7 +1040,45 @@ Ejecución:
 ##### V. Creación del sistema de archivos XFS
 
 ```bash
-# Comandos utilizados para crear el sistema de archivos
+[root@nodo1 ~]# mkfs.xfs /dev/ApacheVG/ApacheLV
+meta-data=/dev/ApacheVG/ApacheLV isize=512    agcount=4, agsize=57600 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=1
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+data     =                       bsize=4096   blocks=230400, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=16384, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+```
+
+Montaje de prueba
+
+```bash
+[root@nodo1 ~]# mount /dev/ApacheVG/ApacheLV /mnt
+```
+
+validaciones:
+
+```
+[root@nodo1 ~]# pvs
+  PV         VG       Fmt  Attr PSize   PFree 
+  /dev/sdb   ApacheVG lvm2 a--  992,00m 92,00m
+  /dev/vda3  fedora   lvm2 a--   <9,00g     0 
+[root@nodo1 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize   VFree 
+  ApacheVG   1   1   0 wz--n- 992,00m 92,00m
+  fedora     1   1   0 wz--n-  <9,00g     0 
+[root@nodo1 ~]# lvs
+  LV       VG       Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  ApacheLV ApacheVG -wi-ao---- 900,00m                                                    
+  root     fedora   -wi-ao----  <9,00g
+```
+
+```bash
+[root@nodo1 ~]# mount | grep ApacheVG
+/dev/mapper/ApacheVG-ApacheLV on /mnt type xfs (rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota)
 ```
 
 #### 4. Configuración en el segundo nodo initiator
@@ -1055,7 +1095,7 @@ lvmdevices --adddev /dev/sdb
 Ejecución:
 
 ```bash
-# Comandos utilizados para configurar el segundo nodo
+[root@nodo2 ~]# lvmdevices --adddev /dev/sdb
 ```
 
 #### 5. Comprobación de activación en ambos nodos

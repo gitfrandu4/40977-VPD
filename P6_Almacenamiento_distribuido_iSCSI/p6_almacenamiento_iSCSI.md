@@ -802,6 +802,36 @@ Escribiendo superbloques y la información contable del sistema de ficheros: hec
 
 #### 1. Exportación del disco /dev/sdb desde el nodo target
 
+Plan de trabajo:
+
+```bash
+# 1.1  Entrar en la shell de targetcli
+targetcli
+
+# 1.2  Declarar el nuevo objeto de bloque que apunta a /dev/sdb
+/backstores/block> create discosdb /dev/sdb
+
+# 1.3  Crear el nuevo target iSCSI con el IQN pedido
+/iscsi> create wwn=iqn.2025-04.com.vpd:servidorapache   # ¡ojo a la ‘v’!
+
+# 1.4  Limitar el portal al enlace de la red de almacenamiento
+/iscsi/iqn.2025-04.com.vpd:servidorapache/tpg1/portals> delete 0.0.0.0 3260
+/iscsi/iqn.../portals> create 10.22.122.10
+
+# 1.5  Asociar el LUN 0 al disco recién creado
+/iscsi/iqn.../tpg1/luns> create /backstores/block/discosdb
+
+# 1.6  Dar acceso (ACL) a los dos initiators
+/iscsi/iqn.../tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo1
+/iscsi/iqn.../tpg1/acls> create wwn=iqn.2025-04.com.vpd:nodo2
+
+# 1.7  Guardar la configuración y salir
+/> saveconfig
+/> exit
+```
+
+Ejecición:
+
 ```bash
 # Comandos utilizados para exportar el disco
 ```
@@ -813,15 +843,59 @@ Escribiendo superbloques y la información contable del sistema de ficheros: hec
 
 #### 2. Comprobación de la exportación en los nodos initiator
 
+Plan de trabajo:
+
+```bash
+# 2.1  Descubrir el nuevo target
+iscsiadm --mode discovery --type sendtargets --portal 10.22.122.10 --discover
+
+# 2.2  Iniciar la sesión iSCSI
+iscsiadm --mode node \
+         --targetname iqn.2025-04.com.vpd:servidorapache \
+         --portal 10.22.122.10 --login
+
+# 2.3  Verificar que /dev/sdb aparece
+lsblk -o NAME,TRAN,SIZE,TYPE
+```
+
+Ejecución:
+
 ```bash
 # Comandos utilizados para comprobar la exportación
 ```
 
 #### 3. Creación del volumen lógico
 
+Plan de trabajo:
+
+```bash
+# 3.1  Crear volumen físico sobre el nuevo disco
+pvcreate /dev/sdb
+
+# 3.2  Crear el grupo de volúmenes ApacheVG
+#      –‐   --setautoactivation n  ➜ desactiva la auto-activación en el arranque  [oai_citation:0‡man.archlinux.org](https://man.archlinux.org/man/vgcreate.8.en)
+#      –‐   --locktype none       ➜ sin bloqueo, puede activarse desde cualquier host  [oai_citation:1‡man7.org](https://man7.org/linux/man-pages/man8/vgcreate.8.html)
+vgcreate --setautoactivation n --locktype none ApacheVG /dev/sdb
+
+# 3.3  Crear el LV de 900 MiB
+lvcreate -n ApacheLV -L 900M ApacheVG
+
+# 3.4  Comprobar
+lvs
+
+# 3.5  Formatear XFS
+mkfs.xfs /dev/ApacheVG/ApacheLV
+
+# 3.6  Montaje de prueba
+mount /dev/ApacheVG/ApacheLV /mnt
+```
+
+Ejecución:
+
 ```bash
 # Comandos utilizados para crear el volumen lógico
 ```
+
 
 ##### I. Creación del volumen físico
 
@@ -854,6 +928,17 @@ Escribiendo superbloques y la información contable del sistema de ficheros: hec
 ```
 
 #### 4. Configuración en el segundo nodo initiator
+
+Plan de trabajo:
+
+Registrar el disco en el otro nodo initiator:
+
+```bash
+# 4.1  Añadir el nuevo dispositivo al inventario de LVM
+lvmdevices --adddev /dev/sdb
+```
+
+Ejecución:
 
 ```bash
 # Comandos utilizados para configurar el segundo nodo

@@ -1122,20 +1122,186 @@ S.ficheros                    Tamaño Usados  Disp Uso% Montado en
 
 ### Comprobación del nodo target (Almacenamiento)
 
+Arrancar Almacenamiento
+
 ```bash
-# Comandos utilizados y resultados obtenidos
+virsh start Almacenamiento
+```
+
+Verificar las interfaces de red:
+
+```bash
+[root@almacenamiento ~]# ip addr show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:48:9c:c6 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.10/24 brd 10.22.122.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::37b9:2f10:35ed:596c/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp9s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:52:44:62 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.80/24 brd 192.168.140.255 scope global dynamic noprefixroute enp9s0
+       valid_lft 3588sec preferred_lft 3588sec
+    inet6 fe80::3f3d:da7f:2578:6085/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+```
+[root@almacenamiento ~]# nmcli device status 
+DEVICE  TYPE      STATE                   CONNECTION 
+enp9s0  ethernet  conectado               enp9s0     
+enp8s0  ethernet  conectado               enp8s0     
+lo      loopback  connected (externally)  lo
+```
+
+Discos presentes:
+
+```
+[root@almacenamiento ~]# lsblk -o NAME,TRAN,SIZE,TYPE
+NAME            TRAN    SIZE TYPE
+sda             spi       1G disk
+sdb             spi       1G disk
+zram0                   1,9G disk
+vda             virtio   10G disk
+├─vda1          virtio    1M part
+├─vda2          virtio    1G part
+└─vda3          virtio    9G part
+  └─fedora-root           9G lvm
+```
+
+Configuración iSCSI exportada:
+
+```bash
+[root@almacenamiento ~]# targetcli /iscsi ls
+o- iscsi .......................................................... [Targets: 2]
+  o- iqn.2025-04.com.vpd:discosda .................................... [TPGs: 1]
+  | o- tpg1 ............................................. [no-gen-acls, no-auth]
+  |   o- acls ........................................................ [ACLs: 2]
+  |   | o- iqn.2025-04.com.vpd:nodo1 .......................... [Mapped LUNs: 1]
+  |   | | o- mapped_lun0 ............................ [lun0 block/discosda (rw)]
+  |   | o- iqn.2025-04.com.vpd:nodo2 .......................... [Mapped LUNs: 1]
+  |   |   o- mapped_lun0 ............................ [lun0 block/discosda (rw)]
+  |   o- luns ........................................................ [LUNs: 1]
+  |   | o- lun0 ................. [block/discosda (/dev/sda) (default_tg_pt_gp)]
+  |   o- portals .................................................. [Portals: 1]
+  |     o- 10.22.122.10:3260 .............................................. [OK]
+  o- iqn.2025-04.com.vpd:servidorapache .............................. [TPGs: 1]
+    o- tpg1 ............................................. [no-gen-acls, no-auth]
+      o- acls ........................................................ [ACLs: 2]
+      | o- iqn.2025-04.com.vpd:nodo1 .......................... [Mapped LUNs: 1]
+      | | o- mapped_lun0 ............................ [lun0 block/discosdb (rw)]
+      | o- iqn.2025-04.com.vpd:nodo2 .......................... [Mapped LUNs: 1]
+      |   o- mapped_lun0 ............................ [lun0 block/discosdb (rw)]
+      o- luns ........................................................ [LUNs: 1]
+      | o- lun0 ................. [block/discosdb (/dev/sdb) (default_tg_pt_gp)]
+      o- portals .................................................. [Portals: 1]
+        o- 10.22.122.10:3260 .............................................. [OK]
 ```
 
 ### Comprobación del nodo initiator (Nodo1)
 
 ```bash
-# Comandos utilizados y resultados obtenidos
+virsh start Nodo1
 ```
+
+Interfaces:
+
+```bash
+[root@nodo1 ~]# ip addr show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:f9:be:78 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.11/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::698a:e0e6:e8b0:d494/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.116/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3570sec preferred_lft 3570sec
+    inet6 fe80::81:d839:b5cd:6ff5/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+Montar sda, creart test1 con VPD1:
+
+```
+[root@nodo1 ~]# mount /dev/sda /mnt
+[root@nodo1 ~]# echo "VPD1" > /mnt/test1
+[root@nodo1 ~]# umount /mnt
+```
+
+Montar LV ApacheLV, crear test2 con VPD2:
+
+```bash
+[root@nodo1 ~]# vgchange -ay ApacheVG 
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo1 ~]# mount /dev/ApacheVG/ApacheLV /mnt
+[root@nodo1 ~]# echo "VPD2" > /mnt/test2
+[root@nodo1 ~]# umount /mnt
+```
+
 
 ### Comprobación del nodo initiator (Nodo2)
 
+Antes de empezar, hay que asegurarse de que en el Nodo1 hemos desmontado ambos sistemas /dev/sda y ApacheLV
+
 ```bash
-# Comandos utilizados y resultados obtenidos
+virsh start Nodo2
+```
+
+Comprobar interfaces:
+
+```bash
+[root@nodo2 ~]# ip addr show
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:a3:82:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.12/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4c9f:ac5d:73af:d24f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:33:fd:52 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.120/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3494sec preferred_lft 3494sec
+    inet6 fe80::da77:319b:6a4c:659/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+Montar sda y verificar:
+
+```bash
+[root@nodo2 ~]# mount /dev/sda /mnt
+[root@nodo2 ~]# cat /mnt/test1 
+VPD1
+[root@nodo2 ~]# umount /mnt
+```
+
+Montar ApacheLV y mostrar el contenido de test2:
+
+```bash
+[root@nodo2 ~]# vgchange -ay ApacheVG 
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo2 ~]# mount /dev/ApacheVG/ApacheLV /mnt
+[root@nodo2 ~]# cat /mnt/test2 
+VPD2
 ```
 
 ## 5. Conclusiones

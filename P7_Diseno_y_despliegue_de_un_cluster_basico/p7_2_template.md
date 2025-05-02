@@ -32,6 +32,27 @@ Para abordar esta práctica es imprescindible haber completado correctamente la 
 
 ### Fase 1. Configuración de los nodos del clúster
 
+#### Comandos paso a paso (según ficha)
+
+```bash
+# Paso 1.1: Instalar software de clúster
+dnf install pcs pacemaker fence-agents-all
+
+# Paso 1.2: Abrir puertos del cortafuegos
+firewall-cmd --permanent --add-service=high-availability
+firewall-cmd --reload
+
+# Paso 2: Establecer contraseña para hacluster
+passwd hacluster
+
+# Paso 3: Activar pcsd
+systemctl start pcsd.service
+systemctl enable pcsd.service
+
+# Paso 4: Autenticación de nodos
+pcs host auth nodo1.vpd.com nodo2.vpd.com
+```
+
 En esta fase se realizará la configuración necesaria para que los nodos puedan formar parte del clúster, incluyendo la instalación de paquetes necesarios y la configuración del mecanismo de aislamiento (fencing).
 
 #### Tarea 1.1. Instalación de los paquetes de aislamiento o fencing
@@ -117,6 +138,19 @@ pcs status
 
 ### Fase 2. Configuración del servicio httpd
 
+#### Comandos paso a paso (según ficha)
+
+```bash
+# Crear el clúster desde Nodo1
+pcs cluster setup Apache --start nodo1.vpd.com nodo2.vpd.com
+
+# Habilitar el clúster en el arranque
+pcs cluster enable --all
+
+# Verificar estado del clúster
+pcs cluster status
+```
+
 En esta fase, se realizará la configuración necesaria para que el servicio httpd (Apache) pueda ejecutarse en el contexto de un clúster de alta disponibilidad.
 
 #### Tarea 2.1. Configuración del estado del servicio
@@ -149,6 +183,31 @@ Este paso se realiza en todos los nodos del clúster que pueden ejecutar el serv
 ```
 
 ### Fase 3. Configuración del almacenamiento compartido
+
+#### Comandos paso a paso (según ficha)
+
+```bash
+# Instalar fencing
+dnf install fence-virt fence-virtd
+
+# Configurar cortafuegos
+firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address="10.22.132.1" port port="1229" protocol="tcp" accept'
+firewall-cmd --reload
+
+# Crear directorio y copiar clave
+mkdir -p /etc/cluster
+scp root@10.22.132.1:/etc/cluster/fence_xvm.key /etc/cluster
+
+# Verificar conectividad multicast
+fence_xvm -o list
+
+# Crear recurso de fencing
+pcs stonith create xvmfence fence_xvm key_file=/etc/cluster/fence_xvm.key
+
+# Comprobar estado
+pcs stonith
+pcs status
+```
 
 La finalidad de esta fase es configurar el sistema para que el grupo de volúmenes de almacenamiento que alberga el volumen lógico en el que se despliega el espacio compartido sea controlado solo por el clúster y no localmente por el servicio lvm de cada nodo.
 
@@ -194,6 +253,47 @@ pcs cluster start --all
 ```
 
 ### Fase 4. Creación de recursos y grupos de recursos
+
+#### Comandos paso a paso (según ficha)
+
+```bash
+# Añadir status.conf
+echo '<Location /server-status>
+    SetHandler server-status
+    Require local
+</Location>' > /etc/httpd/conf.d/status.conf
+
+# Reemplazar línea en logrotate
+sed -i 's|/bin/systemctl reload httpd.service.*||' /etc/logrotate.d/httpd
+echo '/usr/bin/test -f /var/run/httpd-Website.pid >/dev/null 2>/dev/null && /usr/bin/ps -q $(/usr/bin/cat /var/run/httpd-Website.pid) >/dev/null 2>/dev/null && /usr/sbin/httpd -f /etc/httpd/conf/httpd.conf -c "PidFile /var/run/httpd-Website.pid" -k graceful > /dev/null 2>/dev/null || true' >> /etc/logrotate.d/httpd
+```
+
+#### Comandos para almacenamiento (según ficha)
+
+```bash
+# Ver volumenes
+vgs --noheadings -o vg_name
+
+# Editar volume_list en /etc/lvm/lvm.conf
+# (manual, añadir todos excepto ApacheVG)
+
+# Reiniciar nodos
+reboot
+```
+
+#### Comandos para crear recursos (según ficha)
+
+```bash
+# Crear recursos
+pcs resource create Apache_LVM LVM volgrpname=ApacheVG exclusive=true --group apachegroup
+pcs resource create Apache_FS Filesystem device="/dev/ApacheVG/ApacheLV" directory="/var/www" fstype="xfs" --group apachegroup
+pcs resource create Apache_IP IPaddr2 ip=192.168.140.253 cidr_netmask=24 --group apachegroup
+pcs resource create Apache_Script apache configfile="/etc/httpd/conf/httpd.conf" statusurl="http://127.0.0.1/server-status" --group apachegroup
+
+# Mostrar recursos y estado
+pcs resource show
+pcs status
+```
 
 Para poder ofrecer el servicio Apache en alta disponibilidad, el clúster deberá disponer de cuatro recursos que conformarán un grupo de recursos.
 
@@ -256,14 +356,14 @@ pcs resource create Apache_Script apache configfile="/etc/httpd/conf/httpd.conf"
 
 ## 4. Pruebas y validación
 
-En esta sección debe documentar todos los pasos realizados para probar el correcto funcionamiento del clúster y el servicio en alta disponibilidad, incluyendo:
+### Validación estructurada
 
-- Verificación del estado del clúster
-- Pruebas de conmutación por error (failover)
-- Comprobación del acceso al servicio web a través de la IP flotante
-- Pruebas de recuperación ante fallos
-
-Incluya capturas de pantalla relevantes que demuestren el funcionamiento correcto del clúster y el servicio en alta disponibilidad.
+- Acceder al servicio web desde el navegador del anfitrión en `http://192.168.140.253`
+- Confirmar que la IP flotante se asigna al nodo activo (`ip addr show`)
+- Simular caída: `pcs node standby nodo1.vpd.com`
+- Confirmar failover: acceder al servicio desde el segundo nodo
+- Reintegrar nodo: `pcs node unstandby nodo1.vpd.com`
+- Validar persistencia tras reinicio
 
 ## 5. Conclusiones
 

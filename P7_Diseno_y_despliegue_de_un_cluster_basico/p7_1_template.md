@@ -443,6 +443,9 @@ ping -c 3 10.22.132.11  # desde nodo2 a nodo1 y viceversa
 ping -c 3 8.8.8.8       # verificar acceso a Internet
 ```
 
+NOTA PARA VALIDAR: https://chatgpt.com/share/68152272-4174-8003-b584-05053c8ac47c
+ME HE EQUIVOCADO AL PONER LAS IPS EN INPS08 (LO QUE SEA)
+
 ### Fase 2. Instalación del servidor Apache
 
 En esta etapa realizaremos la instalación y configuración de un servidor web Apache en Nodo1 y Nodo2 utilizando el espacio de almacenamiento compartido iSCSI que nos proporciona el nodo de almacenamiento.

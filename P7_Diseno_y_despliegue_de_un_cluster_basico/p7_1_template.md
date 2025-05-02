@@ -78,9 +78,176 @@ Plan de trabajo para esta fase (asumiendo que se parte de los resultados de la p
 
 1. Crear la red privada Control.
 
+```control.xml
+root@lq-d25:~# cat control.xml 
+<network>
+	<name>Control</name>
+	<bridge name='virbr3' stp='on' delay='0'/>
+	<ip address='10.22.132.1' netmask='255.255.255.0'>
+	</ip>
+</network>
+```
+
+```bash
+root@lq-d25:~# virsh net-define control.xml 
+La red Control se encuentra definida desde control.xml
+
+root@lq-d25:~# virsh net-start Control 
+La red Control se ha iniciado
+
+root@lq-d25:~# virsh net-autostart Control 
+La red Control ha sido marcada para iniciarse automáticamente
+```
+
+```bash
+root@lq-d25:~# virsh net-list --all
+ Nombre           Estado   Inicio automático   Persistente
+------------------------------------------------------------
+ Almacenamiento   activo   si                  si
+ Cluster          activo   si                  si
+ Control          activo   si                  si
+ default          activo   si                  si
+```
+
+```bash
+root@lq-d25:~# virsh net-info Control 
+Nombre:         Control
+UUID:           710208f0-b476-41f4-9a2d-20596c791dbf
+Activar:        si
+Persistente:    si
+Autoinicio:     si
+Puente:         virbr3
+```
+
+```bash
+root@lq-d25:~# ip addr show virbr3
+7: virbr3: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 52:54:00:7c:d5:29 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.132.1/24 brd 10.22.132.255 scope global virbr3
+       valid_lft forever preferred_lft forever
+```
+
+
 2. En Nodo1 y Nodo2 añadir una nueva interfaz de red.
 
+**En nodo 1**:
+
+```bash
+root@lq-d25:~# sudo virsh attach-interface --domain Nodo1 --type network --source Control --model virtio --config
+La interfaz ha sido asociada exitosamente
+```
+
+```bash
+[root@nodo1 ~]# nmcli connection add type ethernet con-name Control ifname enp8s0 ipv4.m
+ipv4.may-fail  ipv4.method
+```
+
+```bash
+[root@nodo1 ~]# nmcli connection add type ethernet con-name Control ifname enp8s0 ipv4.method manual ipv4.addresses 10.122.132.11/24
+Conexión «Control» (5bd4dd51-3ae1-4952-96b0-f1b552750a84) añadida con éxito.
+```
+
+```bash
+[root@nodo1 ~]# nmcli connection up Control
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+```
+
+```bash
+[root@nodo1 ~]# ip addr show enp8s0 
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:af:20:ef brd ff:ff:ff:ff:ff:ff
+    inet 10.122.132.11/24 brd 10.122.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20a0:8206:7964:ea87/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+
+**En nodo 2**:
+
+```bash
+root@lq-d25:~# sudo virsh attach-interface --domain Nodo2 --type network --source Control --model virtio --config
+La interfaz ha sido asociada exitosamente
+```
+
+```bash
+[root@nodo2 ~]# nmcli connection add type ethernet con-name Control ifname enp8s0 ipv4.method manual ipv4.addresses 10.122.132.12/24
+Conexión «Control» (44c1efa5-be2c-4565-9baf-655865d579fe) añadida con éxito.
+```
+
+```bash
+[root@nodo2 ~]# nmcli connection up Control 
+Conexión activada con éxito (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+```
+
+```bash
+[root@nodo2 ~]# ip addr show enp8s0
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:6b:ad:d9 brd ff:ff:ff:ff:ff:ff
+    inet 10.122.132.12/24 brd 10.122.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::e87a:1d40:fc79:1f7f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
 3. En Nodo1 y Nodo2 reconfigurar las interfaces de red para que cumplan las especificaciones. Esto es que la primera interfaz esté conectada a la red Almacenamiento, la segunda interfaz a la red Cluster y, por último, la tercera interface a la red Control. Recuerde que la configuración de las interfaces de las redes Almacenamiento y Control se debe establecer de forma manual.
+
+Nodo 1:
+
+```bash
+[root@nodo1 ~]# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:f9:be:78 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.11/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::698a:e0e6:e8b0:d494/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.116/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3425sec preferred_lft 3425sec
+    inet6 fe80::81:d839:b5cd:6ff5/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:af:20:ef brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::a2ce:e9b9:8b05:7f3e/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+```
+
+Nodo 2:
+
+```bash
+[root@nodo2 ~]# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute 
+       valid_lft forever preferred_lft forever
+2: enp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:a3:82:83 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.122.12/24 brd 10.22.122.255 scope global noprefixroute enp1s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::4c9f:ac5d:73af:d24f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:33:fd:52 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.140.120/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
+       valid_lft 3471sec preferred_lft 3471sec
+    inet6 fe80::da77:319b:6a4c:659/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:6b:ad:d9 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::4bdb:ca2c:5f39:ac48/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
 
 4. Hacer un "update" de la instalación existente en cada uno de los nodos, esto es en las máquinas Nodo1 y Nodo2. **Importante, no debe hacer la operación "update" en el sistema anfitrión**.
 

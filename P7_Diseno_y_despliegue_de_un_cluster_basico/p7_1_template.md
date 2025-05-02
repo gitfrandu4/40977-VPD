@@ -211,14 +211,15 @@ Nodo 1:
 3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:05:fd:ec brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.116/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
-       valid_lft 3425sec preferred_lft 3425sec
+       valid_lft 2978sec preferred_lft 2978sec
     inet6 fe80::81:d839:b5cd:6ff5/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:af:20:ef brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::a2ce:e9b9:8b05:7f3e/64 scope link noprefixroute 
+    inet 10.122.132.11/24 brd 10.122.132.255 scope global noprefixroute enp8s0
        valid_lft forever preferred_lft forever
-
+    inet6 fe80::20a0:8206:7964:ea87/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
 ```
 
 Nodo 2:
@@ -240,39 +241,149 @@ Nodo 2:
 3: enp7s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:33:fd:52 brd ff:ff:ff:ff:ff:ff
     inet 192.168.140.120/24 brd 192.168.140.255 scope global dynamic noprefixroute enp7s0
-       valid_lft 3471sec preferred_lft 3471sec
+       valid_lft 2951sec preferred_lft 2951sec
     inet6 fe80::da77:319b:6a4c:659/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
     link/ether 52:54:00:6b:ad:d9 brd ff:ff:ff:ff:ff:ff
-    inet6 fe80::4bdb:ca2c:5f39:ac48/64 scope link noprefixroute 
+    inet 10.122.132.12/24 brd 10.122.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::e87a:1d40:fc79:1f7f/64 scope link noprefixroute 
        valid_lft forever preferred_lft forever
 ```
 
 4. Hacer un "update" de la instalación existente en cada uno de los nodos, esto es en las máquinas Nodo1 y Nodo2. **Importante, no debe hacer la operación "update" en el sistema anfitrión**.
 
+En nodo 1:
+```bash
+[root@nodo1 ~]# dnf update -y
+¡Completado!
+[root@nodo1 ~]# 
+
+```
+
+En nodo 2:
+
+```bash
+[root@nodo2 ~]# dnf update -y
+# ...
+¡Completado!
+[root@nodo2 ~]# 
+```
+
 5. Establecer el nombre de dominio completamente cualificado en cada máquina (orden hostnamectl). En el caso del nodo Almacenamiento `almacenamiento.vpd.com`, en el caso de Nodo1 `nodo1.vpd.com` y en el caso de Nodo2 `nodo2.vpd.com`.
+
+Nodo 1:
+
+```bash
+[root@nodo1 ~]# hostnamectl
+     Static hostname: nodo1.vpd.com
+           Icon name: computer-vm
+             Chassis: vm 🖴
+          Machine ID: 6d2630bf3d2046a589c37eaa7313994b
+             Boot ID: a7eacab9640649c08caed9e34c076a9e
+        Product UUID: 2b88a0ed-78cc-4ac8-ac5b-a665173f8f11
+      Virtualization: kvm
+    Operating System: Fedora Linux 41 (Server Edition)    
+         CPE OS Name: cpe:/o:fedoraproject:fedora:41
+      OS Support End: Mon 2025-12-15
+OS Support Remaining: 7month 1w 6d
+              Kernel: Linux 6.12.11-200.fc41.x86_64
+        Architecture: x86-64
+     Hardware Vendor: QEMU
+      Hardware Model: Standard PC _Q35 + ICH9, 2009_
+    Firmware Version: 1.16.3-1.fc39
+       Firmware Date: Tue 2014-04-01
+        Firmware Age: 11y 1month 1d
+```
+
+Nodo 2:
+
+```bash
+[root@nodo2 ~]# hostnamectl
+     Static hostname: nodo2.vpd.com
+           Icon name: computer-vm
+             Chassis: vm 🖴
+          Machine ID: 6d2630bf3d2046a589c37eaa7313994b
+             Boot ID: 31ef90efc7f743f9a9abd9bb8a65c798
+        Product UUID: bebe4eb9-cab1-4101-aedc-32920714da29
+      Virtualization: kvm
+    Operating System: Fedora Linux 41 (Server Edition)    
+         CPE OS Name: cpe:/o:fedoraproject:fedora:41
+      OS Support End: Mon 2025-12-15
+OS Support Remaining: 7month 1w 6d
+              Kernel: Linux 6.12.11-200.fc41.x86_64
+        Architecture: x86-64
+     Hardware Vendor: QEMU
+      Hardware Model: Standard PC _Q35 + ICH9, 2009_
+    Firmware Version: 1.16.3-1.fc39
+       Firmware Date: Tue 2014-04-01
+        Firmware Age: 11y 1month 1d
+```
+
+Almacenamiento:
+
+```bash
+[root@almacenamiento ~]# hostnamectl
+     Static hostname: almacenamiento.vpd.com
+           Icon name: computer-vm
+             Chassis: vm 🖴
+          Machine ID: 6d2630bf3d2046a589c37eaa7313994b
+             Boot ID: 72ada47f3a314ca29a3fb47756055687
+        Product UUID: 9ac8572e-eda5-44f9-8282-5acbbb68449e
+      Virtualization: kvm
+    Operating System: Fedora Linux 41 (Server Edition)    
+         CPE OS Name: cpe:/o:fedoraproject:fedora:41
+      OS Support End: Mon 2025-12-15
+OS Support Remaining: 7month 1w 6d
+              Kernel: Linux 6.12.11-200.fc41.x86_64
+        Architecture: x86-64
+     Hardware Vendor: QEMU
+      Hardware Model: Standard PC _Q35 + ICH9, 2009_
+    Firmware Version: 1.16.3-1.fc39
+       Firmware Date: Tue 2014-04-01
+        Firmware Age: 11y 1month 1d
+```
 
 6. Añadir los nombres e IPs de todas las máquinas que intervienen en la práctica en el fichero `/etc/hosts`:
 
-Contenido del fichero `/etc/hosts` en Nodo1 y Nodo2:
+En nodo 1:
 
 ```bash
+[root@nodo2 ~]# cat /etc/hosts
+# Loopback entries; do not change.
+# For historical reasons, localhost precedes localhost.localdomain:
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.22.122.10 almacenamiento.vpd.com
-10.22.132.11 nodo1.vpd.com
-10.22.132.12 nodo2.vpd.com
+10.22.122.10	almacenamiento.vpd.com
+10.22.132.11	nodo1.vpd.com
+10.22.132.12	nodo2.vpd.com
 ```
 
-Contenido del fichero `/etc/hosts` en el nodo Almacenamiento:
+En nodo 2:
 
 ```bash
+[root@nodo1 ~]# cat /etc/hosts
+# Loopback entries; do not change.
+# For historical reasons, localhost precedes localhost.localdomain:
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.22.122.10 almacenamiento.vpd.com
-10.22.122.11 nodo1.vpd.com
-10.22.122.12 nodo2.vpd.com
+10.22.122.10	almacenamiento.vpd.com
+10.22.132.11	nodo1.vpd.com
+10.22.132.12	nodo2.vpd.com
+```
+
+En Almacenamiento:
+
+```bash
+[root@almacenamiento ~]# cat /etc/hosts
+# Loopback entries; do not change.
+# For historical reasons, localhost precedes localhost.localdomain:
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+10.22.122.10	almacenamiento.vpd.com
+10.22.122.11	nodo1.vpd.com
+10.22.122.12	nodo2.vpd.com
 ```
 
 **IMPORTANTE**: Al concluir esta fase deberá comprobar que todas las máquinas tienen conectividad al exterior y entre ellas utilizando las distintas interfaces de red. Para ello es fundamental que desde cada máquina realice pruebas de conexión con el resto de las máquinas para cada interfaz, empleando para ello tanto las direcciones IP asignadas a cada interfaz como los nombres de dominio completamente cualificados de las máquinas. Compruebe también la conectividad con la puerta de enlace del host anfitrión para cada red (10.22.122.1 y 10.22.132.1). Estas pruebas de conexión las puede realizar empleando, por ejemplo, la orden ping. Al concluir esta fase se recomienda hacer copias de seguridad de los tres nodos (estado_1).

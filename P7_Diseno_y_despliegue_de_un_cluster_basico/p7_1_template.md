@@ -9,10 +9,16 @@
   - [3. Desarrollo de la práctica](#3-desarrollo-de-la-práctica)
     - [Fase 1. Creación de la infraestructura básica del clúster](#fase-1-creación-de-la-infraestructura-básica-del-clúster)
       - [Tarea 1.1. Preparación de la infraestructura](#tarea-11-preparación-de-la-infraestructura)
+    - [Comandos detallados por pasos](#comandos-detallados-por-pasos)
     - [Fase 2. Instalación del servidor Apache](#fase-2-instalación-del-servidor-apache)
       - [Tarea 2.1. Instalación y configuración del servidor Apache](#tarea-21-instalación-y-configuración-del-servidor-apache)
       - [Tarea 2.2. Configuración del almacenamiento compartido para Apache](#tarea-22-configuración-del-almacenamiento-compartido-para-apache)
+    - [Comandos detallados para Fase 2](#comandos-detallados-para-fase-2)
   - [4. Pruebas y validación](#4-pruebas-y-validación)
+    - [Pruebas de conectividad](#pruebas-de-conectividad)
+    - [Verificación de Apache](#verificación-de-apache)
+    - [Verificación de almacenamiento compartido](#verificación-de-almacenamiento-compartido)
+    - [Recomendación](#recomendación)
   - [5. Conclusiones](#5-conclusiones)
   - [6. Bibliografía](#6-bibliografía)
 
@@ -106,6 +112,59 @@ Contenido del fichero `/etc/hosts` en el nodo Almacenamiento:
 
 > **Nota**: Antes de continuar con la siguiente fase debe validar el trabajo realizado con los profesores de la asignatura.
 
+### Comandos detallados por pasos
+
+```bash
+# Paso 1: Crear la red privada Control
+sudo virsh net-define control.xml  # o usar virt-manager para crear una red aislada 10.22.132.0/24
+sudo virsh net-start Control
+sudo virsh net-autostart Control
+
+# Paso 2: Añadir una nueva interfaz de red (para Control) a Nodo1 y Nodo2
+sudo virsh attach-interface --domain Nodo1 --type network --source Control --model virtio --config --live
+sudo virsh attach-interface --domain Nodo2 --type network --source Control --model virtio --config --live
+
+# Paso 3: Reconfigurar interfaces de red en Nodo1 y Nodo2
+# Nodo1
+sudo virsh start Nodo1
+sudo virsh console Nodo1
+hostnamectl set-hostname nodo1.vpd.com
+nmcli con add type ethernet con-name enp1s0 ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.11/24
+nmcli con add type ethernet con-name enp7s0 ifname enp7s0 ipv4.method auto
+nmcli con add type ethernet con-name enp8s0 ifname enp8s0 ipv4.method manual ipv4.addresses 10.22.132.11/24
+nmcli con up enp1s0
+nmcli con up enp7s0
+nmcli con up enp8s0
+
+# Nodo2
+sudo virsh start Nodo2
+sudo virsh console Nodo2
+hostnamectl set-hostname nodo2.vpd.com
+nmcli con add type ethernet con-name enp1s0 ifname enp1s0 ipv4.method manual ipv4.addresses 10.22.122.12/24
+nmcli con add type ethernet con-name enp7s0 ifname enp7s0 ipv4.method auto
+nmcli con add type ethernet con-name enp8s0 ifname enp8s0 ipv4.method manual ipv4.addresses 10.22.132.12/24
+nmcli con up enp1s0
+nmcli con up enp7s0
+nmcli con up enp8s0
+
+# Paso 4: Actualizar los nodos
+sudo dnf update -y  # Ejecutar solo dentro de Nodo1 y Nodo2
+
+# Paso 5: Establecer hostname (ya hecho en paso 3 con hostnamectl)
+
+# Paso 6: Editar /etc/hosts en todos los nodos
+# Nodo1 y Nodo2:
+echo -e "127.0.0.1 localhost\n::1 localhost\n10.22.122.10 almacenamiento.vpd.com\n10.22.132.11 nodo1.vpd.com\n10.22.132.12 nodo2.vpd.com" > /etc/hosts
+
+# Nodo almacenamiento:
+echo -e "127.0.0.1 localhost\n::1 localhost\n10.22.122.10 almacenamiento.vpd.com\n10.22.122.11 nodo1.vpd.com\n10.22.122.12 nodo2.vpd.com" > /etc/hosts
+
+# Paso final: Validar conectividad
+ping -c 3 10.22.122.10  # desde nodo1/nodo2 a almacenamiento
+ping -c 3 10.22.132.11  # desde nodo2 a nodo1 y viceversa
+ping -c 3 8.8.8.8       # verificar acceso a Internet
+```
+
 ### Fase 2. Instalación del servidor Apache
 
 En esta etapa realizaremos la instalación y configuración de un servidor web Apache en Nodo1 y Nodo2 utilizando el espacio de almacenamiento compartido iSCSI que nos proporciona el nodo de almacenamiento.
@@ -124,7 +183,42 @@ Plan de trabajo para esta fase:
 
 4. Arrancando manualmente el servicio, verificar que funciona correctamente accediendo desde el anfitrión mediante un navegador o utilizando la orden curl. Si todo está correcto, entonces se deberá mostrar la página de test del servicio Apache. Una vez verificado, parar el servicio Apache. Para ello, podría utilizar las direcciones IP que tienen configuradas las interfaces de red del nodo. Se recomienda probar con la IP de la interfaz conectada a la red NAT Cluster.
 
+
 #### Tarea 2.2. Configuración del almacenamiento compartido para Apache
+
+### Comandos detallados para Fase 2
+
+```bash
+# Paso 5: Montar el volumen lógico apacheLV
+lvscan  # verificar que el volumen apacheLV está visible
+mkdir -p /var/www
+mount /dev/mapper/vgX-apacheLV /var/www  # Reemplaza vgX con el nombre correcto del grupo de volúmenes
+
+# Paso 6: Preparar estructura de directorios
+chcon --user=system_u /var/www
+mkdir -p /var/www/html
+mkdir -p /var/www/cgi-bin
+
+# Paso 7: Crear archivo index.html
+echo "<html><body>Enhorabuena: configuración correcta</body></html>" > /var/www/html/index.html
+
+# Paso 8: Restaurar contextos SELinux
+restorecon -Rv /var/www
+
+# Paso 9: Verificar Apache
+sudo systemctl start httpd
+curl http://localhost         # o curl http://<ip_nodo>
+sudo systemctl stop httpd
+
+# Paso 10: Desmontar el volumen
+umount /var/www
+
+# Paso 11: Repetir en el segundo nodo
+# Montar volumen, iniciar servicio y verificar
+mount /dev/mapper/vgX-apacheLV /var/www
+sudo systemctl start httpd
+curl http://localhost         # verificar contenido
+```
 
 5. En uno de los nodos que formarán parte del cluster (Nodo1 o Nodo2), montar el volumen lógico compartido apacheLV en el directorio `/var/www`.
 
@@ -150,14 +244,33 @@ Plan de trabajo para esta fase:
 
 ## 4. Pruebas y validación
 
-En esta sección debe documentar todos los pasos realizados para probar el correcto funcionamiento de la infraestructura básica del clúster, incluyendo:
+### Pruebas de conectividad
 
-- Pruebas de conectividad entre nodos por las diferentes interfaces
-- Verificación del correcto funcionamiento del servidor Apache en cada nodo
-- Comprobaciones del acceso al almacenamiento compartido
-- Evidencias de que el contenido web se muestra correctamente
+- Verificar conectividad entre todos los nodos por todas las interfaces (`ping` entre IPs y FQDNs).
+- Verificar conectividad a Internet desde Nodo1 y Nodo2: `ping -c 3 8.8.8.8`.
+- Verificar rutas correctas: `ip route`.
 
-Incluya capturas de pantalla relevantes que demuestren el funcionamiento correcto de la infraestructura.
+### Verificación de Apache
+
+- En Nodo1:
+  - Montar `/var/www` con el volumen apacheLV.
+  - Iniciar manualmente `httpd`: `sudo systemctl start httpd`.
+  - Verificar con `curl http://<IP_Cluster_Nodo1>` que devuelve el mensaje de "Enhorabuena".
+  - Parar el servicio: `sudo systemctl stop httpd`.
+
+- En Nodo2:
+  - Montar `/var/www` con el volumen apacheLV.
+  - Iniciar manualmente `httpd`: `sudo systemctl start httpd`.
+  - Verificar con `curl http://<IP_Cluster_Nodo2>` que devuelve el mismo contenido.
+  - Parar el servicio: `sudo systemctl stop httpd`.
+
+### Verificación de almacenamiento compartido
+
+- Confirmar que el contenido creado en `/var/www` en un nodo aparece correctamente en el otro tras montar el volumen.
+
+### Recomendación
+
+- Realizar capturas de pantalla de cada verificación y adjuntarlas como evidencia.
 
 ## 5. Conclusiones
 

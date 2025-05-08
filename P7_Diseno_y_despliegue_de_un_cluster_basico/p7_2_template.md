@@ -55,6 +55,71 @@ pcs host auth nodo1.vpd.com nodo2.vpd.com
 
 En esta fase se realizará la configuración necesaria para que los nodos puedan formar parte del clúster, incluyendo la instalación de paquetes necesarios y la configuración del mecanismo de aislamiento (fencing).
 
+**Paso 1**
+
+Empezamos en Nodo1
+
+```bash
+[root@nodo1 ~]# dnf install pcs pacemaker fence-agents-all
+¡Completado!
+
+[root@nodo1 ~]# firewall-cmd --permanent --add-service=high-availability
+success
+[root@nodo1 ~]# firewall-cmd --reload
+success
+```
+
+Seguimos en nodo2
+
+```bash
+[root@nodo2 ~]# dnf install pcs pacemaker fence-agents-all
+¡Completado!
+
+[root@nodo2 ~]# firewall-cmd --permanent --add-service=high-availability
+success
+[root@nodo2 ~]# firewall-cmd --reload
+success
+```
+
+**Paso 2**
+
+nodo1
+
+```
+[root@nodo1 ~]# passwd hacluster
+Nueva contraseña: 
+CONTRASEÑA INCORRECTA: La contraseña no supera la verificación de diccionario - está basada en una palabra del diccionario
+Vuelva a escribir la nueva contraseña: 
+passwd: contraseña actualizada correctamente
+```
+
+nodo 1
+```
+[root@nodo1 ~]# passwd hacluster
+Nueva contraseña: 
+CONTRASEÑA INCORRECTA: La contraseña no supera la verificación de diccionario - está basada en una palabra del diccionario
+Vuelva a escribir la nueva contraseña: 
+passwd: contraseña actualizada correctamente
+```
+
+**Paso 3**
+
+```bash
+[root@nodo1 ~]# systemctl start pcsd.service
+[root@nodo1 ~]# systemctl enable pcsd.service
+Created symlink '/etc/systemd/system/multi-user.target.wants/pcsd.service' → '/usr/lib/systemd/system/pcsd.service'.
+```
+
+**Paso 4**
+
+```bash
+[root@nodo1 ~]# pcs host auth nodo1.vpd.com nodo2.vpd.com
+Username: hacluster
+Password: 
+nodo2.vpd.com: Authorized
+nodo1.vpd.com: Authorized
+```
+
 #### Tarea 1.1. Instalación de los paquetes de aislamiento o fencing
 
 Estos pasos deben realizarse en ambos nodos del clúster (Nodo1 y Nodo2):

@@ -527,6 +527,23 @@ PING almacenamiento.vpd.com (10.22.122.10) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.319/0.497/0.676/0.178 ms
 ```
 
+**Copia de seguridad**
+
+Detenemos las MVs y:
+
+```bash
+root@lq-d25:~# mkdir -p /backups/libvirt/$(date +%Y%m%d)
+root@lq-d25:~# cp /var/lib/libvirt/images/Nodo1.qcow2 /backups/libvirt/$(date +%Y%m%d)/Nodo1_$(date +%H%M).qcow2
+root@lq-d25:~# cp /var/lib/libvirt/images/Nodo2.qcow2 /backups/libvirt/$(date +%Y%m%d)/Nodo2_$(date +%H%M).qcow2
+root@lq-d25:~# cp /var/lib/libvirt/images/Almacenamiento.qcow2 /backups/libvirt/$(date +%Y%m%d)/Almacenamiento_$(date +%H%M).qcow2
+root@lq-d25:~# ls /backups/
+libvirt
+root@lq-d25:~# ls /backups/libvirt/
+20250508
+root@lq-d25:~# ls /backups/libvirt/20250508/
+Almacenamiento_1847.qcow2  Nodo1_1846.qcow2  Nodo2_1847.qcow2
+```
+
 ### Fase 2. Instalación del servidor Apache
 
 En esta etapa realizaremos la instalación y configuración de un servidor web Apache en Nodo1 y Nodo2 utilizando el espacio de almacenamiento compartido iSCSI que nos proporciona el nodo de almacenamiento.

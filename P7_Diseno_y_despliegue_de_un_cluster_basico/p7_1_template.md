@@ -12,8 +12,10 @@
     - [Comandos detallados por pasos](#comandos-detallados-por-pasos)
     - [Fase 2. Instalación del servidor Apache](#fase-2-instalación-del-servidor-apache)
       - [Tarea 2.1. Instalación y configuración del servidor Apache](#tarea-21-instalación-y-configuración-del-servidor-apache)
+    - [Comandos detallados para Tarea 2.1](#comandos-detallados-para-tarea-21)
       - [Tarea 2.2. Configuración del almacenamiento compartido para Apache](#tarea-22-configuración-del-almacenamiento-compartido-para-apache)
     - [Comandos detallados para Fase 2](#comandos-detallados-para-fase-2)
+    - [Paso 12: Copia de seguridad (estado\_2)](#paso-12-copia-de-seguridad-estado_2)
   - [4. Pruebas y validación](#4-pruebas-y-validación)
     - [Pruebas de conectividad](#pruebas-de-conectividad)
     - [Verificación de Apache](#verificación-de-apache)
@@ -552,6 +554,24 @@ Se deberá instalar y configurar el servidor Apache en Nodo1 y Nodo2 de manera q
 
 #### Tarea 2.1. Instalación y configuración del servidor Apache
 
+### Comandos detallados para Tarea 2.1
+
+```bash
+# Nodo1: Instalar y probar Apache
+sudo dnf install httpd -y
+sudo systemctl disable httpd
+sudo systemctl start httpd
+curl http://<IP_Cluster_Nodo1>   # verificar página de test
+sudo systemctl stop httpd
+
+# Nodo2: Instalar y probar Apache
+sudo dnf install httpd -y
+sudo systemctl disable httpd
+sudo systemctl start httpd
+curl http://<IP_Cluster_Nodo2>   # verificar página de test
+sudo systemctl stop httpd
+```
+
 Plan de trabajo para esta fase:
 
 1. En Nodo1 instalar y configurar el servidor Apache. **No configurar el servicio para que se inicie automáticamente con el arranque del sistema**.
@@ -597,6 +617,28 @@ umount /var/www
 mount /dev/mapper/vgX-apacheLV /var/www
 sudo systemctl start httpd
 curl http://localhost         # verificar contenido
+```
+
+### Paso 12: Copia de seguridad (estado_2)
+
+```bash
+# Estado_2: respaldar discos de VM
+virsh shutdown Nodo1
+virsh domstate Nodo1   # debe decir "shut off"
+virsh shutdown Nodo2
+virsh domstate Nodo2
+virsh shutdown Almacenamiento
+virsh domstate Almacenamiento
+
+mkdir -p /backups/estado_2/$(date +%Y%m%d)
+cp /var/lib/libvirt/images/Nodo1.qcow2      /backups/estado_2/$(date +%Y%m%d)/Nodo1_state2.qcow2
+cp /var/lib/libvirt/images/Nodo2.qcow2      /backups/estado_2/$(date +%Y%m%d)/Nodo2_state2.qcow2
+cp /var/lib/libvirt/images/Almacenamiento.qcow2 /backups/estado_2/$(date +%Y%m%d)/Almacenamiento_state2.qcow2
+
+# Reiniciar VMs tras copia
+virsh start Nodo1
+virsh start Nodo2
+virsh start Almacenamiento
 ```
 
 5. En uno de los nodos que formarán parte del cluster (Nodo1 o Nodo2), montar el volumen lógico compartido apacheLV en el directorio `/var/www`.

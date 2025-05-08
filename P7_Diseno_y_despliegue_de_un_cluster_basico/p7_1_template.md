@@ -576,11 +576,84 @@ Plan de trabajo para esta fase:
 
 1. En Nodo1 instalar y configurar el servidor Apache. **No configurar el servicio para que se inicie automáticamente con el arranque del sistema**.
 
+```bash
+[root@nodo1 ~]# dnf install httpd -y
+Actualizando y cargando repositorios:
+ Fedora 41 - x86_64 - Updates           100% |  41.8 KiB/s |  24.0 KiB |  00m01s
+ Fedora 41 - x86_64 - Updates           100% |   4.1 MiB/s |   4.1 MiB |  00m01s
+Repositorios cargados.
+Package                      Arch   Version                 Repository      Size
+Installing:
+ httpd                       x86_64 2.4.63-1.fc41           updates     64.8 KiB
+
+```
+
+```bash
+[root@nodo1 ~]# systemctl disable httpd
+[root@nodo1 ~]# systeemctl start httpd
+-bash: systeemctl: orden no encontrada
+[root@nodo1 ~]# systemctl start httpd
+```
+
+```
+[root@nodo1 ~]# curl http://10.22.122.11
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Test Page for the HTTP Server on Fedora</title>
+```
+
+
 2. Arrancando manualmente el servicio, verificar que funciona correctamente accediendo desde el anfitrión mediante un navegador o utilizando la orden curl. Si todo está correcto, entonces se deberá mostrar la página de test del servicio Apache. Una vez verificado, parar el servicio Apache. Para ello, podría utilizar las direcciones IP que tienen configuradas las interfaces de red del nodo. Se recomienda probar con la IP de la interfaz conectada a la red NAT Cluster.
+
+```bash
+[root@nodo1 ~]# curl http://10.22.122.11
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Test Page for the HTTP Server on Fedora</title>
+```
 
 3. En Nodo2 instalar y configurar el servidor Apache. **No configurar el servicio para que se inicie automáticamente con el arranque del sistema**.
 
+```bash
+[root@nodo2 ~]# dnf install -y httpd -y
+Actualizando y cargando repositorios:
+ Fedora 41 - x86_64 - Updates           100% |  77.6 KiB/s |  24.0 KiB |  00m00s
+ Fedora 41 - x86_64 - Updates           100% |   3.8 MiB/s |   4.1 MiB |  00m01s
+Repositorios cargados.
+Package                      Arch   Version                 Repository      Size
+Installing:
+ httpd                       x86_64 2.4.63-1.fc41           updates     64.8 KiB
+
+...
+¡Completado!
+[root@nodo2 ~]# systemctl disable httpd 
+[root@nodo2 ~]# systemctl start httpd
+```
+
 4. Arrancando manualmente el servicio, verificar que funciona correctamente accediendo desde el anfitrión mediante un navegador o utilizando la orden curl. Si todo está correcto, entonces se deberá mostrar la página de test del servicio Apache. Una vez verificado, parar el servicio Apache. Para ello, podría utilizar las direcciones IP que tienen configuradas las interfaces de red del nodo. Se recomienda probar con la IP de la interfaz conectada a la red NAT Cluster.
+
+```bash
+[root@nodo2 ~]# curl http://10.22.122.12
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Test Page for the HTTP Server on Fedora</title>
+[root@nodo2 ~]# curl http://10.22.122.12
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Test Page for the HTTP Server on Fedora</title>
+```
 
 
 #### Tarea 2.2. Configuración del almacenamiento compartido para Apache
@@ -617,6 +690,83 @@ umount /var/www
 mount /dev/mapper/vgX-apacheLV /var/www
 sudo systemctl start httpd
 curl http://localhost         # verificar contenido
+```
+
+**Paso 5**:
+
+```bash
+[root@nodo1 ~]# lvscan
+  inactive          '/dev/ApacheVG/ApacheLV' [900,00 MiB] inherit
+  ACTIVE            '/dev/fedora/root' [<9,00 GiB] inherit
+[root@nodo1 ~]# mkdir -p /var/www
+[root@nodo1 ~]# vgchange -ay ApacheVG 
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo1 ~]# lvscan
+  ACTIVE            '/dev/ApacheVG/ApacheLV' [900,00 MiB] inherit
+  ACTIVE            '/dev/fedora/root' [<9,00 GiB] inherit
+[root@nodo1 ~]# mount /dev/ApacheVG/ApacheLV /var/www
+
+```
+
+**Paso 6**:
+
+```
+[root@nodo1 ~]# chcon --user=system_u /var/www
+[root@nodo1 ~]# mkdir -p /var/www/html
+[root@nodo1 ~]# mkdir -p /var/www/cgi-bin
+```
+
+**Paso 7**
+
+```bash
+[root@nodo1 ~]# echo "<html><body>Enhorabuena: configuración correcta</body></html>" > /var/www/html/index.html
+```
+
+**Paso 8**
+
+```bash
+[root@nodo1 ~]# restorecon -Rv /var/www
+Relabeled /var/www from system_u:object_r:unlabeled_t:s0 to system_u:object_r:httpd_sys_content_t:s0
+Relabeled /var/www/test2 from unconfined_u:object_r:unlabeled_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0
+Relabeled /var/www/test3 from unconfined_u:object_r:unlabeled_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0
+Relabeled /var/www/html from unconfined_u:object_r:unlabeled_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0
+Relabeled /var/www/html/index.html from unconfined_u:object_r:unlabeled_t:s0 to unconfined_u:object_r:httpd_sys_content_t:s0
+Relabeled /var/www/cgi-bin from unconfined_u:object_r:unlabeled_t:s0 to unconfined_u:object_r:httpd_sys_script_exec_t:s0
+```
+
+**Paso 9**
+
+```bash
+[root@nodo1 ~]# sudo systemctl start httpd
+[root@nodo1 ~]# curl http://localhost
+<html><body>Enhorabuena: configuración correcta</body></html>
+[root@nodo1 ~]# sudo systemctl stop httpd
+```
+
+**Paso 10**
+
+```bash
+[root@nodo1 ~]# umount /var/www
+```
+
+**Paso 11**
+
+```bash
+[root@nodo2 ~]# lvscan
+  inactive          '/dev/ApacheVG/ApacheLV' [900,00 MiB] inherit
+  ACTIVE            '/dev/fedora/root' [<9,00 GiB] inherit
+[root@nodo2 ~]# mkdir -p /var/www
+[root@nodo2 ~]# vgchange -ay ApacheVG
+  1 logical volume(s) in volume group "ApacheVG" now active
+[root@nodo2 ~]# lvscan
+  ACTIVE            '/dev/ApacheVG/ApacheLV' [900,00 MiB] inherit
+  ACTIVE            '/dev/fedora/root' [<9,00 GiB] inherit
+[root@nodo2 ~]# mount /dev/ApacheVG/ApacheLV /var/www
+[root@nodo2 ~]# sudo systemctl start httpd
+[root@nodo2 ~]# curl http://localhost
+<html><body>Enhorabuena: configuración correcta</body></html>
+[root@nodo2 ~]# sudo systemctl stop httpd
+[root@nodo2 ~]# umount /var/www
 ```
 
 ### Paso 12: Copia de seguridad (estado_2)

@@ -443,8 +443,89 @@ ping -c 3 10.22.132.11  # desde nodo2 a nodo1 y viceversa
 ping -c 3 8.8.8.8       # verificar acceso a Internet
 ```
 
-NOTA PARA VALIDAR: https://chatgpt.com/share/68152272-4174-8003-b584-05053c8ac47c
-ME HE EQUIVOCADO AL PONER LAS IPS EN INPS08 (LO QUE SEA)
+En este punto nos hemos dado cuenta de que inicialmente pusimos mal las IPs en los nodos 1 y 2 para Control:
+
+Lo corregimos:
+
+En Nodo1
+
+```bash
+nmcli con modify Control ipv4.addresses "10.22.132.11/24"
+nmcli con up Control
+```
+
+En Nodo2
+
+```
+nmcli con modify Control ipv4.addresses "10.22.132.12/24"
+nmcli con up Control
+```
+
+Y vuelve a verificar:
+
+```
+ip addr show enp8s0
+```
+
+```
+[root@nodo1 ~]# ip addr show enp8s0 
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:af:20:ef brd ff:ff:ff:ff:ff:ff
+    inet 10.22.132.11/24 brd 10.22.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20a0:8206:7964:ea87/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+```
+[root@nodo2 ~]# ip addr show enp8s0
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:6b:ad:d9 brd ff:ff:ff:ff:ff:ff
+    inet 10.22.132.12/24 brd 10.22.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::e87a:1d40:fc79:1f7f/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+Algunas validaciones:
+
+```bash
+[root@almacenamiento ~]# ping nodo1.vpd.com
+PING nodo1.vpd.com (10.22.122.11) 56(84) bytes of data.
+64 bytes from nodo1.vpd.com (10.22.122.11): icmp_seq=1 ttl=64 time=0.321 ms
+64 bytes from nodo1.vpd.com (10.22.122.11): icmp_seq=2 ttl=64 time=0.521 ms
+
+--- nodo1.vpd.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.321/0.421/0.521/0.100 ms
+[root@almacenamiento ~]# ping nodo2.vpd.com
+PING nodo2.vpd.com (10.22.122.12) 56(84) bytes of data.
+64 bytes from nodo2.vpd.com (10.22.122.12): icmp_seq=1 ttl=64 time=0.385 ms
+64 bytes from nodo2.vpd.com (10.22.122.12): icmp_seq=2 ttl=64 time=0.418 ms
+64 bytes from nodo2.vpd.com (10.22.122.12): icmp_seq=3 ttl=64 time=0.602 ms
+
+--- nodo2.vpd.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2004ms
+rtt min/avg/max/mdev = 0.385/0.468/0.602/0.095 ms
+```
+
+```
+[root@nodo1 ~]# ip addr show enp8s0 
+4: enp8s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:af:20:ef brd ff:ff:ff:ff:ff:ff
+    inet 10.22.132.11/24 brd 10.22.132.255 scope global noprefixroute enp8s0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20a0:8206:7964:ea87/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+[root@nodo1 ~]# ping almacenamiento.vpd.com
+PING almacenamiento.vpd.com (10.22.122.10) 56(84) bytes of data.
+64 bytes from almacenamiento.vpd.com (10.22.122.10): icmp_seq=1 ttl=64 time=0.319 ms
+64 bytes from almacenamiento.vpd.com (10.22.122.10): icmp_seq=2 ttl=64 time=0.676 ms
+
+--- almacenamiento.vpd.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.319/0.497/0.676/0.178 ms
+```
 
 ### Fase 2. Instalación del servidor Apache
 

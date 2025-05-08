@@ -441,6 +441,69 @@ Daemon Status:
 
 ### 4. Configuración del servicio httpd para su ejecución en un clúster
 
+**Paso 1**:
+
+**En nodo 1**:
+
+```bash
+[root@nodo1 ~]# sudo tee /etc/httpd/conf.d/status.conf > /dev/null <<EOF
+<Location /server-status>
+  SetHandler server-status
+  Require local
+</Location>
+EOF
+```
+
+**En nodo 2**:
+
+```
+[root@nodo2 ~]# sudo tee /etc/httpd/conf.d/status.conf > /dev/null <<EOF
+<Location /server-status>
+  SetHandler server-status
+  Require local
+</Location>
+EOF
+```
+
+**Paso 2**:
+
+En nodo 1
+
+```bash
+[root@nodo1 ~]# cat /etc/logrotate.d/httpd 
+# Note that logs are not compressed unless "compress" is configured,
+# which can be done either here or globally in /etc/logrotate.conf.
+/var/log/httpd/*log {
+    missingok
+    notifempty
+    sharedscripts
+    delaycompress
+    postrotate
+	/usr/bin/ps -q $(/usr/bin/cat /var/run/httpd-Website.pid) >/dev/null 2>/dev/null &&
+	/usr/sbin/httpd -f /etc/httpd/conf/httpd.conf -c "PidFile /var/run/httpd-Website.pid" -k graceful > /dev/null 2>/dev/null || true
+    endscript
+}
+```
+
+En nodo 2:
+
+```
+[root@nodo2 ~]# cat /etc/logrotate.d/httpd 
+# Note that logs are not compressed unless "compress" is configured,
+# which can be done either here or globally in /etc/logrotate.conf.
+/var/log/httpd/*log {
+    missingok
+    notifempty
+    sharedscripts
+    delaycompress
+    postrotate
+ 	/usr/bin/ps -q $(/usr/bin/cat /var/run/httpd-Website.pid) >/dev/null 2>/dev/null &&
+	/usr/sbin/httpd -f /etc/httpd/conf/httpd.conf -c "PidFile /var/run/httpd-Website.pid" -k graceful > /dev/null 2>/dev/null || true       
+    endscript
+}
+```
+
+### 5. Configurar los nodos de clúster para que el espacio de almacenamiento compartido sea no sea controlado localmente en cada nodo del clúster.
 
 ## 4. Pruebas y validación
 

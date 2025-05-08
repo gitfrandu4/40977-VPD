@@ -505,6 +505,83 @@ En nodo 2:
 
 ### 5. Configurar los nodos de clúster para que el espacio de almacenamiento compartido sea no sea controlado localmente en cada nodo del clúster.
 
+**Paso 1**:
+
+En nodo 1:
+
+```bash
+[root@nodo1 ~]# vgs --noheadings -o vg_name
+  ApacheVG
+  fedora  
+```
+
+En nodo 2:
+
+```bash
+[root@nodo2 ~]# vgs --noheadings -o vg_name
+  Device /dev/sdb has PVID DAj7k5iaUeN0XkIiDWgUz0DyKjUSxJTJ (devices file none)
+  ApacheVG
+  fedora  
+```
+
+**Paso 2**
+
+INSTRUCCIONES PASO 2
+
+```
+
+El paso 2 consiste en indicarle a LVM qué VGs **SÍ** debe gestionar localmente, dejando **fuera** al VG compartido (`ApacheVG`), de modo que sólo Pacemaker lo controle. En tu caso el comando `vgs` te devolvió:
+
+```
+ApacheVG
+fedora
+```
+
+Por tanto, en `volume_list` debes incluir **solo** el VG `fedora`, excluyendo `ApacheVG`. Así:
+
+1. Haz copia de seguridad del fichero original:
+
+   ```bash
+   sudo cp /etc/lvm/lvm.conf /etc/lvm/lvm.conf.bak
+   ```
+
+2. Abre `/etc/lvm/lvm.conf` con tu editor favorito (por ejemplo `vi` o `nano`) y busca la línea que empieza por `volume_list`. Cambia su contenido por:
+
+   ```conf
+   volume_list = [ "fedora" ]
+   ```
+
+   Debería quedar algo así:
+
+   ```conf
+   # Lista de VGs que LVM arranca localmente; 
+   # todo lo que no esté aquí se deja al clúster.
+   volume_list = [ "fedora" ]
+   ```
+
+   Si en cambio **no** tuvieras ningún VG local (solo `ApacheVG`), pondrías:
+
+   ```conf
+   volume_list = [ ]
+   ```
+
+3. Guarda y cierra el fichero.
+
+4. Reinicia la máquina para que LVM aplique la nueva configuración:
+
+   ```bash
+   sudo reboot
+   ```
+
+5. Al arrancar de nuevo, verifica que el clúster sigue en pie:
+
+   ```bash
+   sudo pcs cluster status || sudo pcs cluster start --all
+   ```
+
+Con esto LVM solo arrancará el VG `fedora` en cada nodo y dejará `ApacheVG` sin gestionar localmente, para que Pacemaker se encargue de montarlo y desmontarlo según haga falta.
+```
+
 ## 4. Pruebas y validación
 
 ### Validación estructurada

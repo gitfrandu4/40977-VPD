@@ -791,6 +791,27 @@ virsh start Nodo2
 virsh start Almacenamiento
 ```
 
+Comanditos, con las mvs paradas:
+
+```
+root@lq-d25:~# cp /var/lib/libvirt/images/Nodo1.qcow2 /backups/libvirt/$(date +%Y%m%d)/Nodo1_parte2$(date +%H%M).qcow2
+root@lq-d25:~# cp /var/lib/libvirt/images/Nodo2.qcow2 /backups/libvirt/$(date +%Y%m%d)/Nodo2_parte2$(date +%H%M).qcow2
+```
+
+Comprobamos que no está configurado para el arranque automático
+
+```
+[root@nodo1 ~]# systemctl is-enabled httpd
+disabled
+```
+
+```
+[root@nodo2 ~]# systemctl is-enabled httpd
+disabled
+```
+
+
+
 5. En uno de los nodos que formarán parte del cluster (Nodo1 o Nodo2), montar el volumen lógico compartido apacheLV en el directorio `/var/www`.
 
 6. En el mismo nodo, una vez montado el volumen lógico apacheLV en `/var/www`, construir en este directorio la estructura de directorios que el servicio httpd espera encontrar. Para ello, en primer lugar deberá hacer que el usuario SElinux system_u sea el usuario de contexto SElinux, de forma que los directorios se creen con las etiquetas de usuario SELinux adecuadas. A continuación, deberá crear los directorios html y cgi-bin en el directorio `/var/www`.

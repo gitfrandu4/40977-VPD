@@ -732,14 +732,80 @@ Daemon Status:
 
 ## 4. Pruebas y validación
 
-### Validación estructurada
+### 7) Validación del funcionamiento del clúster
 
-- Acceder al servicio web desde el navegador del anfitrión en `http://192.168.140.253`
-- Confirmar que la IP flotante se asigna al nodo activo (`ip addr show`)
-- Simular caída: `pcs node standby nodo1.vpd.com`
-- Confirmar failover: acceder al servicio desde el segundo nodo
-- Reintegrar nodo: `pcs node unstandby nodo1.vpd.com`
-- Validar persistencia tras reinicio
+#### 7.1 Verificar asignación de IP flotante
+1. Identificar en qué nodo está activa la IP:
+   ```bash
+   sudo pcs resource show Apache_IP
+   ```
+2. En el nodo activo, comprobar que la IP figura en la interfaz:
+   ```bash
+   ip addr show | grep 192.168.122.253
+   ```
+3. Si no aparece, forzar un refresh del recurso:
+   ```bash
+   sudo pcs resource cleanup Apache_IP
+   sudo pcs resource start Apache_IP
+   ```
+
+#### 7.2 Comprobar accesibilidad HTTP desde el host
+1. Desde el **host anfitrión**, verifica conectividad:
+   ```bash
+   ping -c 3 192.168.122.253
+   ```
+2. Prueba con curl:
+   ```bash
+   curl -v http://192.168.122.253/
+   ```
+   - Si hay error de conexión, revisa punto 7.3 y 7.4.
+
+#### 7.3 Verificar que httpd escucha en la IP flotante
+En el **nodo activo** (donde está la IP flotante):
+```bash
+sudo ss -tlnp | grep httpd
+```
+Debe salir una línea como:
+```
+LISTEN 0      128        192.168.122.253:80      *:*    users:(("httpd",pid=...,fd=...))
+```
+
+#### 7.4 Revisar firewall y SELinux
+En el **nodo activo**:
+1. Verificar si el servicio HTTP está permitido:
+   ```bash
+   sudo firewall-cmd --list-services
+   ```
+2. Si no aparece `http` o `http-full`, añadirlo:
+   ```bash
+   sudo firewall-cmd --permanent --add-service=http
+   sudo firewall-cmd --reload
+   ```
+3. Comprobar booleans SELinux:
+   ```bash
+   getsebool httpd_can_network_connect
+   ```
+   Si está `off`, habilitar:
+   ```bash
+   sudo setsebool -P httpd_can_network_connect on
+   ```
+
+#### 7.5 Prueba de failover
+1. En un terminal del **host**, aisla el nodo activo:
+   ```bash
+   sudo pcs node standby <nodo-activo>
+   ```
+2. Desde el host, vuelve a ejecutar:
+   ```bash
+   curl -v http://192.168.122.253/
+   ```
+   - Debe responder igual desde el segundo nodo.
+3. Para restaurar:
+   ```bash
+   sudo pcs node unstandby <nodo-activo>
+   ```
+
+Con estas pruebas podrás confirmar que el servicio web permanece disponible tras fallo de un nodo.
 
 ## 5. Conclusiones
 

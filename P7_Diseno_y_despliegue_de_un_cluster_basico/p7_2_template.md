@@ -732,6 +732,17 @@ Daemon Status:
 
 ## 4. Pruebas y validación
 
+Nota:
+
+Antes me faltaba:
+
+```bash
+[root@nodo2 ~]# sudo firewall-cmd --permanent --add-service=http
+success
+[root@nodo2 ~]# sudo firewall-cmd --reload
+success
+```
+
 ### 7) Validación del funcionamiento del clúster
 
 #### 7.1 Verificar asignación de IP flotante
@@ -739,10 +750,28 @@ Daemon Status:
    ```bash
    sudo pcs resource show Apache_IP
    ```
+
+```bash
+[root@nodo2 ~]# sudo pcs resource config Apache_IP
+Resource: Apache_IP (class=ocf provider=heartbeat type=IPaddr2)
+  Attributes: Apache_IP-instance_attributes
+    cidr_netmask=24
+    ip=192.168.140.253
+  Operations:
+    monitor: Apache_IP-monitor-interval-10s
+      interval=10s timeout=20s
+    start: Apache_IP-start-interval-0s
+      interval=0s timeout=20s
+    stop: Apache_IP-stop-interval-0s
+      interval=0s timeout=20s
+```
+   
 2. En el nodo activo, comprobar que la IP figura en la interfaz:
    ```bash
-   ip addr show | grep 192.168.122.253
+   [root@nodo2 ~]# ip addr show | grep 192.168.140.253
+    inet 192.168.140.253/24 brd 192.168.140.255 scope global secondary enp7s0
    ```
+   
 3. Si no aparece, forzar un refresh del recurso:
    ```bash
    sudo pcs resource cleanup Apache_IP
@@ -752,22 +781,54 @@ Daemon Status:
 #### 7.2 Comprobar accesibilidad HTTP desde el host
 1. Desde el **host anfitrión**, verifica conectividad:
    ```bash
-   ping -c 3 192.168.122.253
+   root@lq-d25:~# ping -c 3 192.168.140.253
+PING 192.168.140.253 (192.168.140.253) 56(84) bytes of data.
+64 bytes from 192.168.140.253: icmp_seq=1 ttl=64 time=0.308 ms
+64 bytes from 192.168.140.253: icmp_seq=2 ttl=64 time=0.457 ms
+64 bytes from 192.168.140.253: icmp_seq=3 ttl=64 time=0.383 ms
+
+--- 192.168.140.253 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2064ms
+rtt min/avg/max/mdev = 0.308/0.382/0.457/0.060 ms
+
    ```
+
 2. Prueba con curl:
-   ```bash
-   curl -v http://192.168.122.253/
-   ```
-   - Si hay error de conexión, revisa punto 7.3 y 7.4.
+
+```
+root@lq-d25:~# curl -v http://192.168.140.253
+* processing: http://192.168.140.253
+*   Trying 192.168.140.253:80...
+* Connected to 192.168.140.253 (192.168.140.253) port 80
+> GET / HTTP/1.1
+> Host: 192.168.140.253
+> User-Agent: curl/8.2.1
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Date: Fri, 09 May 2025 18:28:47 GMT
+< Server: Apache/2.4.63 (Fedora Linux)
+< Last-Modified: Thu, 08 May 2025 18:08:43 GMT
+< ETag: "3f-634a3bd73232d"
+< Accept-Ranges: bytes
+< Content-Length: 63
+< Content-Type: text/html; charset=UTF-8
+< 
+<html><body>Enhorabuena: configuración correcta</body></html>
+* Connection #0 to host 192.168.140.253 left intact
+```
 
 #### 7.3 Verificar que httpd escucha en la IP flotante
 En el **nodo activo** (donde está la IP flotante):
 ```bash
 sudo ss -tlnp | grep httpd
 ```
-Debe salir una línea como:
-```
-LISTEN 0      128        192.168.122.253:80      *:*    users:(("httpd",pid=...,fd=...))
+
+```bash
+[root@nodo2 ~]# ip addr show | grep 192.168.140.253
+    inet 192.168.140.253/24 brd 192.168.140.255 scope global secondary enp7s0
+[root@nodo2 ~]# sudo ss -tlnp | grep httpd
+LISTEN 0      511                *:80              *:*    users:(("httpd",pid=2179,fd=4),("httpd",pid=2116,fd=4),("httpd",pid=2114,fd=4),("httpd",pid=2109,fd=4))
 ```
 
 #### 7.4 Revisar firewall y SELinux
@@ -776,11 +837,18 @@ En el **nodo activo**:
    ```bash
    sudo firewall-cmd --list-services
    ```
+
+   ```
+   [root@nodo2 ~]# sudo firewall-cmd --list-services
+cockpit dhcpv6-client high-availability http ssh
+   ```
+
 2. Si no aparece `http` o `http-full`, añadirlo:
    ```bash
    sudo firewall-cmd --permanent --add-service=http
    sudo firewall-cmd --reload
    ```
+
 3. Comprobar booleans SELinux:
    ```bash
    getsebool httpd_can_network_connect
@@ -795,11 +863,41 @@ En el **nodo activo**:
    ```bash
    sudo pcs node standby <nodo-activo>
    ```
+
+   ```
+   [root@nodo2 ~]# sudo pcs node standby nodo2.vpd.com
+   ```
+
+   
 2. Desde el host, vuelve a ejecutar:
    ```bash
    curl -v http://192.168.122.253/
    ```
    - Debe responder igual desde el segundo nodo.
+
+```bash
+root@lq-d25:~# curl -v http://192.168.140.253
+* processing: http://192.168.140.253
+*   Trying 192.168.140.253:80...
+* Connected to 192.168.140.253 (192.168.140.253) port 80
+> GET / HTTP/1.1
+> Host: 192.168.140.253
+> User-Agent: curl/8.2.1
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Date: Fri, 09 May 2025 18:31:48 GMT
+< Server: Apache/2.4.63 (Fedora Linux)
+< Last-Modified: Thu, 08 May 2025 18:08:43 GMT
+< ETag: "3f-634a3bd73232d"
+< Accept-Ranges: bytes
+< Content-Length: 63
+< Content-Type: text/html; charset=UTF-8
+< 
+<html><body>Enhorabuena: configuración correcta</body></html>
+* Connection #0 to host 192.168.140.253 left intact
+```
+
 3. Para restaurar:
    ```bash
    sudo pcs node unstandby <nodo-activo>

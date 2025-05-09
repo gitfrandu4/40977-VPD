@@ -526,60 +526,208 @@ En nodo 2:
 
 **Paso 2**
 
-INSTRUCCIONES PASO 2
+El paso 2 consiste en indicarle a LVM qué VGs **SÍ** debe gestionar localmente, dejando **fuera** al VG compartido (`ApacheVG`), de modo que sólo Pacemaker lo controle.
 
-```
-
-El paso 2 consiste en indicarle a LVM qué VGs **SÍ** debe gestionar localmente, dejando **fuera** al VG compartido (`ApacheVG`), de modo que sólo Pacemaker lo controle. En tu caso el comando `vgs` te devolvió:
-
-```
-ApacheVG
-fedora
-```
-
-Por tanto, en `volume_list` debes incluir **solo** el VG `fedora`, excluyendo `ApacheVG`. Así:
-
-1. Haz copia de seguridad del fichero original:
+Hacemos una copia de seguridad del fichero original:
 
    ```bash
    sudo cp /etc/lvm/lvm.conf /etc/lvm/lvm.conf.bak
    ```
 
-2. Abre `/etc/lvm/lvm.conf` con tu editor favorito (por ejemplo `vi` o `nano`) y busca la línea que empieza por `volume_list`. Cambia su contenido por:
+Insertamos volume_list dentro de la sección global. Puedes hacerlo con este sed, que busca global { y añade justo después tu setting:
 
-   ```conf
-   volume_list = [ "fedora" ]
-   ```
+Referencia: https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/high_availability_add-on_administration/s1-exclusiveactive-haaa#s1-exclusiveactive-HAAA
 
-   Debería quedar algo así:
+En nodo 1:
 
-   ```conf
-   # Lista de VGs que LVM arranca localmente; 
-   # todo lo que no esté aquí se deja al clúster.
-   volume_list = [ "fedora" ]
-   ```
+```bash
+[root@nodo1 ~]# grep -n "volume_list" /etc/lvm/lvm.conf
+1530:	# Configuration option activation/volume_list.
+1546:	#     or VG. See tags/hosttags. If any host tags exist but volume_list
+1551:	volume_list = [ "fedora" ]
+```
 
-   Si en cambio **no** tuvieras ningún VG local (solo `ApacheVG`), pondrías:
+En nodo 2:
 
-   ```conf
-   volume_list = [ ]
-   ```
+```bash
+[root@nodo1 ~]# grep -n "volume_list" /etc/lvm/lvm.conf
+1530:	# Configuration option activation/volume_list.
+1546:	#     or VG. See tags/hosttags. If any host tags exist but volume_list
+1551:	volume_list = [ "fedora" ]
+```
 
-3. Guarda y cierra el fichero.
+(En la sección de activation)
 
-4. Reinicia la máquina para que LVM aplique la nueva configuración:
+**Paso 3**
+
+Reiniciamos la máquina para que LVM aplique la nueva configuración:
 
    ```bash
    sudo reboot
    ```
 
-5. Al arrancar de nuevo, verifica que el clúster sigue en pie:
+**Paso 6**. Una vez reiniciados los nodos, verificar que los servicios de control del
+clúster se están ejecutando correctamente.
+
+```bash
+# pcs cluster status
+Si la orden anterior produjera un error consistente en que el clúster no se está
+ejecutando, entonces ejecutar la siguiente orden para iniciar la ejecución de
+clúster:
+# pcs cluster start
+Alternativamente, se podrían reiniciar todos los nodos del clúster y, una vez todos
+los nodos estuvieran arrancados, entonces ejecutar en todos los nodos la orden:
+# pcs cluster start --all
+```
+
+Al arrancar de nuevo, verificamos que el clúster sigue en pie:
 
    ```bash
    sudo pcs cluster status || sudo pcs cluster start --all
    ```
 
+En nodo1:
+
+``bash
+[root@nodo1 ~]# pcs cluster status || sudo pcs cluster start --all
+Cluster Status:
+ Cluster Summary:
+   * Stack: corosync (Pacemaker is running)
+   * Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
+   * Last updated: Fri May  9 18:31:52 2025 on nodo1.vpd.com
+   * Last change:  Fri May  9 18:31:14 2025 by root via root on nodo1.vpd.com
+   * 2 nodes configured
+   * 1 resource instance configured
+ Node List:
+   * Online: [ nodo1.vpd.com nodo2.vpd.com ]
+
+PCSD Status:
+  nodo2.vpd.com: Online
+  nodo1.vpd.com: Online
+```
+
+En nodo2: 
+
+```bash
+[root@nodo2 ~]# pcs cluster status || sudo pcs cluster start --all
+Cluster Status:
+ Cluster Summary:
+   * Stack: corosync (Pacemaker is running)
+   * Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
+   * Last updated: Fri May  9 18:32:04 2025 on nodo2.vpd.com
+   * Last change:  Fri May  9 18:31:14 2025 by root via root on nodo1.vpd.com
+   * 2 nodes configured
+   * 1 resource instance configured
+ Node List:
+   * Online: [ nodo1.vpd.com nodo2.vpd.com ]
+
+PCSD Status:
+  nodo2.vpd.com: Online
+  nodo1.vpd.com: Online
+```
+
 Con esto LVM solo arrancará el VG `fedora` en cada nodo y dejará `ApacheVG` sin gestionar localmente, para que Pacemaker se encargue de montarlo y desmontarlo según haga falta.
+
+### 6. Creación de los recursos y grupos de recursos del clúster.
+
+En nodo 1:
+
+```bash
+[root@nodo1 ~]# pcs resource create Apache_LVM LVM volgrpname=ApacheVG exclusive=true --group apachegroup
+```
+
+```bash
+[root@nodo1 ~]# pcs resource create Apache_FS Filesystem device="/dev/ApacheVG/ApacheLV" directory="/var/www" fstype="xfs" --group apachegroup
+Deprecation Warning: Using '--group' is deprecated and will be replaced with 'group' in a future release. Specify --future to switch to the future behavior.
+Assumed agent name 'ocf:heartbeat:Filesystem' (deduced from 'Filesystem')
+```
+
+```bash
+[root@nodo1 ~]# pcs resource create Apache_IP IPaddr2 ip=192.168.140.253 cidr_netmask=24 --group apachegroup
+```
+
+```bash
+[root@nodo1 ~]# pcs resource create Apache_Script apache configfile="/etc/httpd/conf/httpd.conf" statusurl="http://127.0.0.1/server-status" --group apachegroup
+Deprecation Warning: Using '--group' is deprecated and will be replaced with 'group' in a future release. Specify --future to switch to the future behavior.
+Assumed agent name 'ocf:heartbeat:apache' (deduced from 'apache')
+```
+
+Comprobación en Nodo 1:
+
+```bash
+[root@nodo1 ~]# pcs resource status
+  * Resource Group: apachegroup:
+    * Apache_LVM	(ocf:heartbeat:LVM):	 Started nodo2.vpd.com
+    * Apache_FS	(ocf:heartbeat:Filesystem):	 Started nodo2.vpd.com
+    * Apache_IP	(ocf:heartbeat:IPaddr2):	 Started nodo2.vpd.com
+    * Apache_Script	(ocf:heartbeat:apache):	 Started nodo2.vpd.com
+```
+
+```bash
+[root@nodo1 ~]# pcs status
+Cluster name: Apache
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
+  * Last updated: Fri May  9 19:10:03 2025 on nodo1.vpd.com
+  * Last change:  Fri May  9 19:05:01 2025 by hacluster via hacluster on nodo2.vpd.com
+  * 2 nodes configured
+  * 5 resource instances configured
+
+Node List:
+  * Online: [ nodo1.vpd.com nodo2.vpd.com ]
+
+Full List of Resources:
+  * xvmfence	(stonith:fence_xvm):	 Started nodo1.vpd.com
+  * Resource Group: apachegroup:
+    * Apache_LVM	(ocf:heartbeat:LVM):	 Started nodo2.vpd.com
+    * Apache_FS	(ocf:heartbeat:Filesystem):	 Started nodo2.vpd.com
+    * Apache_IP	(ocf:heartbeat:IPaddr2):	 Started nodo2.vpd.com
+    * Apache_Script	(ocf:heartbeat:apache):	 Started nodo2.vpd.com
+
+Daemon Status:
+  corosync: active/enabled
+  pacemaker: active/enabled
+  pcsd: active/enabled
+```
+
+Comprobación en Nodo 2:
+
+```
+[root@nodo2 ~]# pcs resource status
+  * Resource Group: apachegroup:
+    * Apache_LVM	(ocf:heartbeat:LVM):	 Started nodo2.vpd.com
+    * Apache_FS	(ocf:heartbeat:Filesystem):	 Started nodo2.vpd.com
+    * Apache_IP	(ocf:heartbeat:IPaddr2):	 Started nodo2.vpd.com
+    * Apache_Script	(ocf:heartbeat:apache):	 Started nodo2.vpd.com
+```
+
+```bash
+[root@nodo2 ~]# pcs status
+Cluster name: Apache
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
+  * Last updated: Fri May  9 19:10:31 2025 on nodo2.vpd.com
+  * Last change:  Fri May  9 19:05:01 2025 by hacluster via hacluster on nodo2.vpd.com
+  * 2 nodes configured
+  * 5 resource instances configured
+
+Node List:
+  * Online: [ nodo1.vpd.com nodo2.vpd.com ]
+
+Full List of Resources:
+  * xvmfence	(stonith:fence_xvm):	 Started nodo1.vpd.com
+  * Resource Group: apachegroup:
+    * Apache_LVM	(ocf:heartbeat:LVM):	 Started nodo2.vpd.com
+    * Apache_FS	(ocf:heartbeat:Filesystem):	 Started nodo2.vpd.com
+    * Apache_IP	(ocf:heartbeat:IPaddr2):	 Started nodo2.vpd.com
+    * Apache_Script	(ocf:heartbeat:apache):	 Started nodo2.vpd.com
+
+Daemon Status:
+  corosync: active/enabled
+  pacemaker: active/enabled
+  pcsd: active/enabled
 ```
 
 ## 4. Pruebas y validación

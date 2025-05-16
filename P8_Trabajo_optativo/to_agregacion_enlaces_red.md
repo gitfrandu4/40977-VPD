@@ -277,7 +277,7 @@ La conexión se ha activado correctamente (controller waiting for ports) (ruta a
 Al pasar bond0 a `modo 802.3ad/LACP` y bajar/subir la conexión, bond0 dejó de tener ningún puerto “activo” porque:
 
 1. El bridge NAT “default” de libvirt no soporta LACP.
-2. El modo 4 (802.3ad) sólo funciona si el switch —físico o virtual— negocia LACP con las interfaces esclavas. Si no hay soporte, ninguna esclava se “agrega” al bond y bond0 queda sin enlaces operativos, perdiendo por tanto su IP y el acceso SSH  ￼ ￼.
+2. El modo 4 (802.3ad) sólo funciona si el switch —físico o virtual— negocia LACP con las interfaces esclavas. Si no hay soporte, ninguna esclava se “agrega” al bond y bond0 queda sin enlaces operativos, perdiendo por tanto su IP y el acceso SSH
 3. Sin enlace activo, bond0 no sube y su IP estática deja de responder.
 
 ```
@@ -305,9 +305,77 @@ ssh root@192.168.122.57
 Resumen: perdiste SSH porque bond0 no pudo agregar ningún puerto en modo 802.3ad sobre el bridge default; recupéralo cambiando de vuelta a active-backup por consola, y si quieres medir LACP monta un entorno (switch u OVS) que lo soporte, o bien usa balance-rr para pruebas de agregación sencillas.
 ```
 
-Aclarado esto, vamos a probar LACP / throughput 
+Aclarado esto, vamos a probar LACP / throughput sin perder la conexión
+
+Volvemos al modo active-backup
+
+```bash
+nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"
+nmcli connection down bond0
+nmcli connection up bond0
+```
+
+Ya podemos acceder por SSH
 
 
+COnfiguramos LACP/througph sin perder la red, con un modo de balanceo que no requiera switch especia, como balance-rr (mode 0)
+
+```bash
+root@bond:~# nmcli connection modify bond0 bond.options "mode=balance-rr,miimon=100"
+root@bond:~# nmcli connection down bond0 && nmcli connection up bond0
+La conexión «bond0» se desactivó correctamente (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/10)
+```
+
+Instalamos `iperf3` en el host anfitrión y en la MV
+
+```bash
+dnf install -y iperf3
+```
+
+En el anfitrión
+
+```
+root@lq-d25:~# firewall-cmd --permanent --add-port=5201/tcp
+success
+root@lq-d25:~# firewall-cmd --reload
+success
+```
+
+Parece que tengo que apagar para que funcione:
+
+```bash
+root@lq-d25:~# systemctl stop firewalld.service 
+```
+
+```bash
+iperf3 -s
+```
+
+```bash
+root@lq-d25:~# iperf3 -s
+-----------------------------------------------------------
+Server listening on 5201 (test #1)
+-----------------------------------------------------------
+```
+
+En la MV hacemos:
+
+```bash
+root@bond:~#  iperf3 -c 192.168.122.1 -P 3 -t 30
+Connecting to host 192.168.122.1, port 5201
+[  5] local 192.168.122.76 port 52998 connected to 192.168.122.1 port 5201
+[  7] local 192.168.122.76 port 53002 connected to 192.168.122.1 port 5201
+[  9] local 192.168.122.76 port 53004 connected to 192.168.122.1 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  1.41 GBytes  12.1 Gbits/sec    0   1.98 MBytes       
+[  7]   0.00-1.00   sec  1.39 GBytes  11.9 Gbits/sec    0   1.89 MBytes       
+[  9]   0.00-1.00   sec  1.37 GBytes  11.8 Gbits/sec    0   1.64 MBytes       
+[SUM]   0.00-1.00   sec  4.17 GBytes  35.8 Gbits/sec    0
+[SUM]   0.00-30.00  sec   124 GBytes  35.4 Gbits/sec                  receiver
+
+iperf Done.
+```
 
 
 ## Tarea 3. Validación

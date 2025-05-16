@@ -1,0 +1,283 @@
+# Trabajo Optativo: agregación de enlaces de red
+
+## Tarea 1. Creación de la máquina virtual
+
+```bash
+virt-install \
+  --name Bond \
+  --vcpus 1 \
+  --memory 2048 \
+  --disk size=10,format=qcow2,bus=virtio \
+  --os-variant fedora40 \
+  --cdrom /ISO/Fedora-Server-netinst-x86_64-41-1.4.iso \
+  --network network=default,model=virtio \
+  --network network=default,model=virtio \
+  --network network=default,model=virtio \
+  --console pty,target_type=serial
+```
+
+Interfaces generadas:
+
+```bash
+root@lq-d25:~# virsh domifaddr Bond
+ Nombre     dirección MAC       Protocol     Address
+-------------------------------------------------------------------------------
+ vnet6      52:54:00:3f:99:f0    ipv4         192.168.122.76/24
+ vnet7      52:54:00:ee:18:de    ipv4         192.168.122.66/24
+ vnet8      52:54:00:33:75:d2    ipv4         192.168.122.227/24
+```
+
+- Configuramos la cuenta de root y permitimos el acceso SSH de root con contraseña
+- Actualizamos los paquetes del sistema
+
+```bash
+dnf upgrade --refresh
+```
+
+- Instalamos el servicio qemu-guest-agent
+
+```bash
+dnf install -y qemu-guest-agent
+```
+
+- Habilitar e iniciar el servicio qemu-guest-agent
+
+```bash
+systemctl enable --now qemu-guest-agent
+```
+
+- Establecemos el nombre del sistema
+
+```bash
+hostnamectl set-hostname bond.vpd.com
+```
+
+- Configuramos el acceso SSH con clave público/privada
+
+```bash
+root@lq-d25:~# ssh-copy-id root@192.168.122.76
+The authenticity of host '192.168.122.76 (192.168.122.76)' can't be established.
+ED25519 key fingerprint is SHA256:AnJMxvwCKNqEawoKFcHOgD8npFKteOWj0SWJmnGWXPg.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@192.168.122.76's password: 
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'root@192.168.122.76'"
+and check to make sure that only the key(s) you wanted were added.
+```
+
+
+## Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión
+
+Comprobación previa, listamos las interfaces de red para conocer sus nombres reales:
+
+```bash
+root@bond:~# nmcli device status
+DEVICE  TYPE      STATE                   CONNECTION 
+enp1s0  ethernet  conectado               enp1s0     
+enp2s0  ethernet  conectado               enp2s0     
+enp3s0  ethernet  conectado               enp3s0     
+lo      loopback  connected (externally)  lo
+```
+
+Cargamos y habilitamos el módulo bonding:
+
+```bash
+root@bond:~# modprobe bonding 
+root@bond:~# echo "bonding" | tee /etc/modules-load.d/bonding.conf
+bonding
+```
+
+Nota: esta parte es opcional, el módulo bonding debería cargarse solo
+
+1. Crear la interfaz agregada bond0 en modo `active-backup`:
+
+```bash
+root@bond:~# nmcli connection add type bond con-name bond0 ifname bond0 bond.options "mode=active,miimon=100"
+Conexión «bond0» (2678cb65-1c2c-4df2-9649-b51c2bf47adb) añadida con éxito.
+```
+
+2. Añadir las tres NIC virtio como puertos del bond
+
+```bash
+root@bond:~# vi bond_script.sh
+root@bond:~# cat bond_script.sh 
+#!/bin/bash
+
+for IF in enp1s0 enp2s0 enp3s0; do
+    sudo nmcli connection add type ethernet \
+        port-type bond controller bond0 \
+        con-name ${IF}-port ifname $IF
+done
+root@bond:~# chmod +x bond_script.sh
+```
+
+Ejecutamos
+
+```bash
+root@bond:~# ./bond_script.sh 
+Conexión «enp1s0-port» (916e5ad5-d499-4279-849d-a197d084ebe9) añadida con éxito.
+Conexión «enp2s0-port» (00e24d62-5114-4ed3-871e-d24bbc9fa93b) añadida con éxito.
+Conexión «enp3s0-port» (afb82bf0-810a-40a1-ad4e-6f3bebc2fd53) añadida con éxito.
+```
+
+
+3. Levantar la conexión bond0
+
+```bash
+root@bond:~# nmcli con up bond0 
+La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/6)
+```
+
+4. Configuración IP en bond0
+
+Podemos configurarla con DHCP (red NAT default):
+
+```bash
+nmcli connection modify bond0 ipv4.metthod auto
+```
+
+O de forma estática (opción elegida): 
+
+```bash
+root@bond:~# nmcli connection modify bond0 ipv4.addresses 192.168.122.57/24 ipv4.gateway 192.168.122.1 ipv4.dns "8.8.8.8 1.1.1.1" ipv4.method manual
+```
+
+Reiniciamos:
+
+```bash
+reboot
+```
+
+Verificamos:
+
+```bash
+root@bond:~# cat /proc/net/bonding/bond0 
+Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
+
+Bonding Mode: fault-tolerance (active-backup)
+Primary Slave: None
+Currently Active Slave: enp1s0
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+Peer Notification Delay (ms): 0
+
+Slave Interface: enp1s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:3f:99:f0
+Slave queue ID: 0
+
+Slave Interface: enp2s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:ee:18:de
+Slave queue ID: 0
+
+Slave Interface: enp3s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:33:75:d2
+Slave queue ID: 0
+```
+
+Observamos `Currently Active Slave: enp1s0`
+
+5. **Prueba de alta disponibilidad**
+
+Simulamos fallo de la interfaz enp1s0
+
+```bash
+root@bond:~# ip link set enp1s0 down
+```
+
+Comprobamos que seguimos teniendo conexión:
+
+```bash
+root@bond:~# ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=114 time=29.9 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=114 time=30.4 ms
+^C
+--- 8.8.8.8 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 29.868/30.123/30.378/0.255 ms
+```
+
+Verificamos que interfaz está ahora activa:
+
+```bash
+root@bond:~# cat /proc/net/bonding/bond0 
+Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
+
+Bonding Mode: fault-tolerance (active-backup)
+Primary Slave: None
+Currently Active Slave: enp2s0
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+Peer Notification Delay (ms): 0
+
+Slave Interface: enp1s0
+MII Status: down
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 1
+Permanent HW addr: 52:54:00:3f:99:f0
+Slave queue ID: 0
+
+Slave Interface: enp2s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:ee:18:de
+Slave queue ID: 0
+
+Slave Interface: enp3s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:33:75:d2
+Slave queue ID: 0
+```
+
+Ahora: `Currently Active Slave: enp2s0`
+
+---
+
+La práctica solicita ue se deben probar al menos dos métodos diferentes de agrupación de conexiones, 
+una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento de las comunicaciones de datos. 
+
+Hasta ahora hemos conseguido la alta disponibilidad, 
+
+1. ahora vamos a cambiar a modo `802.3ad/LACP (prueba de rendimiento) nuestra conexión bond0
+
+```bash
+root@bond:~# sudo nmcli connection modify bond0 bond.options "mode=802.3ad,miimon=100,lacp_rate=fast"
+root@bond:~# nmcli connection down bond0 && nmcli connection up bond0
+La conexión «bond0» se desactivó correctamente (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/5)
+La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
+```
+
+2. validación LACP y throughput
+
+```bash
+
+
+## Tarea 3. Validación
+

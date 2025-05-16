@@ -274,10 +274,40 @@ La conexión «bond0» se desactivó correctamente (ruta activa D-Bus: /org/free
 La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
 ```
 
-2. validación LACP y throughput
+Al pasar bond0 a `modo 802.3ad/LACP` y bajar/subir la conexión, bond0 dejó de tener ningún puerto “activo” porque:
 
-```bash
+1. El bridge NAT “default” de libvirt no soporta LACP.
+2. El modo 4 (802.3ad) sólo funciona si el switch —físico o virtual— negocia LACP con las interfaces esclavas. Si no hay soporte, ninguna esclava se “agrega” al bond y bond0 queda sin enlaces operativos, perdiendo por tanto su IP y el acceso SSH  ￼ ￼.
+3. Sin enlace activo, bond0 no sube y su IP estática deja de responder.
+
+```
+Cómo recuperar el acceso
+	1.	Vuelve a modo active-backup
+
+Dentro de la VM, ejecuta:
+
+sudo nmcli connection modify bond0 \
+  bond.options "mode=active-backup,miimon=100"
+sudo nmcli connection down bond0
+sudo nmcli connection up bond0
+
+Verifica que bond0 vuelva a listar una esclava “Currently Active Slave”:
+
+cat /proc/net/bonding/bond0
+
+
+	3.	Prueba tu SSH
+Ahora deberías poder reconectar:
+
+ssh root@192.168.122.57
+
+
+Resumen: perdiste SSH porque bond0 no pudo agregar ningún puerto en modo 802.3ad sobre el bridge default; recupéralo cambiando de vuelta a active-backup por consola, y si quieres medir LACP monta un entorno (switch u OVS) que lo soporte, o bien usa balance-rr para pruebas de agregación sencillas.
+```
+
+Aclarado esto, vamos a probar LACP / throughput 
+
+
 
 
 ## Tarea 3. Validación
-

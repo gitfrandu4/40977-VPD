@@ -1322,21 +1322,36 @@ Estas pruebas confirman que:
 
 ## 5. Conclusiones
 
-En esta práctica se ha implementado con éxito un sistema de almacenamiento distribuido utilizando el protocolo iSCSI. Los principales logros incluyen:
+> Las siguientes conclusiones sintetizan los aspectos más relevantes y las buenas prácticas extraídas de la puesta en marcha del servicio de almacenamiento iSCSI siguiendo la documentación oficial de RHEL 7.
 
-1. **Configuración de un entorno virtualizado**: Se han creado y configurado tres máquinas virtuales que desempeñan los roles de nodo target (exportador de almacenamiento) y nodos initiator (consumidores de almacenamiento).
+1. **Entorno virtualizado reproducible**  
+   Se ha desplegado satisfactoriamente una topología completa (target + dos initiators) utilizando KVM y redes aisladas, lo que permite repetir la práctica de forma fiable y segura.
 
-2. **Implementación de iSCSI**: Se ha instalado y configurado el servicio iSCSI target en el nodo de almacenamiento y los clientes iSCSI en los nodos consumidores, estableciendo una infraestructura de almacenamiento en red.
+2. **iSCSI como solución SAN flexible**  
+   La implementación de LIO mediante `targetcli` demuestra que, con software incluido de serie en RHEL 7, es posible construir una SAN IP de bajo coste y alto rendimiento, prescindiendo de hardware Fibre Channel dedicado.
 
-3. **Exportación de dispositivos de bloque**: Se han exportado correctamente dispositivos de bloque a través de la red utilizando el protocolo iSCSI, permitiendo que los nodos remotos puedan acceder a estos dispositivos como si fueran locales.
+3. **Control de acceso robusto**  
+   La combinación de IQN únicos, ACL por iniciador y el uso recomendado de autenticación CHAP (pendiente de implementación en la práctica) ofrece una capa sólida de seguridad para entornos multi‑cliente.
 
-4. **Creación de sistemas de archivos**: Se ha demostrado cómo formatear y utilizar dispositivos iSCSI con sistemas de archivos ext4 y XFS.
+4. **Almacenamiento de bloques exportado y gestionado**  
+   Se han exportado discos iSCSI tanto como dispositivos individuales como a través de LVM, evidenciando la versatilidad del esquema backend de LIO (fileio, block, etc.) descrito en la guía de administración de almacenamiento de Red Hat.
 
-5. **Implementación de LVM sobre iSCSI**: Se ha configurado un volumen lógico sobre un dispositivo iSCSI, lo que permite una gestión más flexible del almacenamiento y facilita el crecimiento futuro.
+5. **Sistemas de archivos adecuados al caso de uso**  
+   EXT4 proporciona simplicidad y compatibilidad; XFS otorga escalabilidad y rendimiento. Elegir el sistema de archivos apropiado según la carga de trabajo y si habrá acceso concurrente es fundamental.
 
-6. **Almacenamiento compartido**: Se ha verificado que ambos nodos initiator pueden acceder y utilizar el mismo almacenamiento compartido, escribiendo y leyendo datos de forma coordinada.
+6. **LVM sobre iSCSI para mayor flexibilidad**  
+   El uso de `pvcreate` → `vgcreate` → `lvcreate` sobre los LUN remotos permite ampliar o reducir capacidad sin interrumpir el servicio, conforme a la filosofía de gestión dinámica de volúmenes de RHEL 7.
 
-Esta configuración demuestra cómo iSCSI puede ser utilizado para implementar soluciones de almacenamiento distribuido en entornos empresariales, proporcionando flexibilidad, escalabilidad y una gestión centralizada de los recursos de almacenamiento.
+7. **Almacenamiento compartido y coherencia de datos**  
+   Se verificó acceso concurrente desde ambos nodos; sin embargo, para entornos productivos se debe añadir bloqueo en clúster (p.ej. CLVM + dlm o GFS2) para evitar corrupción de datos.
+
+8. **Buenas prácticas operativas**  
+   - Dedicación de VLAN o red física separada para tráfico iSCSI.  
+   - Habilitación de multipath‑IO para alta disponibilidad.  
+   - Monitorización continua de sesiones con `iscsiadm -m session` y del estado de LIO con `targetcli /iscsi ls`.  
+   - Respaldos periódicos del archivo `/etc/target/saveconfig.json`.
+
+Con esta práctica el alumno ha aprendido a diseñar, desplegar y validar una solución de almacenamiento iSCSI completa, asentando las bases para evolucionar hacia arquitecturas de alta disponibilidad basadas en RHEL 7.
 
 ## 6. Bibliografía
 

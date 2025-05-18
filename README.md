@@ -346,7 +346,58 @@ ip route
 
 ### Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)
 
-Próximamente...
+**Descripción:** Implementación de un servicio de almacenamiento distribuido utilizando el protocolo iSCSI (Internet Small Computer System Interface), configurando un nodo exportador (target) y dos nodos importadores (initiators) en un entorno virtualizado KVM/QEMU.
+
+**Logros principales:**
+
+- Creación de una infraestructura de tres máquinas virtuales interconectadas mediante dos redes virtuales: una red dedicada al tráfico iSCSI (10.22.122.0/24) y otra para comunicación general (192.168.140.0/24).
+- Instalación y configuración del software target iSCSI (`targetcli`) en el nodo exportador, incluyendo la apertura del puerto 3260/TCP en el cortafuegos.
+- Exportación de dispositivos de almacenamiento de bloque a través de la red utilizando nombres IQN personalizados y control de acceso basado en ACLs.
+- Configuración del software initiator iSCSI en los nodos clientes, permitiendo la conexión y uso de dispositivos de almacenamiento remoto.
+- Creación de diferentes sistemas de archivos (ext4, XFS) en los dispositivos iSCSI importados.
+- Implementación de un volumen lógico (LVM) sobre un dispositivo iSCSI y configuración para su acceso desde múltiples nodos.
+
+**Conceptos clave:**
+
+- **Protocolo iSCSI**: Método para acceder a dispositivos de bloques a través de redes TCP/IP estándar.
+- **Target e Initiator**: Roles fundamentales en una implementación iSCSI, donde el target exporta almacenamiento y el initiator lo consume.
+- **IQN (iSCSI Qualified Name)**: Identificadores únicos para targets e initiators en formato estándar.
+- **ACLs**: Control de acceso para definir qué initiators pueden conectarse a un target específico.
+- **LUNs (Logical Unit Numbers)**: Identificadores numéricos para distinguir múltiples dispositivos lógicos exportados.
+- **LVM sobre iSCSI**: Implementación de gestión lógica de volúmenes sobre dispositivos de red para mayor flexibilidad.
+
+**Comandos principales:**
+
+```bash
+# Configuración del target
+targetcli                                # Interfaz interactiva para configurar target iSCSI
+systemctl start/enable target            # Control del servicio target
+firewall-cmd --add-port=3260/tcp         # Configuración del cortafuegos
+
+# Dentro de targetcli
+backstores/block> create name=X dev=/dev/sdX  # Crear objeto de almacenamiento
+/iscsi> create wwn=iqn.YYYY-MM.domain:name    # Crear target iSCSI
+../portals> create IP_ADDRESS                  # Configurar portal de red
+../luns> create /backstores/block/X            # Asociar almacenamiento a LUN
+../acls> create wwn=iqn.YYYY-MM.domain:initX   # Crear ACL para initiator
+
+# Configuración del initiator
+iscsiadm --mode discovery --type sendtargets --portal TARGET_IP --discover  # Descubrir targets
+iscsiadm --mode node --targetname IQN --portal TARGET_IP --login            # Conectar a target
+lsblk -o NAME,TRAN,SIZE,TYPE,MOUNTPOINT                                      # Verificar dispositivos
+mkfs.ext4 /dev/sdX                                                          # Formatear dispositivo
+mount /dev/sdX /mnt                                                         # Montar dispositivo
+
+# Configuración de LVM sobre iSCSI
+pvcreate /dev/sdX                        # Crear volumen físico
+vgcreate --setautoactivation n ApacheVG /dev/sdX  # Crear grupo de volúmenes
+lvcreate -n ApacheLV -L SIZE ApacheVG    # Crear volumen lógico
+mkfs.xfs /dev/ApacheVG/ApacheLV          # Formatear con sistema de archivos
+```
+
+**Recursos:**
+
+- [Documentación completa](P6_Almacenamiento_distribuido_iSCSI/p6_almacenamiento_iSCSI.md)
 
 ### Práctica 7: Diseño y despliegue de un clúster básico
 

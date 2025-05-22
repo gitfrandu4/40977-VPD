@@ -4,7 +4,7 @@
   - [Tarea 1. Creación de la máquina virtual](#tarea-1-creación-de-la-máquina-virtual)
   - [Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#tarea-2-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
     - [2.1. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#21-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
-    - [2.2. Configuración de LACP/througph](#22-configuración-de-lacpthrougph)
+    - [2.2. Configuración de alto rendimiento](#22-configuración-de-alto-rendimiento)
       - [Cómo recuperar el acceso](#cómo-recuperar-el-acceso)
   - [Tarea 3. Validación](#tarea-3-validación)
 
@@ -146,7 +146,7 @@ La conexión se ha activado correctamente (controller waiting for ports) (ruta a
 Podemos configurarla con DHCP (red NAT default):
 
 ```bash
-nmcli connection modify bond0 ipv4.metthod auto
+nmcli connection modify bond0 ipv4.method auto
 ```
 
 O de forma estática (opción elegida):
@@ -271,7 +271,7 @@ Ahora: `Currently Active Slave: enp2s0`
 La práctica solicita ue se deben probar al menos dos métodos diferentes de agrupación de conexiones,
 una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento de las comunicaciones de datos.
 
-### 2.2. Configuración de LACP/througph
+### 2.2. Configuración de alto rendimiento
 
 Hasta ahora hemos conseguido la alta disponibilidad,
 
@@ -330,14 +330,6 @@ Resumen: perdiste SSH porque bond0 no pudo agregar ningún puerto en modo 802.3a
 --- 
 
 Aclarado esto, vamos a probar LACP / throughput sin perder la conexión
-
-Volvemos al modo active-backup
-
-```bash
-nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"
-nmcli connection down bond0
-nmcli connection up bond0
-```
 
 Ya podemos acceder por SSH
 

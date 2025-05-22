@@ -1,4 +1,9 @@
-# Trabajo Optativo: agregación de enlaces de red
+# Trabajo Optativo: agregación de enlaces de r`ed
+
+- [Trabajo Optativo: agregación de enlaces de r\`ed](#trabajo-optativo-agregación-de-enlaces-de-red)
+  - [Tarea 1. Creación de la máquina virtual](#tarea-1-creación-de-la-máquina-virtual)
+  - [Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#tarea-2-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
+  - [Tarea 3. Validación](#tarea-3-validación)
 
 ## Tarea 1. Creación de la máquina virtual
 

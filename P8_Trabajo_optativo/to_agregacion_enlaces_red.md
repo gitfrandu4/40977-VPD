@@ -3,6 +3,9 @@
 - [Trabajo Optativo: agregación de enlaces de r\`ed](#trabajo-optativo-agregación-de-enlaces-de-red)
   - [Tarea 1. Creación de la máquina virtual](#tarea-1-creación-de-la-máquina-virtual)
   - [Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#tarea-2-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
+    - [2.1. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#21-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
+    - [2.2. Configuración de LACP/througph](#22-configuración-de-lacpthrougph)
+      - [Cómo recuperar el acceso](#cómo-recuperar-el-acceso)
   - [Tarea 3. Validación](#tarea-3-validación)
 
 ## Tarea 1. Creación de la máquina virtual
@@ -67,7 +70,7 @@ This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 /usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
 /usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
-root@192.168.122.76's password: 
+root@192.168.122.76's password:
 
 Number of key(s) added: 1
 
@@ -75,24 +78,25 @@ Now try logging into the machine, with:   "ssh 'root@192.168.122.76'"
 and check to make sure that only the key(s) you wanted were added.
 ```
 
-
 ## Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión
+
+### 2.1. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión
 
 Comprobación previa, listamos las interfaces de red para conocer sus nombres reales:
 
 ```bash
 root@bond:~# nmcli device status
-DEVICE  TYPE      STATE                   CONNECTION 
-enp1s0  ethernet  conectado               enp1s0     
-enp2s0  ethernet  conectado               enp2s0     
-enp3s0  ethernet  conectado               enp3s0     
+DEVICE  TYPE      STATE                   CONNECTION
+enp1s0  ethernet  conectado               enp1s0
+enp2s0  ethernet  conectado               enp2s0
+enp3s0  ethernet  conectado               enp3s0
 lo      loopback  connected (externally)  lo
 ```
 
 Cargamos y habilitamos el módulo bonding:
 
 ```bash
-root@bond:~# modprobe bonding 
+root@bond:~# modprobe bonding
 root@bond:~# echo "bonding" | tee /etc/modules-load.d/bonding.conf
 bonding
 ```
@@ -110,7 +114,7 @@ Conexión «bond0» (2678cb65-1c2c-4df2-9649-b51c2bf47adb) añadida con éxito.
 
 ```bash
 root@bond:~# vi bond_script.sh
-root@bond:~# cat bond_script.sh 
+root@bond:~# cat bond_script.sh
 #!/bin/bash
 
 for IF in enp1s0 enp2s0 enp3s0; do
@@ -124,17 +128,16 @@ root@bond:~# chmod +x bond_script.sh
 Ejecutamos
 
 ```bash
-root@bond:~# ./bond_script.sh 
+root@bond:~# ./bond_script.sh
 Conexión «enp1s0-port» (916e5ad5-d499-4279-849d-a197d084ebe9) añadida con éxito.
 Conexión «enp2s0-port» (00e24d62-5114-4ed3-871e-d24bbc9fa93b) añadida con éxito.
 Conexión «enp3s0-port» (afb82bf0-810a-40a1-ad4e-6f3bebc2fd53) añadida con éxito.
 ```
 
-
 3. Levantar la conexión bond0
 
 ```bash
-root@bond:~# nmcli con up bond0 
+root@bond:~# nmcli con up bond0
 La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/6)
 ```
 
@@ -146,7 +149,7 @@ Podemos configurarla con DHCP (red NAT default):
 nmcli connection modify bond0 ipv4.metthod auto
 ```
 
-O de forma estática (opción elegida): 
+O de forma estática (opción elegida):
 
 ```bash
 root@bond:~# nmcli connection modify bond0 ipv4.addresses 192.168.122.57/24 ipv4.gateway 192.168.122.1 ipv4.dns "8.8.8.8 1.1.1.1" ipv4.method manual
@@ -161,7 +164,7 @@ reboot
 Verificamos:
 
 ```bash
-root@bond:~# cat /proc/net/bonding/bond0 
+root@bond:~# cat /proc/net/bonding/bond0
 Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
 
 Bonding Mode: fault-tolerance (active-backup)
@@ -224,7 +227,7 @@ rtt min/avg/max/mdev = 29.868/30.123/30.378/0.255 ms
 Verificamos que interfaz está ahora activa:
 
 ```bash
-root@bond:~# cat /proc/net/bonding/bond0 
+root@bond:~# cat /proc/net/bonding/bond0
 Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
 
 Bonding Mode: fault-tolerance (active-backup)
@@ -265,15 +268,22 @@ Ahora: `Currently Active Slave: enp2s0`
 
 ---
 
-La práctica solicita ue se deben probar al menos dos métodos diferentes de agrupación de conexiones, 
-una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento de las comunicaciones de datos. 
+La práctica solicita ue se deben probar al menos dos métodos diferentes de agrupación de conexiones,
+una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento de las comunicaciones de datos.
 
-Hasta ahora hemos conseguido la alta disponibilidad, 
+### 2.2. Configuración de LACP/througph
+
+Hasta ahora hemos conseguido la alta disponibilidad,
 
 1. ahora vamos a cambiar a modo `802.3ad/LACP (prueba de rendimiento) nuestra conexión bond0
 
+<!--
 ```bash
 root@bond:~# sudo nmcli connection modify bond0 bond.options "mode=802.3ad,miimon=100,lacp_rate=fast"
+```
+
+
+```bash
 root@bond:~# nmcli connection down bond0 && nmcli connection up bond0
 La conexión «bond0» se desactivó correctamente (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/5)
 La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
@@ -286,29 +296,38 @@ Al pasar bond0 a `modo 802.3ad/LACP` y bajar/subir la conexión, bond0 dejó de 
 3. Sin enlace activo, bond0 no sube y su IP estática deja de responder.
 
 ```
-Cómo recuperar el acceso
-	1.	Vuelve a modo active-backup
+
+-->
+
+#### Cómo recuperar el acceso
+
+1. Vuelve a modo active-backup
 
 Dentro de la VM, ejecuta:
 
-sudo nmcli connection modify bond0 \
-  bond.options "mode=active-backup,miimon=100"
+```bash
+sudo nmcli connection modify bond0 bond.options "mode=active-backup miimon=100"
 sudo nmcli connection down bond0
 sudo nmcli connection up bond0
+```
 
 Verifica que bond0 vuelva a listar una esclava “Currently Active Slave”:
 
+```bash
 cat /proc/net/bonding/bond0
+```
 
+2. Prueba tu SSH
 
-	3.	Prueba tu SSH
 Ahora deberías poder reconectar:
 
+```bash
 ssh root@192.168.122.57
-
+```
 
 Resumen: perdiste SSH porque bond0 no pudo agregar ningún puerto en modo 802.3ad sobre el bridge default; recupéralo cambiando de vuelta a active-backup por consola, y si quieres medir LACP monta un entorno (switch u OVS) que lo soporte, o bien usa balance-rr para pruebas de agregación sencillas.
-```
+
+--- 
 
 Aclarado esto, vamos a probar LACP / throughput sin perder la conexión
 
@@ -322,8 +341,7 @@ nmcli connection up bond0
 
 Ya podemos acceder por SSH
 
-
-COnfiguramos LACP/througph sin perder la red, con un modo de balanceo que no requiera switch especia, como balance-rr (mode 0)
+COnfiguramos LACP/througph sin perder la red, con un modo de balanceo que no requiera switch especial, como balance-rr (mode 0)
 
 ```bash
 root@bond:~# nmcli connection modify bond0 bond.options "mode=balance-rr,miimon=100"
@@ -331,6 +349,14 @@ root@bond:~# nmcli connection down bond0 && nmcli connection up bond0
 La conexión «bond0» se desactivó correctamente (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/9)
 La conexión se ha activado correctamente (controller waiting for ports) (ruta activa D-Bus: /org/freedesktop/NetworkManager/ActiveConnection/10)
 ```
+
+* `mode-balance-rr`: Establece el modo de balanceo Round-Robin (mode 0), que transmite paquetes secuencialmente desde el primer esclavo disponible hasta el último.
+* `miimon=100`: Configura el intervalo de monitoreo de la interfaz de red en 100 milisegundos.
+
+Validación del modo de bonding:
+
+```bash
+
 
 Instalamos `iperf3` en el host anfitrión y en la MV
 
@@ -350,7 +376,7 @@ success
 Parece que tengo que apagar para que funcione:
 
 ```bash
-root@lq-d25:~# systemctl stop firewalld.service 
+root@lq-d25:~# systemctl stop firewalld.service
 ```
 
 ```bash
@@ -373,14 +399,13 @@ Connecting to host 192.168.122.1, port 5201
 [  7] local 192.168.122.76 port 53002 connected to 192.168.122.1 port 5201
 [  9] local 192.168.122.76 port 53004 connected to 192.168.122.1 port 5201
 [ ID] Interval           Transfer     Bitrate         Retr  Cwnd
-[  5]   0.00-1.00   sec  1.41 GBytes  12.1 Gbits/sec    0   1.98 MBytes       
-[  7]   0.00-1.00   sec  1.39 GBytes  11.9 Gbits/sec    0   1.89 MBytes       
-[  9]   0.00-1.00   sec  1.37 GBytes  11.8 Gbits/sec    0   1.64 MBytes       
+[  5]   0.00-1.00   sec  1.41 GBytes  12.1 Gbits/sec    0   1.98 MBytes
+[  7]   0.00-1.00   sec  1.39 GBytes  11.9 Gbits/sec    0   1.89 MBytes
+[  9]   0.00-1.00   sec  1.37 GBytes  11.8 Gbits/sec    0   1.64 MBytes
 [SUM]   0.00-1.00   sec  4.17 GBytes  35.8 Gbits/sec    0
 [SUM]   0.00-30.00  sec   124 GBytes  35.4 Gbits/sec                  receiver
 
 iperf Done.
 ```
-
 
 ## Tarea 3. Validación

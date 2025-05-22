@@ -399,19 +399,31 @@ dnf install -y iperf3
 
 En el anfitrión
 
+```bash
+root@lq-d25:~# ip addr show virbr0
+5: virbr0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 52:54:00:da:92:6a brd ff:ff:ff:ff:ff:ff
+    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+       valid_lft forever preferred_lft forever
 ```
-root@lq-d25:~# firewall-cmd --permanent --add-port=5201/tcp
-success
-root@lq-d25:~# firewall-cmd --reload
-success
-```
-
-Parece que tengo que apagar para que funcione:
 
 ```bash
-root@lq-d25:~# systemctl stop firewalld.service
+root@lq-d25:~# firewall-cmd --get-active-zones
+FedoraServer (default)
+  interfaces: enp6s0 bridge0
+libvirt
+  interfaces: virbr0 virbr2 virbr1 virbr3
 ```
 
+```
+root@lq-d25:~# firewall-cmd --zone=libvirt --permanent --add-port=5201/tcp
+success
+root@lq-d25:~# firewall-cmd --zone=libvirt --permanent --add-port=5201/udp
+success
+root@lq-d25:~# firewall-cmd --reload
+```
+
+En el anfitrión:
 ```bash
 iperf3 -s
 ```
@@ -426,17 +438,46 @@ Server listening on 5201 (test #1)
 En la MV hacemos:
 
 ```bash
-root@bond:~#  iperf3 -c 192.168.122.1 -P 3 -t 30
+root@bond:~# iperf3 -c 192.168.122.1 -t 30
+iperf3: error - unable to connect to server - server may have stopped running or use a different port, firewall issue, etc.: Connection refused
+root@bond:~# iperf3 -c 192.168.122.1 -t 30
 Connecting to host 192.168.122.1, port 5201
-[  5] local 192.168.122.76 port 52998 connected to 192.168.122.1 port 5201
-[  7] local 192.168.122.76 port 53002 connected to 192.168.122.1 port 5201
-[  9] local 192.168.122.76 port 53004 connected to 192.168.122.1 port 5201
+[  5] local 192.168.122.57 port 35384 connected to 192.168.122.1 port 5201
 [ ID] Interval           Transfer     Bitrate         Retr  Cwnd
-[  5]   0.00-1.00   sec  1.41 GBytes  12.1 Gbits/sec    0   1.98 MBytes
-[  7]   0.00-1.00   sec  1.39 GBytes  11.9 Gbits/sec    0   1.89 MBytes
-[  9]   0.00-1.00   sec  1.37 GBytes  11.8 Gbits/sec    0   1.64 MBytes
-[SUM]   0.00-1.00   sec  4.17 GBytes  35.8 Gbits/sec    0
-[SUM]   0.00-30.00  sec   124 GBytes  35.4 Gbits/sec                  receiver
+[  5]   0.00-1.00   sec  2.44 GBytes  20.9 Gbits/sec  715    411 KBytes       
+[  5]   1.00-2.00   sec  2.34 GBytes  20.1 Gbits/sec    0    411 KBytes       
+[  5]   2.00-3.00   sec  2.40 GBytes  20.6 Gbits/sec   90    387 KBytes       
+[  5]   3.00-4.00   sec  2.50 GBytes  21.5 Gbits/sec    0    403 KBytes       
+[  5]   4.00-5.00   sec  2.40 GBytes  20.7 Gbits/sec    0    414 KBytes       
+[  5]   5.00-6.00   sec  2.33 GBytes  20.0 Gbits/sec    0    424 KBytes       
+[  5]   6.00-7.00   sec  2.33 GBytes  20.0 Gbits/sec   45    395 KBytes       
+[  5]   7.00-8.00   sec  2.39 GBytes  20.5 Gbits/sec    5    318 KBytes       
+[  5]   8.00-9.00   sec  2.41 GBytes  20.7 Gbits/sec  232    387 KBytes       
+[  5]   9.00-10.00  sec  2.37 GBytes  20.4 Gbits/sec  100    386 KBytes       
+[  5]  10.00-11.00  sec  2.45 GBytes  21.0 Gbits/sec   60    385 KBytes       
+[  5]  11.00-12.00  sec  2.40 GBytes  20.6 Gbits/sec    0    402 KBytes       
+[  5]  12.00-13.00  sec  2.33 GBytes  20.0 Gbits/sec   45    407 KBytes       
+[  5]  13.00-14.00  sec  2.37 GBytes  20.4 Gbits/sec    0    416 KBytes       
+[  5]  14.00-15.00  sec  2.32 GBytes  20.0 Gbits/sec   69    421 KBytes       
+[  5]  15.00-16.00  sec  2.40 GBytes  20.6 Gbits/sec   45    337 KBytes       
+[  5]  16.00-17.00  sec  2.45 GBytes  21.1 Gbits/sec    0    389 KBytes       
+[  5]  17.00-18.00  sec  2.30 GBytes  19.8 Gbits/sec    0    400 KBytes       
+[  5]  18.00-19.00  sec  2.37 GBytes  20.3 Gbits/sec    0    413 KBytes       
+[  5]  19.00-20.00  sec  2.35 GBytes  20.2 Gbits/sec  207    307 KBytes       
+[  5]  20.00-21.00  sec  2.42 GBytes  20.8 Gbits/sec    0    399 KBytes       
+[  5]  21.00-22.00  sec  2.28 GBytes  19.6 Gbits/sec   66    334 KBytes       
+[  5]  22.00-23.00  sec  2.40 GBytes  20.6 Gbits/sec    0    386 KBytes       
+[  5]  23.00-24.00  sec  2.35 GBytes  20.2 Gbits/sec    0    354 KBytes       
+[  5]  24.00-25.00  sec  2.37 GBytes  20.4 Gbits/sec    0    403 KBytes       
+[  5]  25.00-26.00  sec  2.43 GBytes  20.9 Gbits/sec   90    386 KBytes       
+[  5]  26.00-27.00  sec  2.36 GBytes  20.3 Gbits/sec    4    386 KBytes       
+[  5]  27.00-28.00  sec  2.40 GBytes  20.6 Gbits/sec    0    404 KBytes       
+[  5]  28.00-29.00  sec  2.32 GBytes  20.0 Gbits/sec   90    318 KBytes       
+[  5]  29.00-30.00  sec  2.31 GBytes  19.8 Gbits/sec    0    393 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-30.00  sec  71.3 GBytes  20.4 Gbits/sec  1863             sender
+[  5]   0.00-30.00  sec  71.3 GBytes  20.4 Gbits/sec                  receiver
 
 iperf Done.
 ```

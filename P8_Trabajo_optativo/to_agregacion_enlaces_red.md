@@ -291,13 +291,13 @@ una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento d
 
 Hasta ahora hemos conseguido la alta disponibilidad,
 
+### Modo 802.3ad/LACP
+
 1. ahora vamos a cambiar a modo `802.3ad/LACP (prueba de rendimiento) nuestra conexión bond0
 
-<!--
 ```bash
-root@bond:~# sudo nmcli connection modify bond0 bond.options "mode=802.3ad,miimon=100,lacp_rate=fast"
+[root@bond ~]# nmcli connection modify bond0 bond.options "mode=802.3ad,miimon=100,lacp_rate=fast"
 ```
-
 
 ```bash
 root@bond:~# nmcli connection down bond0 && nmcli connection up bond0
@@ -311,9 +311,121 @@ Al pasar bond0 a `modo 802.3ad/LACP` y bajar/subir la conexión, bond0 dejó de 
 2. El modo 4 (802.3ad) sólo funciona si el switch —físico o virtual— negocia LACP con las interfaces esclavas. Si no hay soporte, ninguna esclava se “agrega” al bond y bond0 queda sin enlaces operativos, perdiendo por tanto su IP y el acceso SSH
 3. Sin enlace activo, bond0 no sube y su IP estática deja de responder.
 
+```bash
+root@lq-d25:~# virsh console Bond
 ```
 
--->
+Comprobamos: 
+
+```bash
+[root@bond ~]# cat /proc/net/bonding/bond0
+Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
+
+Bonding Mode: IEEE 802.3ad Dynamic link aggregation
+Transmit Hash Policy: layer2 (0)
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+Peer Notification Delay (ms): 0
+
+802.3ad info
+LACP active: on
+LACP rate: fast
+Min links: 0
+Aggregator selection policy (ad_select): stable
+System priority: 65535
+System MAC address: 52:54:00:3f:99:f0
+Active Aggregator Info:
+	Aggregator ID: 1
+	Number of ports: 1
+	Actor Key: 0
+	Partner Key: 1
+	Partner Mac Address: 00:00:00:00:00:00
+
+Slave Interface: enp1s0
+MII Status: down
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:3f:99:f0
+Slave queue ID: 0
+Aggregator ID: 1
+Actor Churn State: none
+Partner Churn State: churned
+Actor Churned Count: 0
+Partner Churned Count: 1
+details actor lacp pdu:
+    system priority: 65535
+    system mac address: 52:54:00:3f:99:f0
+    port key: 0
+    port priority: 255
+    port number: 1
+    port state: 79
+details partner lacp pdu:
+    system priority: 65535
+    system mac address: 00:00:00:00:00:00
+    oper key: 1
+    port priority: 255
+    port number: 1
+    port state: 1
+
+Slave Interface: enp2s0
+MII Status: down
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:ee:18:de
+Slave queue ID: 0
+Aggregator ID: 2
+Actor Churn State: churned
+Partner Churn State: churned
+Actor Churned Count: 1
+Partner Churned Count: 1
+details actor lacp pdu:
+    system priority: 65535
+    system mac address: 52:54:00:3f:99:f0
+    port key: 0
+    port priority: 255
+    port number: 2
+    port state: 71
+details partner lacp pdu:
+    system priority: 65535
+    system mac address: 00:00:00:00:00:00
+    oper key: 1
+    port priority: 255
+    port number: 1
+    port state: 1
+
+Slave Interface: enp3s0
+MII Status: down
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:33:75:d2
+Slave queue ID: 0
+Aggregator ID: 3
+Actor Churn State: churned
+Partner Churn State: churned
+Actor Churned Count: 1
+Partner Churned Count: 1
+details actor lacp pdu:
+    system priority: 65535
+    system mac address: 52:54:00:3f:99:f0
+    port key: 0
+    port priority: 255
+    port number: 3
+    port state: 71
+details partner lacp pdu:
+    system priority: 65535
+    system mac address: 00:00:00:00:00:00
+    oper key: 1
+    port priority: 255
+    port number: 1
+    port state: 1
+```
+
+
 
 #### Cómo recuperar el acceso
 
@@ -350,6 +462,8 @@ Aclarado esto, vamos a probar LACP / throughput sin perder la conexión
 Ya podemos acceder por SSH
 
 COnfiguramos LACP/througph sin perder la red, con un modo de balanceo que no requiera switch especial, como balance-rr (mode 0)
+
+### balance-rr (mode 0)
 
 ```bash
 root@bond:~# nmcli connection modify bond0 bond.options "mode=balance-rr,miimon=100"
@@ -615,7 +729,7 @@ Connecting to host 192.168.122.1, port 5201
 iperf Done.
 ```
 
-Ahora vamos a probar con una sola interfaz
+Ahora vamos a probar con una sola interfaz en el mode `active-backup`
 
 ```bash
 root@bond:~# nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"

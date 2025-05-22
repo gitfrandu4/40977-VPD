@@ -600,7 +600,7 @@ sudo pcs cluster status || sudo pcs cluster start --all
 
 En nodo1:
 
-``bash
+```bash
 [root@nodo1 ~]# pcs cluster status || sudo pcs cluster start --all
 Cluster Status:
 Cluster Summary:
@@ -617,8 +617,7 @@ Cluster Summary:
 PCSD Status:
 nodo2.vpd.com: Online
 nodo1.vpd.com: Online
-
-````
+```
 
 En nodo2:
 
@@ -638,7 +637,7 @@ Cluster Status:
 PCSD Status:
   nodo2.vpd.com: Online
   nodo1.vpd.com: Online
-````
+```
 
 Con esto LVM solo arrancará el VG `fedora` en cada nodo y dejará `ApacheVG` sin gestionar localmente, para que Pacemaker se encargue de montarlo y desmontarlo según haga falta.
 

@@ -1,11 +1,33 @@
-# Trabajo Optativo: agregación de enlaces de r`ed
+# Trabajo Optativo: Agregación de Enlaces de Red (Bonding)
 
-- [Trabajo Optativo: agregación de enlaces de r\`ed](#trabajo-optativo-agregación-de-enlaces-de-red)
+## Introducción
+
+La agregación de enlaces (o *bonding*) es una característica del kernel de Linux que combina varias interfaces Ethernet físicas en una única interfaz lógica para aumentar la tolerancia a fallos y/o el ancho de banda disponible.  
+Esta práctica sigue las directrices oficiales de Red Hat Enterprise Linux 8 — *Configuring network bonding*[^rhel-bonding].
+
+**Objetivos**
+
+* Crear una VM Fedora y habilitar la agregación de enlaces.
+* Configurar dos perfiles:
+  1. **Alta disponibilidad** – *active‑backup* (modo 1).
+  2. **Balanceo de carga** – *balance‑rr* (modo 0).
+* Validar cada perfil con pruebas de conmutación por error y de rendimiento.
+
+> **Nota**: En Fedora 41, NetworkManager carga automáticamente el módulo `bonding`; añadirlo manualmente es opcional.
+
+---
+
+[^rhel-bonding]: Red Hat, *Configuring and Managing Networking – Configuring network bonding*, RHEL 8, consultado el 22 may 2025.
+
+- [Trabajo Optativo: Agregación de Enlaces de Red (Bonding)](#trabajo-optativo-agregación-de-enlaces-de-red-bonding)
+  - [Introducción](#introducción)
   - [Tarea 1. Creación de la máquina virtual](#tarea-1-creación-de-la-máquina-virtual)
   - [Tarea 2. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#tarea-2-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
     - [2.1. Configuración de las interfaces de red para que se agrupen dando lugar a una única conexión](#21-configuración-de-las-interfaces-de-red-para-que-se-agrupen-dando-lugar-a-una-única-conexión)
-    - [2.2. Configuración de alto rendimiento](#22-configuración-de-alto-rendimiento)
+    - [2.2. Configuración de balanceo de carga y alto rendimiento](#22-configuración-de-balanceo-de-carga-y-alto-rendimiento)
+    - [Modo 802.3ad/LACP](#modo-8023adlacp)
       - [Cómo recuperar el acceso](#cómo-recuperar-el-acceso)
+    - [balance-rr (mode 0)](#balance-rr-mode-0)
   - [Tarea 3. Validación](#tarea-3-validación)
     - [3.1. Plan de pruebas](#31-plan-de-pruebas)
       - [3.1.1. Introducción](#311-introducción)
@@ -21,6 +43,7 @@
       - [3.3.3. Resultados](#333-resultados)
       - [3.3.4. Análisis de resultados](#334-análisis-de-resultados)
       - [3.3.5. Conclusión del modo de balanceo](#335-conclusión-del-modo-de-balanceo)
+    - [3.4.1. Checklist de validación operacional](#341-checklist-de-validación-operacional)
     - [3.4. Validación global](#34-validación-global)
     - [3.5. Conclusiones](#35-conclusiones)
 
@@ -287,7 +310,16 @@ Ahora: `Currently Active Slave: enp2s0`
 La práctica solicita ue se deben probar al menos dos métodos diferentes de agrupación de conexiones,
 una para conseguir solo alta disponibilidad y otra para mejorar el rendimiento de las comunicaciones de datos.
 
-### 2.2. Configuración de alto rendimiento
+### 2.2. Configuración de balanceo de carga y alto rendimiento
+
+En esta sección se evalúan los modos de *bonding* que permiten utilizar varias interfaces simultáneamente para incrementar el ancho de banda:
+
+* **IEEE 802.3ad / LACP (modo 4)** – Requiere que el *switch* físico (o un *bridge* u OVS virtual) negocie LACP.  
+  Si el *switch* no habla LACP, los puertos permanecen en estado *down* y `bond0` pierde conectividad.
+* **balance-rr (modo 0)** – Reparte los paquetes en *round‑robin* entre las interfaces; no necesita configuración en el *switch*.
+* **balance-alb (modo 6)** – Variante adaptativa que balancea tanto envío como recepción empleando ARP replies falsificadas; tampoco requiere soporte especial en el *switch*.
+
+Elija *802.3ad* cuando disponga de hardware gestionable con soporte LACP; de lo contrario, *balance‑rr* o *balance‑alb* son alternativas válidas para laboratorios y entornos donde sólo se controla el extremo servidor.
 
 Hasta ahora hemos conseguido la alta disponibilidad,
 
@@ -927,19 +959,21 @@ iperf3 -c 192.168.122.1 -t 30
 
 #### 3.3.4. Análisis de resultados
 
-Los resultados de las pruebas muestran un comportamiento interesante:
+Los resultados obtenidos muestran que, dentro del entorno virtualizado KVM, el modo **active‑backup** alcanzó picos de ~24 Gbit/s con un único flujo, mientras que **balance‑rr** rondó ~20 Gbit/s empleando tres flujos paralelos.  
 
-1. En el **modo balance-rr con múltiples flujos**, el sistema logró un rendimiento combinado de aproximadamente 20.6 Gbits/sec distribuyendo la carga entre las tres interfaces de manera equilibrada (cada flujo con aproximadamente 6.88 Gbits/sec).
+**¿Por qué ocurre esto en la VM?**
 
-2. En el **modo active-backup**, se observó un rendimiento de aproximadamente 23.7 Gbits/sec en un solo flujo.
+1. **Optimización de flujo único** – Virtio‑net y el *bridge* del hipervisor pueden ubicar el flujo en la misma cola de CPU, aprovechando *TSO/GSO* y descarga de checksum.  
+2. **Sobrecarga de *round‑robin*** – `balance-rr` fuerza al kernel a recalcular checksums al fragmentar cada paquete, lo que eleva la latencia y reduce la eficacia de la caché de CPU.  
+3. **Cuello de botella en el *bridge*** – Todas las NIC virtuales confluyen en la misma cola del *bridge* NAT, de modo que repartir los paquetes entre varias interfaces no evita la contención del lado host.  
+4. **Número de flujos limitado** – Aunque usamos `-P 3`, sigue siendo un único proceso `iperf3`; más flujos o múltiples clientes reducirían la contención.
 
-La diferencia en rendimiento entre ambos modos podría explicarse por:
+**En un entorno físico** con un switch conmutado y varios hosts, la situación se invierte:
 
-- El entorno virtualizado puede tener limitaciones específicas
-- El modo active-backup optimiza la ruta para un solo flujo, mientras que balance-rr tiene sobrecarga adicional por la distribución de paquetes
-- La prueba con un solo flujo versus múltiples flujos paralelos puede afectar los resultados
+* Cada destino tiende a fijarse a un esclavo diferente, de modo que el tráfico simultáneo suma el ancho de banda de todos los enlaces.  
+* Con LACP (`802.3ad`) o *balance‑xor*, las tramas se distribuyen por hash de MAC/IP, evitando colisiones en el mismo enlace.  
 
-> **Nota importante**: En un entorno de red real con múltiples conexiones simultáneas, el modo balance-rr típicamente mostraría mayor rendimiento agregado, especialmente bajo cargas de trabajo diversas y múltiples flujos de tráfico. Las limitaciones del entorno de prueba virtualizado pueden no reflejar completamente las ventajas de rendimiento de este modo.
+Por ello, **balance‑rr** (o LACP con *balance‑xor*) suele ofrecer mayor rendimiento agregado en escenarios de producción con múltiples flujos independientes, mientras que **active‑backup** se reserva para casos donde la prioridad es la resiliencia y la simplicidad operativa.
 
 #### 3.3.5. Conclusión del modo de balanceo
 
@@ -950,6 +984,15 @@ El modo balance-rr proporciona mejora potencial de rendimiento mediante la distr
 - Cargas de trabajo variadas con diferentes destinos
 
 Además, mantiene la capacidad de tolerancia a fallos, lo que lo convierte en una solución más completa para entornos que requieren tanto rendimiento como disponibilidad.
+
+### 3.4.1. Checklist de validación operacional
+
+| Objetivo                               | Comando                                                            | Resultado esperado                                  |
+|----------------------------------------|--------------------------------------------------------------------|-----------------------------------------------------|
+| Estado general de `bond0`              | `nmcli -f GENERAL.STATE device show bond0`                         | `100 (connected)`                                   |
+| Detalles de esclavos y modo            | `cat /proc/net/bonding/bond0`                                      | Cada esclavo con `MII Status: up`                   |
+| Tramas LACP presentes (modo 4)         | `tcpdump -i bond0 -nn 'ether proto 0x8809'`                        | Paquetes LACP cada segundo                          |
+| Rendimiento agregado (≥ 2 enlaces)     | `iperf3 -c <host> -P 3 -t 30`                                      | ≥ 2 × ancho de banda de un enlace individual        |
 
 ### 3.4. Validación global
 

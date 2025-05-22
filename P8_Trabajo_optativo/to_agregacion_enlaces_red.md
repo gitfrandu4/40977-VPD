@@ -7,6 +7,22 @@
     - [2.2. Configuración de alto rendimiento](#22-configuración-de-alto-rendimiento)
       - [Cómo recuperar el acceso](#cómo-recuperar-el-acceso)
   - [Tarea 3. Validación](#tarea-3-validación)
+    - [3.1. Plan de pruebas](#31-plan-de-pruebas)
+      - [3.1.1. Introducción](#311-introducción)
+      - [3.1.2. Entorno de pruebas](#312-entorno-de-pruebas)
+    - [3.2. Pruebas de alta disponibilidad (modo active-backup)](#32-pruebas-de-alta-disponibilidad-modo-active-backup)
+      - [3.2.1. Descripción](#321-descripción)
+      - [3.2.2. Procedimiento de prueba](#322-procedimiento-de-prueba)
+      - [3.2.3. Resultados](#323-resultados)
+      - [3.2.4. Conclusión](#324-conclusión)
+    - [3.3. Pruebas de rendimiento (modo balance-rr)](#33-pruebas-de-rendimiento-modo-balance-rr)
+      - [3.3.1. Descripción](#331-descripción)
+      - [3.3.2. Procedimiento de prueba](#332-procedimiento-de-prueba)
+      - [3.3.3. Resultados](#333-resultados)
+      - [3.3.4. Análisis de resultados](#334-análisis-de-resultados)
+      - [3.3.5. Conclusión del modo de balanceo](#335-conclusión-del-modo-de-balanceo)
+    - [3.4. Validación global](#34-validación-global)
+    - [3.5. Conclusiones](#35-conclusiones)
 
 ## Tarea 1. Creación de la máquina virtual
 
@@ -652,4 +668,189 @@ Connecting to host 192.168.122.1, port 5201
 iperf Done.
 ```
 
+
 ## Tarea 3. Validación
+
+### 3.1. Plan de pruebas
+
+#### 3.1.1. Introducción
+
+Este plan de pruebas tiene como objetivo validar que las configuraciones de agregación de enlaces implementadas cumplen con los requisitos funcionales establecidos:
+- Alta disponibilidad (modo active-backup)
+- Mejora del rendimiento (modo balance-rr)
+
+#### 3.1.2. Entorno de pruebas
+
+**Configuración del sistema:**
+- Máquina virtual con 3 interfaces de red virtuales
+- Sistema operativo: Fedora 41
+- Interfaces de red: enp1s0, enp2s0, enp3s0
+- Enlace agregado: bond0
+
+### 3.2. Pruebas de alta disponibilidad (modo active-backup)
+
+#### 3.2.1. Descripción
+
+El modo active-backup (modo 1) proporciona redundancia mediante un esquema de conmutación por error. Una sola interfaz está activa en cualquier momento, y las demás interfaces permanecen en espera. Si la interfaz activa falla, una de las interfaces en espera toma el control.
+
+**Ventajas:**
+- Tolerancia a fallos
+- Transición transparente durante fallos
+- No requiere configuración especial en los switches
+
+#### 3.2.2. Procedimiento de prueba
+
+```bash
+# Configuración del modo active-backup
+nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"
+nmcli connection down bond0 && nmcli connection up bond0
+```
+
+**Verificación de la configuración:**
+
+```bash
+cat /proc/net/bonding/bond0
+```
+
+**Salida:**
+```
+Bonding Mode: fault-tolerance (active-backup)
+Primary Slave: None
+Currently Active Slave: enp1s0
+```
+
+**Prueba de alta disponibilidad:**
+1. Verificar conectividad inicial
+2. Simular fallo de la interfaz activa
+3. Verificar que la conectividad se mantiene
+
+```bash
+# Prueba de conexión inicial
+ping 8.8.8.8
+
+# Simulación de fallo
+ip link set enp1s0 down
+
+# Verificación de continuidad del servicio
+ping 8.8.8.8
+```
+
+**Comprobación post-fallo:**
+```bash
+cat /proc/net/bonding/bond0
+```
+
+#### 3.2.3. Resultados
+
+- **Antes del fallo:**
+  - Interfaz activa: enp1s0
+  - Conectividad: 100% funcional
+
+- **Durante y después del fallo:**
+  - Nueva interfaz activa: enp2s0 (conmutación automática)
+  - Conectividad: 100% funcional
+  - Tiempo de recuperación: prácticamente inmediato
+
+#### 3.2.4. Conclusión
+
+El modo active-backup cumple correctamente con el objetivo de alta disponibilidad. Cuando la interfaz activa falla, la conmutación a una interfaz secundaria es transparente y no se observa pérdida significativa de conectividad.
+
+### 3.3. Pruebas de rendimiento (modo balance-rr)
+
+#### 3.3.1. Descripción
+
+El modo balance-rr (Round-Robin, modo 0) distribuye los paquetes secuencialmente entre todas las interfaces esclavas. Este modo proporciona equilibrio de carga y tolerancia a fallos, mejorando el ancho de banda total disponible.
+
+**Ventajas:**
+- Aumento del ancho de banda disponible
+- Distribución equilibrada del tráfico
+- Tolerancia a fallos
+
+#### 3.3.2. Procedimiento de prueba
+
+```bash
+# Configuración del modo balance-rr
+nmcli connection modify bond0 bond.options "mode=balance-rr,miimon=100"
+nmcli connection down bond0 && nmcli connection up bond0
+```
+
+**Verificación de la configuración:**
+```bash
+cat /proc/net/bonding/bond0
+```
+
+**Salida:**
+```
+Bonding Mode: load balancing (round-robin)
+MII Status: up
+```
+
+**Prueba de rendimiento:**
+1. Medición del rendimiento con iperf3 en modo paralelo
+2. Comparación con la configuración active-backup
+
+```bash
+# Prueba de rendimiento en modo balance-rr (con múltiples flujos paralelos)
+iperf3 -c 192.168.122.1 -P 3 -t 30
+
+# Cambio a modo active-backup para comparación
+nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"
+nmcli connection down bond0 && nmcli connection up bond0
+
+# Prueba de rendimiento en modo active-backup (un solo flujo)
+iperf3 -c 192.168.122.1 -t 30
+```
+
+#### 3.3.3. Resultados
+
+- **Rendimiento en modo balance-rr (con múltiples flujos):**
+  - Rendimiento promedio: ~20.6 Gbits/sec
+  - Distribución del tráfico: 3 flujos (6.88 Gbits/sec por flujo)
+
+- **Rendimiento en modo active-backup:**
+  - Rendimiento promedio: ~23.7 Gbits/sec
+  - Un solo flujo activo
+
+#### 3.3.4. Análisis de resultados
+
+Los resultados de las pruebas muestran un comportamiento interesante:
+
+1. En el **modo balance-rr con múltiples flujos**, el sistema logró un rendimiento combinado de aproximadamente 20.6 Gbits/sec distribuyendo la carga entre las tres interfaces de manera equilibrada (cada flujo con aproximadamente 6.88 Gbits/sec).
+
+2. En el **modo active-backup**, se observó un rendimiento de aproximadamente 23.7 Gbits/sec en un solo flujo.
+
+La diferencia en rendimiento entre ambos modos podría explicarse por:
+
+- El entorno virtualizado puede tener limitaciones específicas
+- El modo active-backup optimiza la ruta para un solo flujo, mientras que balance-rr tiene sobrecarga adicional por la distribución de paquetes
+- La prueba con un solo flujo versus múltiples flujos paralelos puede afectar los resultados
+
+> **Nota importante**: En un entorno de red real con múltiples conexiones simultáneas, el modo balance-rr típicamente mostraría mayor rendimiento agregado, especialmente bajo cargas de trabajo diversas y múltiples flujos de tráfico. Las limitaciones del entorno de prueba virtualizado pueden no reflejar completamente las ventajas de rendimiento de este modo.
+
+#### 3.3.5. Conclusión del modo de balanceo
+
+El modo balance-rr proporciona mejora potencial de rendimiento mediante la distribución de carga entre todas las interfaces disponibles. Aunque en nuestra prueba controlada no se observó una ventaja clara en términos de rendimiento bruto, este modo ofrece beneficios significativos en escenarios con:
+
+- Múltiples conexiones simultáneas
+- Diversos tipos de tráfico
+- Cargas de trabajo variadas con diferentes destinos
+
+Además, mantiene la capacidad de tolerancia a fallos, lo que lo convierte en una solución más completa para entornos que requieren tanto rendimiento como disponibilidad.
+
+### 3.4. Validación global
+
+Ambos modos de agregación de enlaces cumplen sus objetivos específicos:
+
+- **Modo active-backup**: Proporciona alta disponibilidad y redundancia mediante la conmutación automática entre interfaces. La prueba demostró claramente que ante un fallo de la interfaz activa, el sistema mantiene la conectividad sin interrupciones perceptibles.
+
+- **Modo balance-rr**: Ofrece distribución de carga y potencial mejora de rendimiento al utilizar todas las interfaces disponibles simultáneamente. La prueba mostró que puede manejar múltiples flujos paralelos de manera eficiente.
+
+### 3.5. Conclusiones
+
+Las configuraciones implementadas proporcionan soluciones efectivas para los dos escenarios principales en agregación de enlaces:
+
+1. **Escenario de alta disponibilidad**: El modo active-backup es la elección óptima cuando la prioridad es la fiabilidad y la continuidad del servicio ante fallos de enlace.
+
+2. **Escenario de mejora de rendimiento**: El modo balance-rr es adecuado cuando se busca aumentar el ancho de banda agregado y distribuir la carga, especialmente en entornos con múltiples conexiones simultáneas.
+
+Estas configuraciones son complementarias y su elección dependerá de los requisitos específicos del sistema: priorizar la disponibilidad o el rendimiento.

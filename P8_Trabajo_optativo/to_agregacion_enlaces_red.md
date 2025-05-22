@@ -356,7 +356,40 @@ La conexión se ha activado correctamente (controller waiting for ports) (ruta a
 Validación del modo de bonding:
 
 ```bash
+root@bond:~# cat /proc/net/bonding/bond0
+Ethernet Channel Bonding Driver: v6.14.6-200.fc41.x86_64
 
+Bonding Mode: load balancing (round-robin)
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+Peer Notification Delay (ms): 0
+
+Slave Interface: enp1s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:3f:99:f0
+Slave queue ID: 0
+
+Slave Interface: enp2s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:ee:18:de
+Slave queue ID: 0
+
+Slave Interface: enp3s0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 52:54:00:33:75:d2
+Slave queue ID: 0
+```
 
 Instalamos `iperf3` en el host anfitrión y en la MV
 

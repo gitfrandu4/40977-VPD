@@ -2,16 +2,27 @@
 
 ## Índice de contenidos
 
-- [1. Introducción](#1-introducción)
-- [2. Requisitos previos](#2-requisitos-previos)
-- [3. Desarrollo de la práctica](#3-desarrollo-de-la-práctica)
-  - [Fase 1. Configuración de los nodos del clúster](#fase-1-configuración-de-los-nodos-del-clúster)
-  - [Fase 2. Configuración del servicio httpd](#fase-2-configuración-del-servicio-httpd)
-  - [Fase 3. Configuración del almacenamiento compartido](#fase-3-configuración-del-almacenamiento-compartido)
-  - [Fase 4. Creación de recursos y grupos de recursos](#fase-4-creación-de-recursos-y-grupos-de-recursos)
-- [4. Pruebas y validación](#4-pruebas-y-validación)
-- [5. Conclusiones](#5-conclusiones)
-- [6. Bibliografía](#6-bibliografía)
+- [Práctica 7.2: Configuración y puesta en marcha del servicio de alta disponibilidad en un clúster básico](#práctica-72-configuración-y-puesta-en-marcha-del-servicio-de-alta-disponibilidad-en-un-clúster-básico)
+  - [Índice de contenidos](#índice-de-contenidos)
+  - [1. Introducción](#1-introducción)
+  - [2. Requisitos previos](#2-requisitos-previos)
+  - [3. Desarrollo de la práctica](#3-desarrollo-de-la-práctica)
+    - [Fase 1. Configuración de los nodos del clúster](#fase-1-configuración-de-los-nodos-del-clúster)
+      - [Comandos paso a paso (según ficha)](#comandos-paso-a-paso-según-ficha)
+    - [2. Creación del Cluster](#2-creación-del-cluster)
+    - [3. Establecimiento de un mecanismo de aislamiento de nodos, conocido en inglés por el término “fencing configuration”.](#3-establecimiento-de-un-mecanismo-de-aislamiento-de-nodos-conocido-en-inglés-por-el-término-fencing-configuration)
+    - [4. Configuración del servicio httpd para su ejecución en un clúster](#4-configuración-del-servicio-httpd-para-su-ejecución-en-un-clúster)
+    - [5. Configurar los nodos de clúster para que el espacio de almacenamiento compartido sea no sea controlado localmente en cada nodo del clúster.](#5-configurar-los-nodos-de-clúster-para-que-el-espacio-de-almacenamiento-compartido-sea-no-sea-controlado-localmente-en-cada-nodo-del-clúster)
+    - [6. Creación de los recursos y grupos de recursos del clúster.](#6-creación-de-los-recursos-y-grupos-de-recursos-del-clúster)
+  - [4. Pruebas y validación](#4-pruebas-y-validación)
+    - [7) Validación del funcionamiento del clúster](#7-validación-del-funcionamiento-del-clúster)
+      - [7.1 Verificar asignación de IP flotante](#71-verificar-asignación-de-ip-flotante)
+      - [7.2 Comprobar accesibilidad HTTP desde el host](#72-comprobar-accesibilidad-http-desde-el-host)
+      - [7.3 Verificar que httpd escucha en la IP flotante](#73-verificar-que-httpd-escucha-en-la-ip-flotante)
+      - [7.4 Revisar firewall y SELinux](#74-revisar-firewall-y-selinux)
+      - [7.5 Prueba de failover](#75-prueba-de-failover)
+  - [5. Conclusiones](#5-conclusiones)
+  - [6. Bibliografía](#6-bibliografía)
 
 ## 1. Introducción
 
@@ -87,18 +98,19 @@ nodo1
 
 ```
 [root@nodo1 ~]# passwd hacluster
-Nueva contraseña: 
+Nueva contraseña:
 CONTRASEÑA INCORRECTA: La contraseña no supera la verificación de diccionario - está basada en una palabra del diccionario
-Vuelva a escribir la nueva contraseña: 
+Vuelva a escribir la nueva contraseña:
 passwd: contraseña actualizada correctamente
 ```
 
 nodo 1
+
 ```
 [root@nodo1 ~]# passwd hacluster
-Nueva contraseña: 
+Nueva contraseña:
 CONTRASEÑA INCORRECTA: La contraseña no supera la verificación de diccionario - está basada en una palabra del diccionario
-Vuelva a escribir la nueva contraseña: 
+Vuelva a escribir la nueva contraseña:
 passwd: contraseña actualizada correctamente
 ```
 
@@ -115,7 +127,7 @@ Created symlink '/etc/systemd/system/multi-user.target.wants/pcsd.service' → '
 ```bash
 [root@nodo1 ~]# pcs host auth nodo1.vpd.com nodo2.vpd.com
 Username: hacluster
-Password: 
+Password:
 nodo2.vpd.com: Authorized
 nodo1.vpd.com: Authorized
 ```
@@ -194,11 +206,11 @@ root@lq-d25:~# dnf install fence-virt fence-virtd fence-virtd-multicast fence-vi
 ```bash
 root@lq-d25:~# firewall-cmd --permanent --zone=libvirt --add-rich-rule='rule family="ipv4" source address="10.22.132.11" accept'
 success
-root@lq-d25:~# firewall-cmd --reload 
+root@lq-d25:~# firewall-cmd --reload
 success
 root@lq-d25:~# firewall-cmd --permanent --zone=libvirt --add-rich-rule='rule family="ipv4" source address="10.22.132.12" accept'
 success
-root@lq-d25:~# firewall-cmd --reload 
+root@lq-d25:~# firewall-cmd --reload
 ```
 
 Ahora:
@@ -212,7 +224,7 @@ Nota: dejamos todo porr defecto menos la interfaz, que indicaremos la de Control
 Comprobamos la configuración generada:
 
 ```
-root@lq-d25:~# cat /etc/fence_virt.conf 
+root@lq-d25:~# cat /etc/fence_virt.conf
 backends {
 	libvirt {
 		uri = "qemu:///system";
@@ -323,9 +335,9 @@ ED25519 key fingerprint is SHA256:l0osqDQASLi0i2VxG9JBdScHzGp0sydZcSEENDV8I8I.
 This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 Warning: Permanently added '10.22.132.1' (ED25519) to the list of known hosts.
-root@10.22.132.1's password: 
-fence_xvm.key                                 100%  512   404.7KB/s   00:00    
-[root@nodo1 ~]# 
+root@10.22.132.1's password:
+fence_xvm.key                                 100%  512   404.7KB/s   00:00
+[root@nodo1 ~]#
 ```
 
 En nodo2
@@ -338,8 +350,8 @@ ED25519 key fingerprint is SHA256:l0osqDQASLi0i2VxG9JBdScHzGp0sydZcSEENDV8I8I.
 This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 Warning: Permanently added '10.22.132.1' (ED25519) to the list of known hosts.
-root@10.22.132.1's password: 
-fence_xvm.key                                 100%  512   402.8KB/s   00:00 
+root@10.22.132.1's password:
+fence_xvm.key                                 100%  512   402.8KB/s   00:00
 ```
 
 Paso 2.4. Comprobar la conectividad multicast a través de la orden
@@ -382,7 +394,7 @@ orden pcs status.
 En Nodo 1:
 
 ```bash
-[root@nodo1 ~]# pcs stonith 
+[root@nodo1 ~]# pcs stonith
   * xvmfence	(stonith:fence_xvm):	 Started nodo1.vpd.com
 ```
 
@@ -412,7 +424,7 @@ Daemon Status:
 En Nodo 2:
 
 ```bash
-[root@nodo2 ~]# pcs stonith 
+[root@nodo2 ~]# pcs stonith
   * xvmfence	(stonith:fence_xvm):	 Started nodo1.vpd.com
 ```
 
@@ -470,7 +482,7 @@ EOF
 En nodo 1
 
 ```bash
-[root@nodo1 ~]# cat /etc/logrotate.d/httpd 
+[root@nodo1 ~]# cat /etc/logrotate.d/httpd
 # Note that logs are not compressed unless "compress" is configured,
 # which can be done either here or globally in /etc/logrotate.conf.
 /var/log/httpd/*log {
@@ -488,7 +500,7 @@ En nodo 1
 En nodo 2:
 
 ```
-[root@nodo2 ~]# cat /etc/logrotate.d/httpd 
+[root@nodo2 ~]# cat /etc/logrotate.d/httpd
 # Note that logs are not compressed unless "compress" is configured,
 # which can be done either here or globally in /etc/logrotate.conf.
 /var/log/httpd/*log {
@@ -498,7 +510,7 @@ En nodo 2:
     delaycompress
     postrotate
  	/usr/bin/ps -q $(/usr/bin/cat /var/run/httpd-Website.pid) >/dev/null 2>/dev/null &&
-	/usr/sbin/httpd -f /etc/httpd/conf/httpd.conf -c "PidFile /var/run/httpd-Website.pid" -k graceful > /dev/null 2>/dev/null || true       
+	/usr/sbin/httpd -f /etc/httpd/conf/httpd.conf -c "PidFile /var/run/httpd-Website.pid" -k graceful > /dev/null 2>/dev/null || true
     endscript
 }
 ```
@@ -512,7 +524,7 @@ En nodo 1:
 ```bash
 [root@nodo1 ~]# vgs --noheadings -o vg_name
   ApacheVG
-  fedora  
+  fedora
 ```
 
 En nodo 2:
@@ -521,7 +533,7 @@ En nodo 2:
 [root@nodo2 ~]# vgs --noheadings -o vg_name
   Device /dev/sdb has PVID DAj7k5iaUeN0XkIiDWgUz0DyKjUSxJTJ (devices file none)
   ApacheVG
-  fedora  
+  fedora
 ```
 
 **Paso 2**
@@ -530,9 +542,9 @@ El paso 2 consiste en indicarle a LVM qué VGs **SÍ** debe gestionar localmente
 
 Hacemos una copia de seguridad del fichero original:
 
-   ```bash
-   sudo cp /etc/lvm/lvm.conf /etc/lvm/lvm.conf.bak
-   ```
+```bash
+sudo cp /etc/lvm/lvm.conf /etc/lvm/lvm.conf.bak
+```
 
 Insertamos volume_list dentro de la sección global. Puedes hacerlo con este sed, que busca global { y añade justo después tu setting:
 
@@ -562,9 +574,9 @@ En nodo 2:
 
 Reiniciamos la máquina para que LVM aplique la nueva configuración:
 
-   ```bash
-   sudo reboot
-   ```
+```bash
+sudo reboot
+```
 
 **Paso 6**. Una vez reiniciados los nodos, verificar que los servicios de control del
 clúster se están ejecutando correctamente.
@@ -582,31 +594,33 @@ los nodos estuvieran arrancados, entonces ejecutar en todos los nodos la orden:
 
 Al arrancar de nuevo, verificamos que el clúster sigue en pie:
 
-   ```bash
-   sudo pcs cluster status || sudo pcs cluster start --all
-   ```
+```bash
+sudo pcs cluster status || sudo pcs cluster start --all
+```
 
 En nodo1:
 
 ``bash
 [root@nodo1 ~]# pcs cluster status || sudo pcs cluster start --all
 Cluster Status:
- Cluster Summary:
-   * Stack: corosync (Pacemaker is running)
-   * Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
-   * Last updated: Fri May  9 18:31:52 2025 on nodo1.vpd.com
-   * Last change:  Fri May  9 18:31:14 2025 by root via root on nodo1.vpd.com
-   * 2 nodes configured
-   * 1 resource instance configured
- Node List:
-   * Online: [ nodo1.vpd.com nodo2.vpd.com ]
+Cluster Summary:
+
+- Stack: corosync (Pacemaker is running)
+- Current DC: nodo1.vpd.com (version 2.1.9-1.fc41-7188dbf) - partition with quorum
+- Last updated: Fri May 9 18:31:52 2025 on nodo1.vpd.com
+- Last change: Fri May 9 18:31:14 2025 by root via root on nodo1.vpd.com
+- 2 nodes configured
+- 1 resource instance configured
+  Node List:
+- Online: [ nodo1.vpd.com nodo2.vpd.com ]
 
 PCSD Status:
-  nodo2.vpd.com: Online
-  nodo1.vpd.com: Online
-```
+nodo2.vpd.com: Online
+nodo1.vpd.com: Online
 
-En nodo2: 
+````
+
+En nodo2:
 
 ```bash
 [root@nodo2 ~]# pcs cluster status || sudo pcs cluster start --all
@@ -624,7 +638,7 @@ Cluster Status:
 PCSD Status:
   nodo2.vpd.com: Online
   nodo1.vpd.com: Online
-```
+````
 
 Con esto LVM solo arrancará el VG `fedora` en cada nodo y dejará `ApacheVG` sin gestionar localmente, para que Pacemaker se encargue de montarlo y desmontarlo según haga falta.
 
@@ -746,6 +760,7 @@ success
 ### 7) Validación del funcionamiento del clúster
 
 #### 7.1 Verificar asignación de IP flotante
+
 1. Identificar en qué nodo está activa la IP:
    ```bash
    sudo pcs resource show Apache_IP
@@ -765,13 +780,14 @@ Resource: Apache_IP (class=ocf provider=heartbeat type=IPaddr2)
     stop: Apache_IP-stop-interval-0s
       interval=0s timeout=20s
 ```
-   
+
 2. En el nodo activo, comprobar que la IP figura en la interfaz:
-   ```bash
-   [root@nodo2 ~]# ip addr show | grep 192.168.140.253
-    inet 192.168.140.253/24 brd 192.168.140.255 scope global secondary enp7s0
-   ```
-   
+
+```bash
+[root@nodo2 ~]# ip addr show | grep 192.168.140.253
+inet 192.168.140.253/24 brd 192.168.140.255 scope global secondary enp7s0
+```
+
 3. Si no aparece, forzar un refresh del recurso:
    ```bash
    sudo pcs resource cleanup Apache_IP
@@ -779,47 +795,51 @@ Resource: Apache_IP (class=ocf provider=heartbeat type=IPaddr2)
    ```
 
 #### 7.2 Comprobar accesibilidad HTTP desde el host
+
 1. Desde el **host anfitrión**, verifica conectividad:
+
    ```bash
    root@lq-d25:~# ping -c 3 192.168.140.253
-PING 192.168.140.253 (192.168.140.253) 56(84) bytes of data.
-64 bytes from 192.168.140.253: icmp_seq=1 ttl=64 time=0.308 ms
-64 bytes from 192.168.140.253: icmp_seq=2 ttl=64 time=0.457 ms
-64 bytes from 192.168.140.253: icmp_seq=3 ttl=64 time=0.383 ms
+   PING 192.168.140.253 (192.168.140.253) 56(84) bytes of data.
+   64 bytes from 192.168.140.253: icmp_seq=1 ttl=64 time=0.308 ms
+   64 bytes from 192.168.140.253: icmp_seq=2 ttl=64 time=0.457 ms
+   64 bytes from 192.168.140.253: icmp_seq=3 ttl=64 time=0.383 ms
 
---- 192.168.140.253 ping statistics ---
-3 packets transmitted, 3 received, 0% packet loss, time 2064ms
-rtt min/avg/max/mdev = 0.308/0.382/0.457/0.060 ms
-
+   --- 192.168.140.253 ping statistics ---
+   3 packets transmitted, 3 received, 0% packet loss, time 2064ms
+   rtt min/avg/max/mdev = 0.308/0.382/0.457/0.060 ms
    ```
 
 2. Prueba con curl:
 
-```
+```bash
 root@lq-d25:~# curl -v http://192.168.140.253
-* processing: http://192.168.140.253
-*   Trying 192.168.140.253:80...
-* Connected to 192.168.140.253 (192.168.140.253) port 80
+
+- processing: http://192.168.140.253
+- Trying 192.168.140.253:80...
+- Connected to 192.168.140.253 (192.168.140.253) port 80
 > GET / HTTP/1.1
 > Host: 192.168.140.253
 > User-Agent: curl/8.2.1
-> Accept: */*
-> 
-< HTTP/1.1 200 OK
-< Date: Fri, 09 May 2025 18:28:47 GMT
-< Server: Apache/2.4.63 (Fedora Linux)
-< Last-Modified: Thu, 08 May 2025 18:08:43 GMT
-< ETag: "3f-634a3bd73232d"
-< Accept-Ranges: bytes
-< Content-Length: 63
-< Content-Type: text/html; charset=UTF-8
-< 
+> Accept: _/_
+>
+> < HTTP/1.1 200 OK
+> < Date: Fri, 09 May 2025 18:28:47 GMT
+> < Server: Apache/2.4.63 (Fedora Linux)
+> < Last-Modified: Thu, 08 May 2025 18:08:43 GMT
+> < ETag: "3f-634a3bd73232d"
+> < Accept-Ranges: bytes
+> < Content-Length: 63
+> < Content-Type: text/html; charset=UTF-8
+> <
 <html><body>Enhorabuena: configuración correcta</body></html>
-* Connection #0 to host 192.168.140.253 left intact
+- Connection #0 to host 192.168.140.253 left intact
 ```
 
 #### 7.3 Verificar que httpd escucha en la IP flotante
+
 En el **nodo activo** (donde está la IP flotante):
+
 ```bash
 sudo ss -tlnp | grep httpd
 ```
@@ -832,25 +852,29 @@ LISTEN 0      511                *:80              *:*    users:(("httpd",pid=21
 ```
 
 #### 7.4 Revisar firewall y SELinux
+
 En el **nodo activo**:
+
 1. Verificar si el servicio HTTP está permitido:
+
    ```bash
    sudo firewall-cmd --list-services
    ```
 
    ```
    [root@nodo2 ~]# sudo firewall-cmd --list-services
-cockpit dhcpv6-client high-availability http ssh
+   cockpit dhcpv6-client high-availability http ssh
    ```
 
 2. Si no aparece `http` o `http-full`, añadirlo:
+
    ```bash
    sudo firewall-cmd --permanent --add-service=http
    sudo firewall-cmd --reload
    ```
 
 3. Comprobar booleans SELinux:
-   ```bash
+4. ```bash
    getsebool httpd_can_network_connect
    ```
    Si está `off`, habilitar:
@@ -859,7 +883,9 @@ cockpit dhcpv6-client high-availability http ssh
    ```
 
 #### 7.5 Prueba de failover
+
 1. En un terminal del **host**, aisla el nodo activo:
+
    ```bash
    sudo pcs node standby <nodo-activo>
    ```
@@ -868,7 +894,6 @@ cockpit dhcpv6-client high-availability http ssh
    [root@nodo2 ~]# sudo pcs node standby nodo2.vpd.com
    ```
 
-   
 2. Desde el host, vuelve a ejecutar:
    ```bash
    curl -v http://192.168.122.253/
@@ -884,7 +909,7 @@ root@lq-d25:~# curl -v http://192.168.140.253
 > Host: 192.168.140.253
 > User-Agent: curl/8.2.1
 > Accept: */*
-> 
+>
 < HTTP/1.1 200 OK
 < Date: Fri, 09 May 2025 18:31:48 GMT
 < Server: Apache/2.4.63 (Fedora Linux)
@@ -893,7 +918,7 @@ root@lq-d25:~# curl -v http://192.168.140.253
 < Accept-Ranges: bytes
 < Content-Length: 63
 < Content-Type: text/html; charset=UTF-8
-< 
+<
 <html><body>Enhorabuena: configuración correcta</body></html>
 * Connection #0 to host 192.168.140.253 left intact
 ```

@@ -431,8 +431,6 @@ En la MV hacemos:
 
 ```bash
 root@bond:~# iperf3 -c 192.168.122.1 -t 30
-iperf3: error - unable to connect to server - server may have stopped running or use a different port, firewall issue, etc.: Connection refused
-root@bond:~# iperf3 -c 192.168.122.1 -t 30
 Connecting to host 192.168.122.1, port 5201
 [  5] local 192.168.122.57 port 35384 connected to 192.168.122.1 port 5201
 [ ID] Interval           Transfer     Bitrate         Retr  Cwnd
@@ -472,6 +470,14 @@ Connecting to host 192.168.122.1, port 5201
 [  5]   0.00-30.00  sec  71.3 GBytes  20.4 Gbits/sec                  receiver
 
 iperf Done.
+```
+
+Ahora vamos a probar con una sola interfaz
+
+```bash
+root@bond:~# nmcli connection modify bond0 bond.options "mode=active-backup,miimon=100"
+root@bond:~# nmcli connection down bond0
+root@bond:~# nmcli connection up bond0
 ```
 
 ## Tarea 3. Validación

@@ -20,6 +20,7 @@
     - [Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)](#práctica-6-almacenamiento-distribuido-almacenamiento-iscsi)
     - [Práctica 7: Diseño y despliegue de un clúster básico](#práctica-7-diseño-y-despliegue-de-un-clúster-básico)
     - [Práctica 8 : Trabajo optativo](#práctica-8--trabajo-optativo)
+  - [Seguridad en Sistemas Anfitriones KVM](#seguridad-en-sistemas-anfitriones-kvm)
   - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
   - [Recursos Adicionales](#recursos-adicionales)
   - [Documentación de Firewalld](#documentación-de-firewalld)
@@ -406,6 +407,27 @@ Próximamente...
 ### Práctica 8 : Trabajo optativo
 
 Próximamente...
+
+## Seguridad en Sistemas Anfitriones KVM
+
+El documento [Principios básicos de seguridad en sistemas anfitriones KVM Red Hat](Tema_0_1_Principios_basicos_de_seguridad%20en_sistemas_anfitriones_KVM_Red_Hat.md) proporciona las directrices fundamentales para garantizar entornos virtualizados seguros, abordando:
+
+- **Recomendaciones generales de seguridad**: Configuración adecuada de SELinux, activación de cortafuegos, gestión de usuarios y políticas de almacenamiento seguro de imágenes.
+
+- **SELinux y virtualización**: Implementación del mecanismo sVirt para aislar las máquinas virtuales entre sí y del sistema anfitrión:
+
+  - Control de acceso basado en tipo (Type Enforcement - TE)
+  - Seguridad Multinivel (Multi-Level Security - MLS)
+  - Etiquetas sVirt asignadas dinámicamente (contextos como `svirt_t`, `svirt_image_t`)
+  - Variables booleanas clave (`virt_use_nfs`, `virt_use_samba`, etc.)
+
+- **Configuración de cortafuegos**: Puertos y servicios esenciales para el funcionamiento de entornos KVM:
+  - Puerto 22 (SSH) para administración remota
+  - Puertos 5634-6166 para consolas SPICE
+  - Puertos 49152-49216 para migraciones de máquinas virtuales
+  - Habilitación de IP forwarding para bridges virtuales
+
+Este modelo de seguridad en capas (SELinux + cortafuegos) mitiga los riesgos específicos de la virtualización, como el escape de máquinas virtuales o los ataques entre VMs, manteniendo la flexibilidad necesaria para entornos de producción.
 
 ## Herramientas y Tecnologías
 

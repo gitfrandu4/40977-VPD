@@ -209,7 +209,7 @@ Los dispositivos de almacenamiento utilizados por las MVs pueden ser:
   - Asociadas a controladoras emuladas.
 - Unidades físicas (discos o particiones de disco) de almacenamiento del sistema anfitrión. 
 - Volúmenes lógicos (LVM) definidos en el sistema anfitrión.
-- Vólumenes de almacenamiento proporcionados por sistemas de almacenamiento en red (NFS, iSCSI, etc.).
+- Volúmenes de almacenamiento proporcionados por sistemas de almacenamiento en red (NFS, iSCSI, etc.).
 
 ---
 

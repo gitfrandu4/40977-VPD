@@ -20,6 +20,7 @@
     - [Práctica 6: Almacenamiento distribuido (almacenamiento iSCSI)](#práctica-6-almacenamiento-distribuido-almacenamiento-iscsi)
     - [Práctica 7: Diseño y despliegue de un clúster básico](#práctica-7-diseño-y-despliegue-de-un-clúster-básico)
     - [Práctica 8 : Trabajo optativo](#práctica-8--trabajo-optativo)
+      - [Trabajo 8.1: Implementación de Agregación de Enlaces (Network Bonding)](#trabajo-81-implementación-de-agregación-de-enlaces-network-bonding)
   - [Seguridad en Sistemas Anfitriones KVM](#seguridad-en-sistemas-anfitriones-kvm)
   - [Herramientas y Tecnologías](#herramientas-y-tecnologías)
   - [Recursos Adicionales](#recursos-adicionales)
@@ -406,7 +407,74 @@ Próximamente...
 
 ### Práctica 8 : Trabajo optativo
 
-Próximamente...
+La práctica 8 constituye un espacio para el desarrollo de trabajos optativos que profundizan en tecnologías específicas relacionadas con la virtualización y el procesamiento distribuido. Estos trabajos permiten aplicar los conocimientos adquiridos en un contexto más especializado y autónomo.
+
+#### Trabajo 8.1: Implementación de Agregación de Enlaces (Network Bonding)
+
+**Descripción:** Implementación y validación de la tecnología de agregación de enlaces de red (Network Bonding) en entornos virtualizados KVM, evaluando diferentes modos de operación y analizando su comportamiento en términos de disponibilidad y rendimiento.
+
+**Logros principales:**
+
+- Creación de una infraestructura virtualizada con múltiples interfaces de red para pruebas de agregación
+- Configuración y validación del modo active-backup para escenarios de alta disponibilidad
+- Implementación del modo balance-rr para distribución de carga entre múltiples interfaces
+- Evaluación comparativa del rendimiento utilizando iperf3 y análisis de los resultados obtenidos
+- Documentación de soluciones a problemas comunes en la implementación de bonding en entornos virtuales
+
+**Aspectos técnicos:**
+
+- **Módulo del kernel**: La implementación utiliza el módulo `bonding` nativo de Linux, responsable de la gestión de interfaces agregadas
+- **Modos implementados**:
+  - **Mode 1 (active-backup)**: Una interfaz permanece activa mientras las demás están en espera. Proporciona redundancia con tiempo de conmutación inferior a 100ms
+  - **Mode 0 (balance-rr)**: Distribución Round-Robin de paquetes entre todas las interfaces. Teóricamente incrementa el ancho de banda agregado
+- **Monitorización de enlaces**: Uso del parámetro `miimon=100` para detectar fallos en interfaces cada 100ms
+- **Resultados de rendimiento**: Análisis comparativo muestra un rendimiento de 23.7 Gbits/sec en modo active-backup vs 20.6 Gbits/sec en modo balance-rr en el entorno virtualizado
+
+**Comandos principales:**
+
+```bash
+# Crear máquina virtual con tres interfaces
+virt-install --name Bond --vcpus 1 --memory 2048 --disk size=10 \
+  --network network=default,model=virtio \
+  --network network=default,model=virtio \
+  --network network=default,model=virtio
+
+# Carga del módulo bonding
+modprobe bonding
+echo "bonding" > /etc/modules-load.d/bonding.conf
+
+# Crear interfaz bond con NetworkManager
+nmcli connection add type bond con-name bond0 ifname bond0 \
+  bond.options "mode=active-backup,miimon=100"
+
+# Agregar interfaces al bond
+nmcli connection add type ethernet port-type bond controller bond0 \
+  con-name enp1s0-port ifname enp1s0
+
+# Cambiar modo de operación
+nmcli connection modify bond0 bond.options "mode=balance-rr,miimon=100"
+nmcli connection down bond0 && nmcli connection up bond0
+
+# Verificar configuración
+cat /proc/net/bonding/bond0
+
+# Simular fallo para prueba de alta disponibilidad
+ip link set enp1s0 down
+
+# Pruebas de rendimiento
+iperf3 -c 192.168.122.1 -P 3 -t 30
+```
+
+**Conceptos clave:**
+
+- Redundancia y tolerancia a fallos en infraestructuras de red virtualizadas
+- Algoritmos de distribución de carga en múltiples interfaces
+- Monitorización y recuperación automática ante fallos de enlace
+- Consideraciones específicas para implementaciones de bonding en entornos KVM
+
+**Recursos:**
+
+- [Documentación completa](P8_Trabajo_optativo/p8_1.md)
 
 ## Seguridad en Sistemas Anfitriones KVM
 

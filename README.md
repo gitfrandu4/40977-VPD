@@ -8,9 +8,9 @@
     - [1. Fundamentos y tecnologías de virtualización](#1-fundamentos-y-tecnologías-de-virtualización)
       - [Tema 1.1: Fundamentos y tecnologías de virtualización](#tema-11-fundamentos-y-tecnologías-de-virtualización)
       - [Tema 1.2: El sistema anfitrión y anatomía de la máquina virtual en KVM](#tema-12-el-sistema-anfitrión-y-anatomía-de-la-máquina-virtual-en-kvm)
-    - [2. Infraestructuras y protocolos de comunicación para procesamiento distribuido](#2-infraestructuras-y-protocolos-de-comunicación-para-procesamiento-distribuido)
-    - [3. Tecnologías para el almacenamiento distribuido en los sistemas de información](#3-tecnologías-para-el-almacenamiento-distribuido-en-los-sistemas-de-información)
-    - [4. Tecnologías para el procesamiento distribuido en los sistemas de información](#4-tecnologías-para-el-procesamiento-distribuido-en-los-sistemas-de-información)
+    - [2. Recursos Almacenamiento Virtual KVM](#2-recursos-almacenamiento-virtual-kvm)
+    - [3. WIP](#3-wip)
+    - [4. WIP](#4-wip)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
     - [Práctica 2: Operaciones con máquinas virtuales](#práctica-2-operaciones-con-máquinas-virtuales)
@@ -102,11 +102,93 @@ Este tema se centra en la arquitectura y funcionamiento de KVM, cubriendo:
 
 El dominio de estos conceptos resulta fundamental para la correcta implementación y administración de las prácticas basadas en KVM que se desarrollan en la asignatura.
 
-### 2. Infraestructuras y protocolos de comunicación para procesamiento distribuido
+### 2. Recursos Almacenamiento Virtual KVM
 
-### 3. Tecnologías para el almacenamiento distribuido en los sistemas de información
+Este módulo aborda la gestión de almacenamiento virtual en entornos KVM, fundamentado en dos conceptos principales:
 
-### 4. Tecnologías para el procesamiento distribuido en los sistemas de información
+- **Contenedores de almacenamiento (storage pools)**: Abstracción de un espacio de almacenamiento en el que se crean volúmenes virtuales. Pueden implementarse sobre diferentes tecnologías:
+
+  - Directorios del sistema de archivos (`dir`)
+  - Sistemas de archivos (`fs`): ext4, xfs, btrfs, etc.
+  - Volúmenes lógicos LVM (`logical`)
+  - Sistemas de archivos de red NFS (`netfs`)
+  - Discos físicos (`disk`)
+  - Unidades iSCSI (`iscsi`)
+  - Dispositivos SCSI (`scsi`)
+
+- **Volúmenes**: Unidades de almacenamiento creadas dentro de un contenedor que se asignan a las máquinas virtuales como discos virtuales.
+
+**Ciclo de vida de un contenedor de almacenamiento**:
+
+1. Definición (mediante XML o parámetros)
+2. Creación de la estructura física
+3. Puesta en marcha (activación)
+4. Monitorización y uso
+5. Eliminación cuando ya no se necesita
+
+**Cheatsheet de comandos de almacenamiento KVM**:
+
+```bash
+# === GESTIÓN DE CONTENEDORES (STORAGE POOLS) ===
+
+# Definir un contenedor
+virsh pool-define-as nombre_pool tipo [opciones]
+virsh pool-define-as virtimages dir --target /var/lib/libvirt/images
+virsh pool-define-as datadisk fs --source-dev /dev/sdb1 --target /mnt/data
+virsh pool-define-as nfsstorage netfs --source-host nfs.server --source-path /exports --target /mnt/nfs
+
+# Construir la estructura física del contenedor
+virsh pool-build nombre_pool
+
+# Iniciar y configurar autoarranque
+virsh pool-start nombre_pool
+virsh pool-autostart nombre_pool
+
+# Listar contenedores y ver información
+virsh pool-list --all --details
+virsh pool-info nombre_pool
+virsh pool-dumpxml nombre_pool
+
+# Detener y eliminar contenedor
+virsh pool-destroy nombre_pool    # Desactiva el pool
+virsh pool-delete nombre_pool     # Elimina la estructura física
+virsh pool-undefine nombre_pool   # Elimina la definición
+
+# === GESTIÓN DE VOLÚMENES ===
+
+# Crear volúmenes
+virsh vol-create-as nombre_pool nombre_vol 10G --format qcow2
+dd if=/dev/zero of=/ruta/al/volumen.img bs=1M count=4096
+
+# Listar y ver información de volúmenes
+virsh vol-list nombre_pool
+virsh vol-info nombre_vol --pool nombre_pool
+virsh vol-dumpxml nombre_vol --pool nombre_pool
+
+# Clonar volúmenes
+virsh vol-clone --pool nombre_pool vol_origen vol_destino
+
+# Eliminar volúmenes
+virsh vol-delete nombre_vol --pool nombre_pool
+
+# === CONECTAR ALMACENAMIENTO A MÁQUINAS VIRTUALES ===
+
+# Conectar volumen/disco a VM (método directo)
+virsh attach-disk nombre_vm /ruta/archivo.img vdb --config
+virsh attach-disk nombre_vm /dev/sdc vdc --config
+
+# Conectar volumen/disco a VM (mediante XML)
+virsh attach-device --config nombre_vm archivo_definicion.xml
+
+# Listar discos de una VM
+virsh domblklist nombre_vm --details
+```
+
+Los aspectos fundamentales de este módulo incluyen la comprensión de los diferentes tipos de almacenamiento disponibles, el ciclo de vida completo de los recursos de almacenamiento, y cómo estos recursos pueden ser integrados en las máquinas virtuales para proporcionar diferentes funcionalidades como discos adicionales, acceso a medios extraíbles o almacenamiento compartido.
+
+### 3. WIP
+
+### 4. WIP
 
 ## Prácticas
 

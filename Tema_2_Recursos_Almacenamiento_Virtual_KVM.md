@@ -19,6 +19,13 @@
     - [2.2.4. Eliminación del contenedor de almacenamiento](#224-eliminación-del-contenedor-de-almacenamiento)
     - [2.2.5. Monitorización del contenedor de almacenamiento](#225-monitorización-del-contenedor-de-almacenamiento)
   - [2.3. Manejo de volúmenes](#23-manejo-de-volúmenes)
+    - [Creación de volúmenes en contenedores](#creación-de-volúmenes-en-contenedores)
+    - [Creación de volúmenes manualmente en contenedores](#creación-de-volúmenes-manualmente-en-contenedores)
+    - [Obtener información de volúmenes ubicados en un contenedor](#obtener-información-de-volúmenes-ubicados-en-un-contenedor)
+    - [Clonar volúmenes ubicados en contenedores basados en disco](#clonar-volúmenes-ubicados-en-contenedores-basados-en-disco)
+    - [Añadir un Volumen Virtual de almacenamiento a una MV](#añadir-un-volumen-virtual-de-almacenamiento-a-una-mv)
+    - [Añadir un Dispositivo Físico de bloque (disco duro, CDROM, DVD) a una MV](#añadir-un-dispositivo-físico-de-bloque-disco-duro-cdrom-dvd-a-una-mv)
+    - [Eliminar un volumen de almacenamiento](#eliminar-un-volumen-de-almacenamiento)
 
 ## 2.1. Objetivos
 
@@ -357,7 +364,6 @@ virsh pool-delete virtimages    # Elimina el contenedor
 virsh pool-undefine virtimages  # Elimina la definición del contenedor
 ```
 
-
 ### 2.2.5. Monitorización del contenedor de almacenamiento
 
 ```bash
@@ -375,3 +381,188 @@ virsh pool-dumpxml container_name # Muestra la configuración de un contenedor d
 Obtener la configuración de un contenedor específico:
 
 ## 2.3. Manejo de volúmenes
+
+### Creación de volúmenes en contenedores
+
+Formato de la orden:
+
+```bash
+virsh vol-create-as container_name vol_name size_in_bytes
+```
+
+Dónde:
+
+- `container_name`: Nombre del contenedor de almacenamiento.
+- `vol_name`: Nombre del volumen.
+- `size_in_bytes`: Tamaño del volumen en bytes.
+
+Por ejemplo:
+
+```bash
+virsh vol-create-as virtimages volumen1 10G
+virsh vol-create-as virtimages volumen2 10G --format qcow2
+```
+
+### Creación de volúmenes manualmente en contenedores 
+
+```bash
+dd if=/dev/zero of=/Mi_Contenedor/profeslab33.img bs=1M count=4096
+```
+
+Donde:
+
+- `if`: Dispositivo de origen.
+- `of`: Dispositivo de destino.
+- `bs`: Tamaño del bloque.
+- `count`: Número de bloques.
+
+Alternativamente:
+
+```bash
+dd if=/dev/zero of=/Mi_Contenedor/profeslab33.img bs=1M count=0 seek=4096
+```
+
+Nota: habría que añadir los atributos de SELinux correspondientes.
+
+### Obtener información de volúmenes ubicados en un contenedor
+
+```bash
+virsh vol-list container_name
+```
+
+Ejemplo:
+
+```bash
+virsh vol-list virtimages
+```
+
+### Clonar volúmenes ubicados en contenedores basados en disco
+
+```bash
+virsh vol-clone --pool pool_name vol_name new_vol_name
+```
+
+Ejemplo:
+
+```bash
+virsh vol-clone --pool virtimages volumen1 volumen2
+```
+
+### Añadir un Volumen Virtual de almacenamiento a una MV
+
+- **Paso 1. Crear el volumen**
+
+- **Paso 2. Generar el archivo XMLque describe el disco virtual**
+
+DISCO_VIRTUAL.xml
+
+```xml
+<disktype='file' device='disk'>
+  <driver name='qemu' type='raw' cache='none'/>
+  <source file='/Mi_Contenedor/profeslab33.img'/>
+  <target dev='vdb'/>
+</disk>
+```
+
+CDROM_VIRTUAL.xml
+
+```xml
+<disk type='file' device='cdrom'>
+  <driver name='qemu' type='raw' cache='none'/>
+  <source file='/ImagnesDistroISO/centos/CentOS-6.4-x86_64-bin-DVD1.iso'/>
+  <target dev='vdb'/>
+</disk>
+```
+
+**Paso 3. Conectar dispositivos a la MV**
+
+```bash
+virsh attach-device --config profeslab33 ~/Disco_Virtual.xml
+virsh attach-device --config profeslab33 ~/CDROM_Virtual.xml
+```
+
+Una vez conectado el nuevo volumen, para utilizarlo:
+
+- Arrancar la MV
+
+```bash
+virsh start profeslab33
+```
+
+- Desde la máquina virtual (profeslab33) particionar disco duro
+
+```bash
+fdisk /dev/vdb
+```
+
+- Desde la máquina virtual (profeslab33) crear un sistema de archivos
+
+```bash
+mkfs –ext3 /dev/vdb1
+```
+
+- Desde la máquina virtual (profeslab33) montar el sistema de archivos
+
+```bash
+mount /dev/vdb1 /VDB1
+```
+
+**Alternativa a los pasos 2 y 3 anteriores**
+
+```bash
+virsh attach-device-as profeslab33 \
+    /Mi_Contenedor/profeslab33.img \
+    vdb \
+    --targetbus virtio \
+    --config
+```
+
+Dónde:
+
+- `profeslab33`: Nombre de la máquina virtual.
+- `/Mi_Contenedor/profeslab33.img`: Ruta al volumen.
+- `vdb`: Dispositivo de destino.
+- `--targetbus`: Tipo de bus.
+- `--config`: Configurar la máquina virtual.
+
+### Añadir un Dispositivo Físico de bloque (disco duro, CDROM, DVD) a una MV
+
+Los pasos serían análogos al caso anterior, teniendo en cuenta que:
+
+- El paso 1 del caso anterior no sería necesario.
+- El archivo XML que describe al volumen físico sería distinto. Por ejemplo, si se quisiera añadir el disco del sistema anfitrión /dev/sdc:
+
+Disco_Fisico.xml
+
+```xml
+<disk type='block' device='disk'>
+  <driver name='qemu' type='raw' cache='none'/>
+  <source dev='/dev/sdc'/>
+  <target dev='vdc'/>
+</disk>
+```
+
+Alternativamente:
+
+```bash
+virsh attach-disk profeslab33 /dev/scd vdc --config
+```
+
+Dónde:
+
+- `profeslab33`: Nombre de la máquina virtual.
+- `/dev/sdc`: Dispositivo de origen.
+- `vdc`: Dispositivo de destino.
+- `--config`: Configurar la máquina virtual.
+
+### Eliminar un volumen de almacenamiento
+
+```bash
+virsh vol-delete container_name vol_name
+```
+
+Ejemplo:
+
+```bash
+virsh vol-delete virtimages volumen1
+```

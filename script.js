@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const startTestP3Button = document.getElementById('start-test-p3');
   const startTestP4Button = document.getElementById('start-test-p4');
   const startTestP5Button = document.getElementById('start-test-p5');
+  const startTestP6Button = document.getElementById('start-test-p6');
   const startTestT1Button = document.getElementById('start-test-t1');
   const startTestT2Button = document.getElementById('start-test-t2');
   const startTestT3Button = document.getElementById('start-test-t3');
@@ -686,6 +687,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (startTestP5Button) {
     startTestP5Button.addEventListener('click', function () {
+      const testFile = this.dataset.testfile;
+      const testName = this.querySelector('h3').textContent;
+      fetchQuestions(testFile, testName);
+    });
+  }
+
+  if (startTestP6Button) {
+    startTestP6Button.addEventListener('click', function () {
       const testFile = this.dataset.testfile;
       const testName = this.querySelector('h3').textContent;
       fetchQuestions(testFile, testName);

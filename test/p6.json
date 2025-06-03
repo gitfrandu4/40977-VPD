@@ -1,0 +1,197 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "Al clonar `mvp1` para crear `mvp5` usando `virt-clone --mac=00:16:3e:37:a0:05`, si se omite la opción `--mac`, ¿qué mecanismo utiliza libvirt para asignar una MAC y por qué es esto preferible a que la VM clonada herede la MAC de la original?",
+    "options": {
+      "a": "Libvirt reutiliza la MAC de la VM original, pero la modifica ligeramente. Es preferible para mantener la consistencia de la red.",
+      "b": "Libvirt genera una dirección MAC aleatoria única, típicamente usando el prefijo OUI 52:54:00. Esto es crucial para evitar conflictos de direcciones MAC en la Capa 2 si ambas VMs operan en la misma red, lo que causaría problemas de comunicación.",
+      "c": "La VM clonada no recibe una dirección MAC hasta que se configura manualmente dentro del SO invitado.",
+      "d": "Se asigna una MAC basada en el UUID de la nueva VM, garantizando unicidad solo dentro del host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Libvirt genera una dirección MAC aleatoria única, típicamente usando el prefijo OUI 52:54:00. Esto es crucial para evitar conflictos de direcciones MAC en la Capa 2 si ambas VMs operan en la misma red, lo que causaría problemas de comunicación.",
+    "question_explanation": "La Tarea 3.1.1 enfatiza la necesidad de una MAC única. Si `--mac` se omite, libvirt genera una MAC aleatoria. El prefijo 52:54:00 es un OUI comúnmente usado por QEMU/KVM para MACs generadas dinámicamente. Heredar la MAC original causaría un conflicto directo si ambas VMs están en la misma red (virtual o física), ya que las MACs deben ser únicas en un dominio de broadcast."
+  },
+  {
+    "question_number": 2,
+    "question_text": "Después de ejecutar `virsh detach-interface mvp5 network --mac <MAC_ADDR> --config`, ¿cuál es el estado de la conectividad de red de `mvp5` y por qué es fundamental configurar la consola serie inmediatamente después?",
+    "options": {
+      "a": "La VM mantiene su conectividad a través de una interfaz de fallback; la consola serie es solo para diagnóstico avanzado.",
+      "b": "La VM pierde toda conectividad de red asociada a esa MAC. Sin acceso por red, la consola serie (Tarea 3.1.2) se vuelve el único medio para acceder a la VM y reconfigurar sus interfaces de red o realizar otras tareas administrativas.",
+      "c": "La VM conmuta a una red aislada automáticamente; la consola serie ayuda a configurar la IP estática.",
+      "d": "El comando solo elimina la interfaz de la configuración persistente; la conectividad se mantiene hasta el reinicio. La consola serie es para el próximo arranque."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La VM pierde toda conectividad de red asociada a esa MAC. Sin acceso por red, la consola serie (Tarea 3.1.2) se vuelve el único medio para acceder a la VM y reconfigurar sus interfaces de red o realizar otras tareas administrativas.",
+    "question_explanation": "La Tarea 3.1.1, paso 5, elimina la interfaz de red. La nota subsiguiente indica: 'Al eliminar la interfaz de red, la máquina virtual quedará sin conectividad. Para acceder a ella y continuar con la configuración, es imprescindible configurar la consola serie...'. La consola serie (TTY) proporciona un acceso de bajo nivel independiente de la pila de red de la VM."
+  },
+  {
+    "question_number": 3,
+    "question_text": "En la configuración de GRUB para la consola serie (Tarea 3.1.2), se añade `console=ttyS0` a `GRUB_CMDLINE_LINUX`. ¿Qué representa `ttyS0` en el contexto de una máquina virtual KVM y qué dispositivo emulado por QEMU corresponde a esta designación?",
+    "options": {
+      "a": "`ttyS0` es una interfaz de red virtual de alta velocidad. Corresponde a un dispositivo `virtio-net`.",
+      "b": "`ttyS0` representa el primer puerto serie virtual de la VM. QEMU emula un puerto serie compatible (usualmente con el estándar 16550A UART) al cual el kernel invitado puede enviar su salida de consola y aceptar entrada.",
+      "c": "`ttyS0` es un display gráfico virtual. Corresponde a un dispositivo `QXL` o `VGA` emulado.",
+      "d": "`ttyS0` se refiere al primer disco duro virtual (`vda` o `sda`). Corresponde a un dispositivo `virtio-blk`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`ttyS0` representa el primer puerto serie virtual de la VM. QEMU emula un puerto serie compatible (usualmente con el estándar 16550A UART) al cual el kernel invitado puede enviar su salida de consola y aceptar entrada.",
+    "question_explanation": "`ttyS0` es la designación estándar en Linux para el primer puerto serie (COM1 en terminología DOS/Windows). En KVM, QEMU emula este puerto serie y libvirt lo conecta a un backend en el host (como un PTY), permitiendo que `virsh console` acceda a él. La VM ve un dispositivo serie estándar."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Al definir una red NAT (\"Cluster\") con `<forward mode='nat'/>` y una IP para el bridge como `<ip address='192.168.140.1' netmask='255.255.255.0'>`, ¿cuál es el rol principal de la dirección IP `192.168.140.1` para las VMs en la red `192.168.140.0/24`?",
+    "options": {
+      "a": "Es la dirección de broadcast de la subred.",
+      "b": "Es la dirección IP que se asignará a la primera VM que se conecte.",
+      "c": "Actúa como la dirección de la puerta de enlace (default gateway) y a menudo como servidor DNS (a través de dnsmasq) para las VMs en la subred `192.168.140.0/24`.",
+      "d": "Es una dirección IP reservada que no puede ser utilizada por ninguna VM ni por el host."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Actúa como la dirección de la puerta de enlace (default gateway) y a menudo como servidor DNS (a través de dnsmasq) para las VMs en la subred `192.168.140.0/24`.",
+    "question_explanation": "En la Tarea 3.2, se define la red \"Cluster\" con esta IP para el bridge `virbr1`. Cuando las VMs obtienen su configuración IP por DHCP (como se ve en Tarea 3.3, paso 9), esta dirección del bridge se les entrega como su gateway por defecto (para alcanzar redes externas) y como su servidor DNS (ya que dnsmasq, gestionado por libvirt, provee ambos servicios en esta IP)."
+  },
+  {
+    "question_number": 5,
+    "question_text": "El comando `virsh attach-interface mvp5 network Cluster --model virtio --config` se usa para añadir una NIC. Si el sistema operativo invitado en `mvp5` no tuviera los drivers `virtio-net` preinstalados o cargados, ¿cuál sería el comportamiento de esta nueva interfaz de red dentro de la VM?",
+    "options": {
+      "a": "La interfaz funcionaría con un rendimiento reducido utilizando un driver genérico emulado.",
+      "b": "El sistema operativo invitado no detectaría el dispositivo de red o lo detectaría como un dispositivo desconocido, y la interfaz no sería funcional hasta que se instalen los drivers `virtio-net` adecuados.",
+      "c": "Libvirt automáticamente cambiaría el modelo a `e1000` para asegurar la compatibilidad.",
+      "d": "La máquina virtual fallaría al arrancar debido a una incompatibilidad de hardware."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El sistema operativo invitado no detectaría el dispositivo de red o lo detectaría como un dispositivo desconocido, y la interfaz no sería funcional hasta que se instalen los drivers `virtio-net` adecuados.",
+    "question_explanation": "Los dispositivos paravirtualizados VirtIO (como `virtio-net`) requieren drivers específicos en el sistema operativo invitado. Si estos drivers no están presentes, el SO invitado no sabrá cómo interactuar con el hardware virtual `virtio-net` presentado por el hipervisor. La mayoría de las distribuciones Linux modernas incluyen estos drivers, pero sistemas operativos más antiguos o algunos Windows podrían necesitarlos instalados manualmente."
+  },
+  {
+    "question_number": 6,
+    "question_text": "En la Tarea 3.4, se crea la red aislada \"Almacenamiento\" omitiendo deliberadamente la sección `<dhcp>` en su XML. ¿Qué implicación directa tiene esta omisión para las VMs que se conecten a esta red?",
+    "options": {
+      "a": "Las VMs recurrirán a un servidor DHCP global en la LAN física del host.",
+      "b": "Libvirt automáticamente asignará direcciones APIPA (169.254.x.x) a las VMs.",
+      "c": "Las VMs no podrán obtener una configuración de dirección IP automáticamente para esta interfaz. Deberán ser configuradas con direcciones IP estáticas manualmente dentro de cada VM para poder comunicarse en esta red.",
+      "d": "La red será completamente no funcional y las VMs no podrán conectarse a ella."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Las VMs no podrán obtener una configuración de dirección IP automáticamente para esta interfaz. Deberán ser configuradas con direcciones IP estáticas manualmente dentro de cada VM para poder comunicarse en esta red.",
+    "question_explanation": "La sección `<dhcp>` en el XML de la red instruye a libvirt para que configure `dnsmasq` como servidor DHCP para esa red virtual. Si se omite, no habrá servidor DHCP en esa red virtual. Por lo tanto, las VMs (como `mvp5` en Tarea 3.5) necesitarán que sus interfaces conectadas a esta red sean configuradas con IPs estáticas."
+  },
+  {
+    "question_number": 7,
+    "question_text": "Para configurar una IP estática en `mvp5` para la interfaz `enp7s0` conectada a la red \"Almacenamiento\", se usa `nmcli connection add ... ipv4.method manual ipv4.addresses 10.22.122.2/24`. Si esta interfaz también necesitara un gateway específico para esta subred (aunque en una red aislada no es común para acceso externo), ¿cómo se añadiría con `nmcli`?",
+    "options": {
+      "a": "Añadiendo `ipv4.gateway auto` al comando `nmcli connection add`.",
+      "b": "No es posible añadir un gateway a una interfaz con IP manual usando `nmcli`.",
+      "c": "Modificando la conexión existente con `nmcli connection modify Almacenamiento ipv4.gateway 10.22.122.1` (asumiendo que 10.22.122.1 es el gateway) y luego reactivando la conexión.",
+      "d": "Añadiendo una ruta estática con `ip route add default via 10.22.122.1 dev enp7s0`."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Modificando la conexión existente con `nmcli connection modify Almacenamiento ipv4.gateway 10.22.122.1` (asumiendo que 10.22.122.1 es el gateway) y luego reactivando la conexión.",
+    "question_explanation": "Mientras que `ip route add` (opción d) añade una ruta, la forma de hacerlo persistentemente con NetworkManager es configurando la propiedad `ipv4.gateway` del perfil de conexión. Esto se puede hacer al crear la conexión o modificándola después con `nmcli connection modify <con-name> ipv4.gateway <ip_gateway>`. Luego se debe reactivar la conexión (`nmcli con down <con-name>; nmcli con up <con-name>`) para aplicar el cambio."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Al crear un bridge de host `bridge0` y añadirle la NIC física `enp6s0`, la salida de `ip addr show bridge0` muestra una dirección IP (ej. `10.140.92.125/24`) obtenida dinámicamente. ¿De dónde proviene esta IP y qué implicaciones tiene para el host y las VMs conectadas a `bridge0`?",
+    "options": {
+      "a": "Libvirt asigna esta IP desde un pool interno. Las VMs en `bridge0` usarán esta IP como gateway.",
+      "b": "El bridge `bridge0` hereda la configuración de red que tenía la interfaz física `enp6s0` o solicita una nueva concesión DHCP al servidor DHCP de la LAN física. El host usará esta IP para comunicarse en la LAN física a través de `bridge0`. Las VMs conectadas a `bridge0` también solicitarán IPs al DHCP de la LAN física.",
+      "c": "Es una IP virtual usada solo para la comunicación entre el host y el bridge; no es visible en la LAN física.",
+      "d": "Esta IP es siempre la misma que la de la interfaz `virbr0` para mantener la consistencia."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El bridge `bridge0` hereda la configuración de red que tenía la interfaz física `enp6s0` o solicita una nueva concesión DHCP al servidor DHCP de la LAN física. El host usará esta IP para comunicarse en la LAN física a través de `bridge0`. Las VMs conectadas a `bridge0` también solicitarán IPs al DHCP de la LAN física.",
+    "question_explanation": "Tarea 3.6, paso 6. Cuando `enp6s0` se añade al bridge `bridge0`, la configuración IP se transfiere (o se renegocia por DHCP) al bridge. El bridge `bridge0` se convierte en la interfaz del host en esa LAN. Las VMs conectadas a `bridge0` también actuarán como clientes DHCP en esa misma LAN física, obteniendo sus propias IPs."
+  },
+  {
+    "question_number": 9,
+    "question_text": "En la salida de `virsh domiflist mvp5`, se ven interfaces como `vnet18`, `vnet19`, `vnet20`. ¿Qué representa el nombre `vnetX` en el sistema operativo anfitrión KVM?",
+    "options": {
+      "a": "Son los nombres de las interfaces de red dentro de la máquina virtual `mvp5` (ej. `eth0`, `eth1`).",
+      "b": "Son nombres de VLANs asociadas a cada interfaz virtual de la VM.",
+      "c": "Son los nombres de las interfaces `tap` creadas en el sistema anfitrión por QEMU/libvirt, cada una correspondiente a una NIC virtual de la VM `mvp5`. Estas interfaces `vnetX` son las que se conectan a los bridges virtuales (`virbrX` o `bridge0`).",
+      "d": "Son los nombres de los switches virtuales a los que están conectadas las interfaces de la VM."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Son los nombres de las interfaces `tap` creadas en el sistema anfitrión por QEMU/libvirt, cada una correspondiente a una NIC virtual de la VM `mvp5`. Estas interfaces `vnetX` son las que se conectan a los bridges virtuales (`virbrX` o `bridge0`).",
+    "question_explanation": "Tarea 3.6, paso 13. Cuando libvirt conecta una NIC virtual de una VM a una red virtual o un bridge de host, crea una interfaz `tap` en el host. Esta interfaz `tap` es nombrada por el kernel como `vnetX` (donde X es un número secuencial). Este es el 'otro extremo' del cable virtual conectado a la VM."
+  },
+  {
+    "question_number": 10,
+    "question_text": "Al analizar las reglas de `iptables -t nat -L POSTROUTING` en el host, se ven reglas `MASQUERADE` para la red `192.168.140.0/24` (red \"Cluster\") pero no para la red `10.140.92.0/24` (a la que está conectada la interfaz `bridge0`). ¿Por qué esta diferencia es fundamental para cómo las VMs en estas redes acceden a Internet?",
+    "options": {
+      "a": "Significa que la red \"Cluster\" tiene una seguridad más débil que la red del `bridge0`.",
+      "b": "Indica que las VMs en la red \"Cluster\" (`192.168.140.0/24`) usan NAT (sus IPs privadas son enmascaradas por la IP del host) para salir a Internet. Las VMs en la red del `bridge0` (`10.140.92.0/24`) están directamente en la LAN física y usan sus propias IPs (obtenidas de la LAN) para acceder a Internet, sin NAT por parte del host KVM.",
+      "c": "Es un error; todas las redes virtuales deberían tener reglas `MASQUERADE` para el acceso a Internet.",
+      "d": "La red del `bridge0` usa un tipo de NAT diferente llamado SNAT explícito en lugar de `MASQUERADE`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Indica que las VMs en la red \"Cluster\" (`192.168.140.0/24`) usan NAT (sus IPs privadas son enmascaradas por la IP del host) para salir a Internet. Las VMs en la red del `bridge0` (`10.140.92.0/24`) están directamente en la LAN física y usan sus propias IPs (obtenidas de la LAN) para acceder a Internet, sin NAT por parte del host KVM.",
+    "question_explanation": "Sección 4 (Análisis de las reglas de firewall). `MASQUERADE` es para NAT. Si la red \"Cluster\" tiene estas reglas, es una red NAT. Si la red a la que está conectada `bridge0` (la LAN física) no tiene reglas `MASQUERADE` asociadas con `bridge0` en el host KVM para el tráfico de las VMs, significa que las VMs en `bridge0` no están siendo NATeadas por el host KVM; están en la LAN directamente."
+  },
+  {
+    "question_number": 11,
+    "question_text": "El comando `virsh net-dumpxml Cluster` muestra la configuración XML completa de la red \"Cluster\". Si se quisiera cambiar el nombre del bridge asociado de `virbr1` a `mycluster_br` para esta red, ¿cuál sería el procedimiento más seguro y correcto usando `virsh`?",
+    "options": {
+      "a": "Editar directamente el archivo `/etc/libvirt/qemu/networks/Cluster.xml`, cambiar `<bridge name='virbr1'/>` por `<bridge name='mycluster_br'/>` y luego ejecutar `virsh net-start Cluster`.",
+      "b": "Detener la red (`virsh net-destroy Cluster`), indefinirla (`virsh net-undefine Cluster`), modificar el archivo XML original (o crear uno nuevo con el cambio), definir la red con el XML modificado (`virsh net-define new_cluster.xml`), y luego iniciarla (`virsh net-start Cluster`).",
+      "c": "Usar `virsh net-update Cluster modify bridge --name mycluster_br --live --config`.",
+      "d": "Renombrar la interfaz `virbr1` a `mycluster_br` en el host usando `ip link set virbr1 name mycluster_br` y luego `virsh net-refresh Cluster`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Detener la red (`virsh net-destroy Cluster`), indefinirla (`virsh net-undefine Cluster`), modificar el archivo XML original (o crear uno nuevo con el cambio), definir la red con el XML modificado (`virsh net-define new_cluster.xml`), y luego iniciarla (`virsh net-start Cluster`).",
+    "question_explanation": "Cambiar el nombre del bridge de una red gestionada por libvirt es un cambio estructural. La forma más limpia es (c) si `net-update` soporta esa modificación específica de forma segura. Sin embargo, la opción (b) es el procedimiento general más robusto para cambios significativos: detener, eliminar la definición antigua, definir con la nueva configuración y reiniciar. Editar el XML directamente (a) no es recomendable para redes activas. Renombrar la interfaz a nivel de host (d) desincronizaría libvirt."
+  },
+  {
+    "question_number": 12,
+    "question_text": "En la salida de `ps aux | grep dnsmasq`, se ven múltiples instancias de `dnsmasq`, cada una con un archivo de configuración diferente (ej. `/var/lib/libvirt/dnsmasq/Cluster.conf`). ¿Por qué libvirt lanza instancias separadas de `dnsmasq` por cada red virtual con DHCP/DNS habilitado?",
+    "options": {
+      "a": "Para balancear la carga de solicitudes DHCP/DNS entre múltiples procesos.",
+      "b": "Es un requisito de seguridad; cada instancia de `dnsmasq` se ejecuta con permisos diferentes.",
+      "c": "Para aislar la configuración y el estado (como las concesiones DHCP) de cada red virtual. Cada instancia de `dnsmasq` se encarga de una subred específica y su propio rango de IPs, evitando conflictos y permitiendo configuraciones personalizadas por red.",
+      "d": "Por compatibilidad con versiones antiguas de `dnsmasq` que no soportaban múltiples interfaces."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Para aislar la configuración y el estado (como las concesiones DHCP) de cada red virtual. Cada instancia de `dnsmasq` se encarga de una subred específica y su propio rango de IPs, evitando conflictos y permitiendo configuraciones personalizadas por red.",
+    "question_explanation": "Sección 4 (Exploración de las redes virtuales). Libvirt usa `dnsmasq` para proveer DHCP y DNS en sus redes virtuales. Lanzar una instancia separada para cada red permite que cada una tenga su propio rango de concesiones DHCP, opciones DHCP específicas, y potencialmente configuraciones DNS diferentes, sin interferir con las otras redes virtuales."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Si se crea una red aislada \"RedAislada\" con la IP `172.16.0.1/24` para su bridge `virbr3` y sin DHCP. Luego se conecta una VM a esta red y se le asigna estáticamente la IP `172.16.0.10/24`. ¿Podrá esta VM hacer ping a `172.16.0.1` (el bridge en el host)? ¿Podrá hacer ping a `google.es` a través de esta interfaz?",
+    "options": {
+      "a": "Sí a ambos, el host siempre enrutará el tráfico de redes aisladas.",
+      "b": "No a `172.16.0.1` porque es la IP del bridge, no un host real. Sí a `google.es` si el host tiene otra conexión a Internet.",
+      "c": "Sí podrá hacer ping a `172.16.0.1` (el host está en la misma subred a través del bridge). No podrá hacer ping a `google.es` a través de esta interfaz porque la red es aislada y no tiene reenvío ni NAT configurado por libvirt para salir.",
+      "d": "No a ninguno, las redes aisladas no permiten ningún tipo de comunicación IP."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Sí podrá hacer ping a `172.16.0.1` (el host está en la misma subred a través del bridge). No podrá hacer ping a `google.es` a través de esta interfaz porque la red es aislada y no tiene reenvío ni NAT configurado por libvirt para salir.",
+    "question_explanation": "La VM (`172.16.0.10`) y la interfaz del bridge del host (`172.16.0.1`) están en la misma subred L2/L3, por lo que pueden comunicarse directamente. Sin embargo, una red aislada (sin `<forward mode>`) no tendrá reglas de `iptables` para reenviar su tráfico a redes externas, ni reglas NAT. Por lo tanto, el acceso a `google.es` a través de esta interfaz fallará."
+  },
+  {
+    "question_number": 14,
+    "question_text": "Al usar `nmcli con add type bridge con-name bridge0 ifname bridge0` para crear un bridge en el host, y luego `nmcli con mod enp6s0 master bridge0` para añadir la NIC física `enp6s0` al bridge, ¿qué sucede con la conectividad de red del host si la configuración IP no se transfiere correctamente a `bridge0` o si `bridge0` no se activa?",
+    "options": {
+      "a": "El host mantendrá su conectividad a través de `enp6s0` sin cambios.",
+      "b": "El host podría perder su conectividad de red a través de `enp6s0`, ya que esta interfaz ya no tendría una configuración IP activa propia (ahora es un puerto de bridge). Si `bridge0` no obtiene una IP o no está activo, el host no podrá comunicarse en esa red.",
+      "c": "NetworkManager automáticamente creará una IP de fallback en `enp6s0`.",
+      "d": "Solo las VMs conectadas al bridge perderían conectividad, el host no se vería afectado."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El host podría perder su conectividad de red a través de `enp6s0`, ya que esta interfaz ya no tendría una configuración IP activa propia (ahora es un puerto de bridge). Si `bridge0` no obtiene una IP o no está activo, el host no podrá comunicarse en esa red.",
+    "question_explanation": "Tarea 3.6. Una vez que `enp6s0` es asignada como esclava de `bridge0`, la capa IP se mueve a `bridge0`. Si `bridge0` no se configura con una IP (o no la obtiene por DHCP) y no se activa, el host pierde su conectividad en la red que `enp6s0` servía. Es crucial asegurar que el bridge `bridge0` obtenga la configuración IP correcta."
+  },
+  {
+    "question_number": 15,
+    "question_text": "La salida de `virsh net-dhcp-leases Cluster` muestra una concesión para la MAC `52:54:00:bd:89:a1` con IP `192.168.140.17` y hostname `mvp1`. Si este hostname `mvp1` no es deseado y se quiere que dnsmasq registre `mvp5-cluster` para esta MAC/IP, ¿dónde se debería configurar este mapeo preferentemente?",
+    "options": {
+      "a": "En el archivo `/etc/hosts` de la máquina virtual `mvp5`.",
+      "b": "Cambiando el nombre de host del sistema operativo dentro de `mvp5` a `mvp5-cluster` y reiniciando su cliente DHCP.",
+      "c": "En la configuración XML de la red \"Cluster\" en el host, añadiendo una entrada estática de DHCP que mapee la MAC `52:54:00:bd:89:a1` a la IP `192.168.140.17` y al nombre de host `mvp5-cluster`.",
+      "d": "Modificando directamente el archivo `/var/lib/libvirt/dnsmasq/virbr1.status`."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "En la configuración XML de la red \"Cluster\" en el host, añadiendo una entrada estática de DHCP que mapee la MAC `52:54:00:bd:89:a1` a la IP `192.168.140.17` y al nombre de host `mvp5-cluster`.",
+    "question_explanation": "El hostname que dnsmasq registra y puede servir vía DNS para la red local proviene de lo que el cliente DHCP envía (Opción b) o de mapeos estáticos configurados en el servidor DHCP. Para forzar un nombre de host específico asociado a una MAC/IP, se puede añadir una entrada `<host mac='...' name='...' ip='...'/>` dentro de la sección `<dhcp>` del XML de la red. Editar el archivo de status (d) es incorrecto ya que es un archivo de estado, no de configuración."
+  }
+]

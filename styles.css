@@ -290,6 +290,30 @@ main {
   border: 1px solid #f5c6cb;
 }
 
+/* Explanation Area Styling */
+#explanation-area {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #e9ecef; /* Light grey, distinct from feedback */
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  text-align: left;
+}
+
+#explanation-area h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  color: #495057;
+}
+
+#explanation-area p {
+  margin-bottom: 0;
+  font-size: 0.95em;
+  color: #343a40;
+  line-height: 1.5;
+}
+
 #score-area {
   margin-top: 30px;
   padding: 25px;
@@ -379,6 +403,15 @@ button:focus,
     width: calc(100% - 10px);
     margin-left: auto;
     margin-right: auto;
+  }
+  #explanation-area {
+    padding: 10px;
+  }
+  #explanation-area h4 {
+    font-size: 1em;
+  }
+  #explanation-area p {
+    font-size: 0.9em;
   }
 }
 

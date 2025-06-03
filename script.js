@@ -18,8 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const questionTextEl = document.getElementById('question-text');
   const optionsContainer = document.getElementById('options-container');
 
-  // Feedback and Score Elements
+  // Feedback, Explanation and Score Elements
   const feedbackArea = document.getElementById('feedback-area');
+  const explanationArea = document.getElementById('explanation-area');
+  const explanationTextEl = document.getElementById('explanation-text');
   const scoreArea = document.getElementById('score-area');
   const currentScoreDisplayContainerEl = document.getElementById('current-score-display'); // The <p> tag for styling
   const currentScoreTextEl = document.getElementById('current-score'); // The <span> for the score text
@@ -138,6 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     feedbackArea.textContent = '';
     feedbackArea.className = 'feedback-area';
+    explanationArea.classList.add('hidden'); // Hide explanation at start of quiz
+    explanationTextEl.innerHTML = ''; // Clear previous explanation
     displayQuestion();
   }
 
@@ -149,6 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
       optionsContainer.innerHTML = '';
       feedbackArea.textContent = '';
       feedbackArea.className = 'feedback-area';
+      explanationArea.classList.add('hidden'); // Hide explanation for new question
+      explanationTextEl.innerHTML = ''; // Clear previous explanation
 
       const optionKeys = shuffleArray(Object.keys(question.options));
 
@@ -157,7 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const button = document.createElement('button');
           button.textContent = `${key.toUpperCase()}) ${question.options[key]}`;
           button.setAttribute('aria-label', `Opción ${key}: ${question.options[key]}`);
-          button.onclick = () => selectAnswer(key, question.correct_answer_key, question.correct_answer_text);
+          button.onclick = () =>
+            selectAnswer(key, question.correct_answer_key, question.correct_answer_text, question.question_explanation);
           optionsContainer.appendChild(button);
         }
       });
@@ -168,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function selectAnswer(selectedKey, correctKey, correctAnswerText) {
+  function selectAnswer(selectedKey, correctKey, correctAnswerText, questionExplanation) {
     const buttons = optionsContainer.getElementsByTagName('button');
     let selectedButton = null; // Initialize to null
 
@@ -207,6 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     updateCurrentScoreDisplay(); // Update score text and color based on performance
+
+    // Display explanation if available
+    if (questionExplanation && questionExplanation.trim() !== '') {
+      explanationTextEl.innerHTML = questionExplanation; // Use innerHTML if explanation contains HTML
+      explanationArea.classList.remove('hidden');
+    } else {
+      explanationArea.classList.add('hidden');
+      explanationTextEl.innerHTML = '';
+    }
+
     nextButton.disabled = false;
     if (currentQuestionIndex === shuffledQuestions.length - 1) {
       nextButton.textContent = 'Ver Resultados';
@@ -216,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showFinalScore() {
     quizArea.style.display = 'none';
     if (currentScoreDisplayContainerEl) currentScoreDisplayContainerEl.style.display = 'none';
+    explanationArea.classList.add('hidden'); // Hide explanation on score screen
     scoreArea.classList.remove('hidden');
     correctAnswersEl.textContent = score.toFixed(2);
     if (totalQuestionsForMaxScoreEl) totalQuestionsForMaxScoreEl.textContent = shuffledQuestions.length;

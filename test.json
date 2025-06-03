@@ -1,506 +1,548 @@
 [
-    {
-      "question_number": 1,
-      "question_text": "En un sistema anfitrión KVM, el uso de dispositivos paravirtualizados",
-      "options": {
-        "a": "Aporta mayor seguridad a los sistemas invitados.",
-        "b": "Aumenta el flujo de las operaciones de E/S de los sistemas invitados.",
-        "c": "Aporta mayor seguridad al sistema anfitrión.",
-        "d": "Aumenta la escalabilidad del sistema anfitrión."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Aumenta el flujo de las operaciones de E/S de los sistemas invitados."
+  {
+    "question_number": 1,
+    "question_text": "En un sistema anfitrión KVM, el uso de dispositivos paravirtualizados",
+    "options": {
+      "a": "Aporta mayor seguridad a los sistemas invitados.",
+      "b": "Aumenta el flujo de las operaciones de E/S de los sistemas invitados.",
+      "c": "Aporta mayor seguridad al sistema anfitrión.",
+      "d": "Aumenta la escalabilidad del sistema anfitrión."
     },
-    {
-      "question_number": 2,
-      "question_text": "En el contexto de los sistemas anfitriones de virtualización, ¿qué es la memoria paginada?",
-      "options": {
-        "a": "Un área de memoria que siempre reside en memoria principal.",
-        "b": "Un área de memoria que puede ser transferida al área de intercambio.",
-        "c": "La memoria asignada al hypervisor.",
-        "d": "La memoria asignada al núcleo del sistema operativo del sistema anfitrión."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Un área de memoria que puede ser transferida al área de intercambio."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Aumenta el flujo de las operaciones de E/S de los sistemas invitados.",
+    "question_explanation": "Los dispositivos paravirtualizados (por ejemplo virtio) eliminan la emulación de hardware y se comunican directamente con el hipervisor, reduciendo ciclos de CPU y latencia; por ello el rendimiento de E/S del invitado aumenta considerablemente."
+  },
+  {
+    "question_number": 2,
+    "question_text": "En el contexto de los sistemas anfitriones de virtualización, ¿qué es la memoria paginada?",
+    "options": {
+      "a": "Un área de memoria que siempre reside en memoria principal.",
+      "b": "Un área de memoria que puede ser transferida al área de intercambio.",
+      "c": "La memoria asignada al hypervisor.",
+      "d": "La memoria asignada al núcleo del sistema operativo del sistema anfitrión."
     },
-    {
-      "question_number": 3,
-      "question_text": "En un sistema anfitrión KVM, ¿en qué directorio del sistema se encuentra el archivo XML que describe las configuraciones concretas de la instancia en ejecución?",
-      "options": {
-        "a": "/var/lib/libvirt/qemu",
-        "b": "/etc/libvirt/qemu",
-        "c": "/run/lib/libvirt/qemu",
-        "d": "/run/libvirt/qemu"
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "/run/libvirt/qemu"
+    "correct_answer_key": "b",
+    "correct_answer_text": "Un área de memoria que puede ser transferida al área de intercambio.",
+    "question_explanation": "La memoria paginada (paged memory) es un conjunto de páginas virtuales que el sistema operativo puede mover al archivo de intercambio (swap) para liberar RAM física y posibilitar sobre‑compromiso de memoria."
+  },
+  {
+    "question_number": 3,
+    "question_text": "En un sistema anfitrión KVM, ¿en qué directorio del sistema se encuentra el archivo XML que describe las configuraciones concretas de la instancia en ejecución?",
+    "options": {
+      "a": "/var/lib/libvirt/qemu",
+      "b": "/etc/libvirt/qemu",
+      "c": "/run/lib/libvirt/qemu",
+      "d": "/run/libvirt/qemu"
     },
-    {
-      "question_number": 4,
-      "question_text": "En el contexto de un sistema anfitrión KVM, ¿qué es un contenedor de almacenamiento?",
-      "options": {
-        "a": "Un volumen de almacenamiento proporcionado por un sistema de almacenamiento en red.",
-        "b": "Un volumen de almacenamiento definido en el sistema anfitrión.",
-        "c": "Una unidad física de disco del sistema anfitrión.",
-        "d": "Una abstracción de un espacio de almacenamiento."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Una abstracción de un espacio de almacenamiento."
+    "correct_answer_key": "d",
+    "correct_answer_text": "/run/libvirt/qemu",
+    "question_explanation": "Cuando una máquina virtual está en ejecución, libvirt genera un XML temporal dentro de /run/libvirt/qemu; al apagarse la VM el archivo desaparece, mientras que la configuración persistente permanece en /etc/libvirt/qemu."
+  },
+  {
+    "question_number": 4,
+    "question_text": "En el contexto de un sistema anfitrión KVM, ¿qué es un contenedor de almacenamiento?",
+    "options": {
+      "a": "Un volumen de almacenamiento proporcionado por un sistema de almacenamiento en red.",
+      "b": "Un volumen de almacenamiento definido en el sistema anfitrión.",
+      "c": "Una unidad física de disco del sistema anfitrión.",
+      "d": "Una abstracción de un espacio de almacenamiento."
     },
-    {
-      "question_number": 5,
-      "question_text": "Las \"hypercalls\" son un recurso utilizado en",
-      "options": {
-        "a": "La paravirtualización.",
-        "b": "La virtualización basada en el sistema operativo",
-        "c": "La virtualización parcial.",
-        "d": "La virtualización de recursos."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "La paravirtualización."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Una abstracción de un espacio de almacenamiento.",
+    "question_explanation": "En libvirt, un contenedor de almacenamiento (storage pool) abstrae un espacio lógico —LVM, iSCSI, directorio, etc.— sobre el que se crean volúmenes que las VMs usan como discos, desacoplando la VM del hardware físico."
+  },
+  {
+    "question_number": 5,
+    "question_text": "Las \"hypercalls\" son un recurso utilizado en",
+    "options": {
+      "a": "La paravirtualización.",
+      "b": "La virtualización basada en el sistema operativo",
+      "c": "La virtualización parcial.",
+      "d": "La virtualización de recursos."
     },
-    {
-      "question_number": 6,
-      "question_text": "No se requiere hypervisor en",
-      "options": {
-        "a": "Virtualización nativa.",
-        "b": "Virtualización de plataforma.",
-        "c": "Virtualización parcial.",
-        "d": "Virtualización por simulación de plataforma."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Virtualización parcial."
+    "correct_answer_key": "a",
+    "correct_answer_text": "La paravirtualización.",
+    "question_explanation": "En paravirtualización el sistema invitado coopera con el hipervisor sustituyendo instrucciones privilegiadas por hypercalls, llamadas explícitas que permiten gestionar E/S y memoria con menos sobrecarga."
+  },
+  {
+    "question_number": 6,
+    "question_text": "No se requiere hypervisor en",
+    "options": {
+      "a": "Virtualización nativa.",
+      "b": "Virtualización de plataforma.",
+      "c": "Virtualización parcial.",
+      "d": "Virtualización por simulación de plataforma."
     },
-    {
-      "question_number": 7,
-      "question_text": "VirtualBox es un caso de virtualización",
-      "options": {
-        "a": "Parcial.",
-        "b": "No nativa.",
-        "c": "Completa.",
-        "d": "Basada en el Sistema operativo."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Completa."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Virtualización parcial.",
+    "question_explanation": "La virtualización parcial (también conocida como virtualización a nivel de sistema operativo) aísla procesos mediante contenedores/zonas que comparten el mismo kernel; al no haber un hipervisor independiente, se reduce la capa de virtualización."
+  },
+  {
+    "question_number": 7,
+    "question_text": "VirtualBox es un caso de virtualización",
+    "options": {
+      "a": "Parcial.",
+      "b": "No nativa.",
+      "c": "Completa.",
+      "d": "Basada en el Sistema operativo."
     },
-    {
-      "question_number": 8,
-      "question_text": "En un sistema anfitrión KVM",
-      "options": {
-        "a": "La suma de todas las CPUs virtuales de los sistemas invitados puede superar el número de CPUs del sistema anfitrión, siempre y cuando no todos los sistemas invitados se ejecuten.",
-        "b": "El número de CPUs virtuales de un dominio puede superar el número de CPUs del sistema anfitrión.",
-        "c": "El número de CPUs virtuales de un sistema invitado no puede superar al número de núcleos que poseen los procesadores del sistema anfitrión.",
-        "d": "La suma de todas las CPUs virtuales de los dominios en ejecución puede superar el número de CPUs del sistema anfitrión."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "La suma de todas las CPUs virtuales de los dominios en ejecución puede superar el número de CPUs del sistema anfitrión."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Completa.",
+    "question_explanation": "VirtualBox emula por completo el hardware del PC y, con ayuda de VT‑x/AMD‑V, permite ejecutar sistemas operativos sin modificar; por eso se clasifica como virtualización completa tipo‑2."
+  },
+  {
+    "question_number": 8,
+    "question_text": "En un sistema anfitrión KVM",
+    "options": {
+      "a": "La suma de todas las CPUs virtuales de los sistemas invitados puede superar el número de CPUs del sistema anfitrión, siempre y cuando no todos los sistemas invitados se ejecuten.",
+      "b": "El número de CPUs virtuales de un dominio puede superar el número de CPUs del sistema anfitrión.",
+      "c": "El número de CPUs virtuales de un sistema invitado no puede superar al número de núcleos que poseen los procesadores del sistema anfitrión.",
+      "d": "La suma de todas las CPUs virtuales de los dominios en ejecución puede superar el número de CPUs del sistema anfitrión."
     },
-    {
-      "question_number": 9,
-      "question_text": "Las conexiones concurrentes son posibles en la topología",
-      "options": {
-        "a": "Punto a punto con bridge.",
-        "b": "Bucle arbitrado.",
-        "c": "Punto-a-Punto.",
-        "d": "Switch."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Switch."
+    "correct_answer_key": "d",
+    "correct_answer_text": "La suma de todas las CPUs virtuales de los dominios en ejecución puede superar el número de CPUs del sistema anfitrión.",
+    "question_explanation": "KVM soporta sobre‑aprovisionamiento de vCPU: el scheduler del host asigna dinámicamente los hilos virtuales a núcleos físicos, permitiendo que la suma de vCPUs activas exceda el recuento físico siempre que la carga lo tolere."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Las conexiones concurrentes son posibles en la topología",
+    "options": {
+      "a": "Punto a punto con bridge.",
+      "b": "Bucle arbitrado.",
+      "c": "Punto-a-Punto.",
+      "d": "Switch."
     },
-    {
-      "question_number": 10,
-      "question_text": "En un sistema anfitrión KVM, el nombre del componente que realiza la virtualización de cada sistema invitado es",
-      "options": {
-        "a": "qemu.",
-        "b": "virsh.",
-        "c": "virt-manager.",
-        "d": "KVM-Intel."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "qemu."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Switch.",
+    "question_explanation": "En una topología conmutada cada puerto es un dominio de colisión independiente; múltiples pares pueden comunicarse simultáneamente, habilitando conexiones concurrentes y aprovechando todo el ancho de banda agregado."
+  },
+  {
+    "question_number": 10,
+    "question_text": "En un sistema anfitrión KVM, el nombre del componente que realiza la virtualización de cada sistema invitado es",
+    "options": {
+      "a": "qemu.",
+      "b": "virsh.",
+      "c": "virt-manager.",
+      "d": "KVM-Intel."
     },
-    {
-      "question_number": 11,
-      "question_text": "En el contexto de los algoritmos de control de acceso a recursos compartidos (secciones críticas) en entornos distribuidos, ¿en qué algoritmo un nodo que ha solicitado el testigo retiene el mensaje de petición de testigo que ha enviado otro nodo?",
-      "options": {
-        "a": "Algoritmo de Bertier.",
-        "b": "Algoritmo de Martin.",
-        "c": "Algoritmo de Suzuki-Kasami.",
-        "d": "Algoritmo de Naimi-Tréhel."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Algoritmo de Martin."
+    "correct_answer_key": "a",
+    "correct_answer_text": "qemu.",
+    "question_explanation": "QEMU es el proceso que instancia y emula los dispositivos virtuales de cada dominio KVM; el módulo kvm solo proporciona acceso acelerado a la CPU."
+  },
+  {
+    "question_number": 11,
+    "question_text": "En el contexto de los algoritmos de control de acceso a recursos compartidos (secciones críticas) en entornos distribuidos, ¿en qué algoritmo un nodo que ha solicitado el testigo retiene el mensaje de petición de testigo que ha enviado otro nodo?",
+    "options": {
+      "a": "Algoritmo de Bertier.",
+      "b": "Algoritmo de Martin.",
+      "c": "Algoritmo de Suzuki-Kasami.",
+      "d": "Algoritmo de Naimi-Tréhel."
     },
-    {
-      "question_number": 12,
-      "question_text": "El protocolo iSCSI es un caso de protocolo especializado para",
-      "options": {
-        "a": "Redes de propósito general.",
-        "b": "Sistemas NAS.",
-        "c": "Sistemas servidores.",
-        "d": "Redes de almacenamiento."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Redes de almacenamiento."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Algoritmo de Martin.",
+    "question_explanation": "El algoritmo de Martin es token‑based: si un nodo ya pidió el testigo retiene las peticiones entrantes hasta liberar el recurso, reduciendo el tráfico a dos mensajes por sección crítica."
+  },
+  {
+    "question_number": 12,
+    "question_text": "El protocolo iSCSI es un caso de protocolo especializado para",
+    "options": {
+      "a": "Redes de propósito general.",
+      "b": "Sistemas NAS.",
+      "c": "Sistemas servidores.",
+      "d": "Redes de almacenamiento."
     },
-    {
-      "question_number": 13,
-      "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, si el quorum de un clúster es 3, entonces el servicio que se ejecuta en el clúster se dejaría de dar",
-      "options": {
-        "a": "Si el número de nodos activos del clúster es menor que 3.",
-        "b": "Si número de nodos que forman parte del clúster es menor o igual que 3.",
-        "c": "Si el número de nodos que forman parte del clúster es 3.",
-        "d": "Si el número de nodos activos del clúster es menor o igual que 3."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Si el número de nodos activos del clúster es menor que 3."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Redes de almacenamiento.",
+    "question_explanation": "iSCSI encapsula comandos SCSI sobre TCP/IP, permitiendo transportar bloques de datos a través de Ethernet; es un pilar de las SAN porque ofrece acceso a nivel de bloque a distancia."
+  },
+  {
+    "question_number": 13,
+    "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, si el quorum de un clúster es 3, entonces el servicio que se ejecuta en el clúster se dejaría de dar",
+    "options": {
+      "a": "Si el número de nodos activos del clúster es menor que 3.",
+      "b": "Si número de nodos que forman parte del clúster es menor o igual que 3.",
+      "c": "Si el número de nodos que forman parte del clúster es 3.",
+      "d": "Si el número de nodos activos del clúster es menor o igual que 3."
     },
-    {
-      "question_number": 14,
-      "question_text": "KVM es un caso de virtualización",
-      "options": {
-        "a": "No nativa.",
-        "b": "Nativa.",
-        "c": "Basada en el Sistema operativo.",
-        "d": "Parcial."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Nativa."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Si el número de nodos activos del clúster es menor que 3.",
+    "question_explanation": "Pacemaker detiene los recursos cuando carece de quórum (la mayoría). Con quórum fijado en 3, al perderse uno de los tres nodos activos se deja de prestar el servicio para evitar split‑brain."
+  },
+  {
+    "question_number": 14,
+    "question_text": "KVM es un caso de virtualización",
+    "options": {
+      "a": "No nativa.",
+      "b": "Nativa.",
+      "c": "Basada en el Sistema operativo.",
+      "d": "Parcial."
     },
-    {
-      "question_number": 15,
-      "question_text": "En el contexto de la virtualización, la propiedad \"Dynamically Expanded/Dynamic Disk\" de los archivos de imagen de disco, hace referencia a:",
-      "options": {
-        "a": "Que tienen un tamaño definido priori, pero este tamaño se puede cambiar.",
-        "b": "Que no tienen un tamaño definido a priori.",
-        "c": "Que el espacio que ocupan puede aumentar, mientras no supere el tamaño declarado en el momento de la creación del archivo de imagen.",
-        "d": "Que el tamaño puede aumentar, mientras exista espacio en el sistema de archivos que alberga al archivo de imagen."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Que el espacio que ocupan puede aumentar, mientras no supere el tamaño declarado en el momento de la creación del archivo de imagen."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Nativa.",
+    "question_explanation": "KVM se integra en el kernel Linux y usa VT‑x/AMD‑V para ejecutar código invitado directamente en la CPU; por ello se considera virtualización nativa (tipo‑1)."
+  },
+  {
+    "question_number": 15,
+    "question_text": "En el contexto de la virtualización, la propiedad \"Dynamically Expanded/Dynamic Disk\" de los archivos de imagen de disco, hace referencia a:",
+    "options": {
+      "a": "Que tienen un tamaño definido priori, pero este tamaño se puede cambiar.",
+      "b": "Que no tienen un tamaño definido a priori.",
+      "c": "Que el espacio que ocupan puede aumentar, mientras no supere el tamaño declarado en el momento de la creación del archivo de imagen.",
+      "d": "Que el tamaño puede aumentar, mientras exista espacio en el sistema de archivos que alberga al archivo de imagen."
     },
-    {
-      "question_number": 16,
-      "question_text": "En un modelo de clúster genérico, ¿qué elemento es el responsable de proporcionar una interfaz de usuario única?",
-      "options": {
-        "a": "El middleware.",
-        "b": "El sistema operativo que se ejecuta en cada nodo.",
-        "c": "El entorno gráfico que se ejecuta en cada nodo del clúster.",
-        "d": "El sistema de archivos distribuido utilizado por el clúster."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "El middleware."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Que el espacio que ocupan puede aumentar, mientras no supere el tamaño declarado en el momento de la creación del archivo de imagen.",
+    "question_explanation": "Un disco dinámico reserva bloques en el fichero solo cuando se escriben datos, ahorrando espacio en el host; el fichero crece hasta el tamaño máximo configurado, nunca más."
+  },
+  {
+    "question_number": 16,
+    "question_text": "En un modelo de clúster genérico, ¿qué elemento es el responsable de proporcionar una interfaz de usuario única?",
+    "options": {
+      "a": "El middleware.",
+      "b": "El sistema operativo que se ejecuta en cada nodo.",
+      "c": "El entorno gráfico que se ejecuta en cada nodo del clúster.",
+      "d": "El sistema de archivos distribuido utilizado por el clúster."
     },
-    {
-      "question_number": 17,
-      "question_text": "En la virtualización nativa de plataforma, en cada sistema invitado que se ejecuta en un mismo sistema anfitrión",
-      "options": {
-        "a": "Se ejecuta un sistema operativo, pero debe ser el mismo que el del sistema anfitrión.",
-        "b": "Se ejecuta un sistema operativo, que no tiene porqué coincidir con el del sistema anfitrión y con el del resto de sistemas invitados.",
-        "c": "Se ejecuta un sistema operativo, pero ha de ser el mismo en todos los sistemas invitados.",
-        "d": "Todos ejecutan el sistema operativo que se ejecuta en el sistema anfitrión."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Se ejecuta un sistema operativo, que no tiene porqué coincidir con el del sistema anfitrión y con el del resto de sistemas invitados."
+    "correct_answer_key": "a",
+    "correct_answer_text": "El middleware.",
+    "question_explanation": "El middleware del clúster agrega los nodos y presenta una interfaz lógica única (p. ej., un único punto de montaje o servicio virtual) abstrayendo la heterogeneidad del hardware subyacente."
+  },
+  {
+    "question_number": 17,
+    "question_text": "En la virtualización nativa de plataforma, en cada sistema invitado que se ejecuta en un mismo sistema anfitrión",
+    "options": {
+      "a": "Se ejecuta un sistema operativo, pero debe ser el mismo que el del sistema anfitrión.",
+      "b": "Se ejecuta un sistema operativo, que no tiene porqué coincidir con el del sistema anfitrión y con el del resto de sistemas invitados.",
+      "c": "Se ejecuta un sistema operativo, pero ha de ser el mismo en todos los sistemas invitados.",
+      "d": "Todos ejecutan el sistema operativo que se ejecuta en el sistema anfitrión."
     },
-    {
-      "question_number": 18,
-      "question_text": "En el contexto de la Computación en la Nube, un caso de servicio de tipo SaaS es",
-      "options": {
-        "a": "Microsoft Office 365.",
-        "b": "Azure App Service.",
-        "c": "Google App Engine.",
-        "d": "Amazon Web Services."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Microsoft Office 365."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Se ejecuta un sistema operativo, que no tiene porqué coincidir con el del sistema anfitrión y con el resto de sistemas invitados.",
+    "question_explanation": "En virtualización nativa cada VM incluye su propio kernel y espacio de usuario; puede ejecutar distintos sistemas operativos en paralelo gracias a la abstracción del hypervisor."
+  },
+  {
+    "question_number": 18,
+    "question_text": "En el contexto de la Computación en la Nube, un caso de servicio de tipo SaaS es",
+    "options": {
+      "a": "Microsoft Office 365.",
+      "b": "Azure App Service.",
+      "c": "Google App Engine.",
+      "d": "Amazon Web Services."
     },
-    {
-      "question_number": 19,
-      "question_text": "En los sistemas de almacenamiento RAID, las técnicas de striping posibilitan",
-      "options": {
-        "a": "Detectar y corregir errores en los datos.",
-        "b": "Mejorar la confiabilidad del almacenamiento.",
-        "c": "Aumentar la capacidad de almacenamiento.",
-        "d": "Mejorar el rendimiento del almacenamiento."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Mejorar el rendimiento del almacenamiento."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Microsoft Office 365.",
+    "question_explanation": "El modelo SaaS entrega la aplicación completa vía web; el proveedor gestiona infraestructura, actualizaciones y escalado. Office 365 es un ejemplo emblemático."
+  },
+  {
+    "question_number": 19,
+    "question_text": "En los sistemas de almacenamiento RAID, las técnicas de striping posibilitan",
+    "options": {
+      "a": "Detectar y corregir errores en los datos.",
+      "b": "Mejorar la confiabilidad del almacenamiento.",
+      "c": "Aumentar la capacidad de almacenamiento.",
+      "d": "Mejorar el rendimiento del almacenamiento."
     },
-    {
-      "question_number": 20,
-      "question_text": "En un sistema anfitrión KVM, el programa qemu-guest-agent",
-      "options": {
-        "a": "Es un programa que se ejecuta en el sistema anfitrión para controlar a un dominio.",
-        "b": "Es un programa que se ejecuta en un dominio y que permite controlar a otro dominio, independientemente de que éste se esté ejecutando o no.",
-        "c": "Es un programa que se ejecuta en un dominio y permite su control desde el sistema anfitrión, siempre y cuando el dominio se esté ejecutando.",
-        "d": "Es un programa que se ejecuta en un dominio y permite controlarlo desde el sistema anfitrión, siempre y cuando el dominio tenga configurada alguna conexión de red."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Es un programa que se ejecuta en un dominio y permite su control desde el sistema anfitrión, siempre y cuando el dominio se esté ejecutando."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Mejorar el rendimiento del almacenamiento.",
+    "question_explanation": "El striping reparte datos entre discos de forma intercalada, permitiendo lecturas y escrituras paralelas que incrementan el ancho de banda disponible."
+  },
+  {
+    "question_number": 20,
+    "question_text": "En un sistema anfitrión KVM, el programa qemu-guest-agent",
+    "options": {
+      "a": "Es un programa que se ejecuta en el sistema anfitrión para controlar a un dominio.",
+      "b": "Es un programa que se ejecuta en un dominio y que permite controlar a otro dominio, independientemente de que éste se esté ejecutando o no.",
+      "c": "Es un programa que se ejecuta en un dominio y permite su control desde el sistema anfitrión, siempre y cuando el dominio se esté ejecutando.",
+      "d": "Es un programa que se ejecuta en un dominio y permite controlarlo desde el sistema anfitrión, siempre y cuando el dominio tenga configurada alguna conexión de red."
     },
-    {
-      "question_number": 21,
-      "question_text": "Los sistemas clúster son un caso de arquitectura",
-      "options": {
-        "a": "De sistemas de acceso no uniforme a memoria de caché coherente (CC-NUMA).",
-        "b": "De multiprocesadores simétricos (SMP).",
-        "c": "De procesadores para el cómputo paralelo masivo (MPP).",
-        "d": "De sistemas distribuidos."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "De sistemas distribuidos."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Es un programa que se ejecuta en un dominio y permite su control desde el sistema anfitrión, siempre y cuando el dominio se esté ejecutando.",
+    "question_explanation": "qemu‑guest‑agent se comunica con el host mediante un canal virtio‑serial, posibilitando comandos como freeze/thaw de FS, shutdown ordenado o recuperación de IP, pero solo mientras la VM está arrancada."
+  },
+  {
+    "question_number": 21,
+    "question_text": "Los sistemas clúster son un caso de arquitectura",
+    "options": {
+      "a": "De sistemas de acceso no uniforme a memoria de caché coherente (CC-NUMA).",
+      "b": "De multiprocesadores simétricos (SMP).",
+      "c": "De procesadores para el cómputo paralelo masivo (MPP).",
+      "d": "De sistemas distribuidos."
     },
-    {
-      "question_number": 22,
-      "question_text": "El acceso compartido a los datos es un objetivo de",
-      "options": {
-        "a": "Los sistemas de almacenamiento para ordenadores personales.",
-        "b": "Los sistemas de almacenamiento basado en tecnología RAID.",
-        "c": "Los sistemas de almacenamiento para sistemas de tipo mainframe.",
-        "d": "Los sistemas de almacenamiento basados en la tecnología NAS."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Los sistemas de almacenamiento basados en la tecnología NAS."
+    "correct_answer_key": "d",
+    "correct_answer_text": "De sistemas distribuidos.",
+    "question_explanation": "En un clúster los nodos son equipos autónomos conectados por red que cooperan para ofrecer un servicio; comparten objetivos pero no memoria física, definiendo una arquitectura distribuida."
+  },
+  {
+    "question_number": 22,
+    "question_text": "El acceso compartido a los datos es un objetivo de",
+    "options": {
+      "a": "Los sistemas de almacenamiento para ordenadores personales.",
+      "b": "Los sistemas de almacenamiento basado en tecnología RAID.",
+      "c": "Los sistemas de almacenamiento para sistemas de tipo mainframe.",
+      "d": "Los sistemas de almacenamiento basados en la tecnología NAS."
     },
-    {
-      "question_number": 23,
-      "question_text": "En la virtualización parcial,",
-      "options": {
-        "a": "Cada instancia virtualizada utiliza el sistema operativo del sistema anfitrión.",
-        "b": "Cada instancia virtualizada puede disponer de su propio sistema operativo.",
-        "c": "Todas las instancias virtualizadas comparten los mismos recursos del sistema anfitrión.",
-        "d": "Cada instancia virtualizada puede disponer de su propio sistema operativo, pero ha de ser el mismo que el del sistema anfitrión."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Cada instancia virtualizada utiliza el sistema operativo del sistema anfitrión."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Los sistemas de almacenamiento basados en la tecnología NAS.",
+    "question_explanation": "Los NAS exponen sistemas de ficheros a través de NFS/SMB, permitiendo a múltiples clientes acceder simultáneamente y colaborar sobre los mismos datos."
+  },
+  {
+    "question_number": 23,
+    "question_text": "En la virtualización parcial,",
+    "options": {
+      "a": "Cada instancia virtualizada utiliza el sistema operativo del sistema anfitrión.",
+      "b": "Cada instancia virtualizada puede disponer de su propio sistema operativo.",
+      "c": "Todas las instancias virtualizadas comparten los mismos recursos del sistema anfitrión.",
+      "d": "Cada instancia virtualizada puede disponer de su propio sistema operativo, pero ha de ser el mismo que el del sistema anfitrión."
     },
-    {
-      "question_number": 24,
-      "question_text": "Para el despliegue de una red de almacenamiento distribuido, se requiere el uso de",
-      "options": {
-        "a": "Tecnologías de tipo SAN.",
-        "b": "Tecnologías de tipo NAS o de tipo SAN, pudiéndose combinar ambas.",
-        "c": "Tecnologías de tipo NAS.",
-        "d": "Tecnologías de tipo NAS o de tipo SAN, pero no se pueden combinar ambas."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Tecnologías de tipo NAS o de tipo SAN, pudiéndose combinar ambas."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Cada instancia virtualizada utiliza el sistema operativo del sistema anfitrión.",
+    "question_explanation": "En virtualización parcial (contenedores) todos los entornos comparten el mismo kernel; solo se aísla el espacio de usuario, por lo que heredan el SO del host."
+  },
+  {
+    "question_number": 24,
+    "question_text": "Para el despliegue de una red de almacenamiento distribuido, se requiere el uso de",
+    "options": {
+      "a": "Tecnologías de tipo SAN.",
+      "b": "Tecnologías de tipo NAS o de tipo SAN, pudiéndose combinar ambas.",
+      "c": "Tecnologías de tipo NAS.",
+      "d": "Tecnologías de tipo NAS o de tipo SAN, pero no se pueden combinar ambas."
     },
-    {
-      "question_number": 25,
-      "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, ¿qué herramienta se puede utilizar para administrar un clúster?",
-      "options": {
-        "a": "NOW.",
-        "b": "SMILE.",
-        "c": "Orden pcs.",
-        "d": "PARMON."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Orden pcs."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Tecnologías de tipo NAS o de tipo SAN, pudiéndose combinar ambas.",
+    "question_explanation": "En un almacenamiento distribuido, los nodos pueden ofrecer volúmenes a nivel de bloque (SAN) o archivos (NAS); muchas soluciones modernas combinan ambos para cubrir distintos casos de uso."
+  },
+  {
+    "question_number": 25,
+    "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, ¿qué herramienta se puede utilizar para administrar un clúster?",
+    "options": {
+      "a": "NOW.",
+      "b": "SMILE.",
+      "c": "Orden pcs.",
+      "d": "PARMON."
     },
-    {
-      "question_number": 26,
-      "question_text": "En el protocolo iSCSI, los nodos que están a la escucha esperando solicitudes de conexión, son nodos de tipo",
-      "options": {
-        "a": "initiator y de tipo target.",
-        "b": "target.",
-        "c": "initiator.",
-        "d": "target si son operaciones de lectura de datos o de tipo initiator si son operaciones de escritura de datos."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "target."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Orden pcs.",
+    "question_explanation": "La utilidad pcs es la CLI unificada de Pacemaker/Corosync para crear, modificar y monitorear recursos, constraints y nodos del clúster HA de Red Hat."
+  },
+  {
+    "question_number": 26,
+    "question_text": "En el protocolo iSCSI, los nodos que están a la escucha esperando solicitudes de conexión, son nodos de tipo",
+    "options": {
+      "a": "initiator y de tipo target.",
+      "b": "target.",
+      "c": "initiator.",
+      "d": "target si son operaciones de lectura de datos o de tipo initiator si son operaciones de escritura de datos."
     },
-    {
-      "question_number": 27,
-      "question_text": "Los entornos virtualizados, en relación con los entornos no virtualizados, a la hora de dimensionar recursos para desplegar un servidor",
-      "options": {
-        "a": "Son básicamente igual de flexibles.",
-        "b": "Depende del servicio que se quiera proporcionar.",
-        "c": "Son menos flexibles.",
-        "d": "Son más flexibles."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Son más flexibles."
+    "correct_answer_key": "b",
+    "correct_answer_text": "target.",
+    "question_explanation": "En iSCSI el target publica LUNs y escucha en el puerto TCP 3260; los initiators (clientes) inician la sesión enviando el login."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Los entornos virtualizados, en relación con los entornos no virtualizados, a la hora de dimensionar recursos para desplegar un servidor",
+    "options": {
+      "a": "Son básicamente igual de flexibles.",
+      "b": "Depende del servicio que se quiera proporcionar.",
+      "c": "Son menos flexibles.",
+      "d": "Son más flexibles."
     },
-    {
-      "question_number": 28,
-      "question_text": "El historial de cambios en los datos se utiliza en",
-      "options": {
-        "a": "La replicación centrada en el almacenamiento.",
-        "b": "La replicación centrada en el procesador.",
-        "c": "La replicación síncrona.",
-        "d": "La replicación asíncrona."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "La replicación asíncrona."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Son más flexibles.",
+    "question_explanation": "La virtualización permite ajustar en caliente CPU, RAM y discos, clonar o migrar máquinas con mínimos tiempos de inactividad, otorgando una agilidad que el bare‑metal no ofrece."
+  },
+  {
+    "question_number": 28,
+    "question_text": "El historial de cambios en los datos se utiliza en",
+    "options": {
+      "a": "La replicación centrada en el almacenamiento.",
+      "b": "La replicación centrada en el procesador.",
+      "c": "La replicación síncrona.",
+      "d": "La replicación asíncrona."
     },
-    {
-      "question_number": 29,
-      "question_text": "En el contexto de la Computación en la Nube, si todos los recursos de un sistema de computación son proporcionados por un proveedor externo de servicios en la nube, entonces estará usando",
-      "options": {
-        "a": "Una nube privada.",
-        "b": "Una nube pública.",
-        "c": "Una nube privada gestionada.",
-        "d": "Una nube híbrida."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Una nube pública."
+    "correct_answer_key": "d",
+    "correct_answer_text": "La replicación asíncrona.",
+    "question_explanation": "En replicación asíncrona los cambios se escriben primero en un log o journal local; se envían al nodo remoto con retardo, de modo que la latencia de la red no impacta la operación primaria."
+  },
+  {
+    "question_number": 29,
+    "question_text": "En el contexto de la Computación en la Nube, si todos los recursos de un sistema de computación son proporcionados por un proveedor externo de servicios en la nube, entonces estará usando",
+    "options": {
+      "a": "Una nube privada.",
+      "b": "Una nube pública.",
+      "c": "Una nube privada gestionada.",
+      "d": "Una nube híbrida."
     },
-    {
-      "question_number": 30,
-      "question_text": "En el protocolo iSCSI, el Bloque Descriptor de Orden (CDB) pertenece a",
-      "options": {
-        "a": "La capa SCSI.",
-        "b": "A los nodos de tipo target.",
-        "c": "La capa iSCSI.",
-        "d": "La capa TCP."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "La capa SCSI."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Una nube pública.",
+    "question_explanation": "En la nube pública toda la infraestructura pertenece al proveedor y se comparte en modo multicliente; el consumidor accede a los recursos a través de Internet bajo un modelo de pago por uso."
+  },
+  {
+    "question_number": 30,
+    "question_text": "En el protocolo iSCSI, el Bloque Descriptor de Orden (CDB) pertenece a",
+    "options": {
+      "a": "La capa SCSI.",
+      "b": "A los nodos de tipo target.",
+      "c": "La capa iSCSI.",
+      "d": "La capa TCP."
     },
-    {
-      "question_number": 31,
-      "question_text": "El sistema operativo del sistema anfitrión lo utilizan",
-      "options": {
-        "a": "Los Hypervisores de tipo 2.",
-        "b": "Tanto hypervisores de tipo 1 como de tipo 2.",
-        "c": "Los Hypervisores de tipo 1 para poder utilizar dispositivos paravirtualizados.",
-        "d": "Los Hypervisores de tipo 1."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Los Hypervisores de tipo 2."
+    "correct_answer_key": "a",
+    "correct_answer_text": "La capa SCSI.",
+    "question_explanation": "El CDB (Command Descriptor Block) es la estructura SCSI que define la operación (READ, WRITE, INQUIRY). iSCSI lo encapsula en el PDU, pero pertenece a la semántica SCSI."
+  },
+  {
+    "question_number": 31,
+    "question_text": "El sistema operativo del sistema anfitrión lo utilizan",
+    "options": {
+      "a": "Los Hypervisores de tipo 2.",
+      "b": "Tanto hypervisores de tipo 1 como de tipo 2.",
+      "c": "Los Hypervisores de tipo 1 para poder utilizar dispositivos paravirtualizados.",
+      "d": "Los Hypervisores de tipo 1."
     },
-    {
-      "question_number": 32,
-      "question_text": "El acrónimo RAIN se refiere a",
-      "options": {
-        "a": "Varias interfaces de red que se agrupan para mejorar el tráfico de red.",
-        "b": "Varias CPUs que se agrupan para proporcionar más potencia de cálculo.",
-        "c": "Varios discos que se agrupan para proporcionar un disco virtual.",
-        "d": "Varias redes de ordenadores que se integran para dar lugar a única red virtual."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Varias interfaces de red que se agrupan para mejorar el tráfico de red."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Los Hypervisores de tipo 2.",
+    "question_explanation": "Los hipervisores tipo‑2 (hosted) como VMware Workstation se ejecutan como procesos usuario sobre el sistema operativo anfitrión y dependen de él para controladores y scheduling."
+  },
+  {
+    "question_number": 32,
+    "question_text": "El acrónimo RAIN se refiere a",
+    "options": {
+      "a": "Varias interfaces de red que se agrupan para mejorar el tráfico de red.",
+      "b": "Varias CPUs que se agrupan para proporcionar más potencia de cálculo.",
+      "c": "Varios discos que se agrupan para proporcionar un disco virtual.",
+      "d": "Varias redes de ordenadores que se integran para dar lugar a única red virtual."
     },
-    {
-      "question_number": 33,
-      "question_text": "Se dispone a proporcionar un servicio web a sus clientes y desea garantizar que los tiempos de respuesta estén dentro de unos márgenes tolerables, entonces utilizaría",
-      "options": {
-        "a": "Un clúster de alto rendimiento.",
-        "b": "Un clúster de almacenamiento distribuido.",
-        "c": "Un clúster de alta disponibilidad.",
-        "d": "Un clúster de balanceo de carga."
-      },
-      "correct_answer_key": "d",
-      "correct_answer_text": "Un clúster de balanceo de carga."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Varias interfaces de red que se agrupan para mejorar el tráfico de red.",
+    "question_explanation": "RAIN (Redundant Array of Independent NICs) vincula varias interfaces mediante bonding/teaming consiguiendo mayor throughput y resiliencia frente a fallos de enlace."
+  },
+  {
+    "question_number": 33,
+    "question_text": "Se dispone a proporcionar un servicio web a sus clientes y desea garantizar que los tiempos de respuesta estén dentro de unos márgenes tolerables, entonces utilizaría",
+    "options": {
+      "a": "Un clúster de alto rendimiento.",
+      "b": "Un clúster de almacenamiento distribuido.",
+      "c": "Un clúster de alta disponibilidad.",
+      "d": "Un clúster de balanceo de carga."
     },
-    {
-      "question_number": 34,
-      "question_text": "HVM (Hardware-assisted Virtual Machine) se puede dar en",
-      "options": {
-        "a": "Virtualización nativa.",
-        "b": "Virtualización parcial.",
-        "c": "Emulación.",
-        "d": "Virtualización basada en el sistema operativo."
-      },
-      "correct_answer_key": "a",
-      "correct_answer_text": "Virtualización nativa."
+    "correct_answer_key": "d",
+    "correct_answer_text": "Un clúster de balanceo de carga.",
+    "question_explanation": "Los clústeres de balanceo de carga distribuyen peticiones entre nodos backend mediante algoritmos round‑robin, least‑connections, etc., manteniendo los tiempos de respuesta dentro del SLA incluso bajo picos."
+  },
+  {
+    "question_number": 34,
+    "question_text": "HVM (Hardware-assisted Virtual Machine) se puede dar en",
+    "options": {
+      "a": "Virtualización nativa.",
+      "b": "Virtualización parcial.",
+      "c": "Emulación.",
+      "d": "Virtualización basada en el sistema operativo."
     },
-    {
-      "question_number": 35,
-      "question_text": "En el contexto de los algoritmos de control de acceso a recursos compartidos (secciones críticas) en entornos distribuidos, asumiendo que no hay pérdida de mensajes, ¿en qué algoritmo un mensaje de petición del testigo siempre llega al nodo que está haciendo uso del recurso compartido?",
-      "options": {
-        "a": "Algoritmo de Naimi-Tréhel.",
-        "b": "Algoritmo de Bertier.",
-        "c": "Algoritmo de Suzuki-Kasami.",
-        "d": "Algoritmo de Martin."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Algoritmo de Suzuki-Kasami."
+    "correct_answer_key": "a",
+    "correct_answer_text": "Virtualización nativa.",
+    "question_explanation": "El modo HVM se apoya en VT‑x/AMD‑V para ejecutar instrucciones privilegiadas del invitado directamente en el hardware, característica típica de la virtualización nativa."
+  },
+  {
+    "question_number": 35,
+    "question_text": "En el contexto de los algoritmos de control de acceso a recursos compartidos (secciones críticas) en entornos distribuidos, asumiendo que no hay pérdida de mensajes, ¿en qué algoritmo un mensaje de petición del testigo siempre llega al nodo que está haciendo uso del recurso compartido?",
+    "options": {
+      "a": "Algoritmo de Naimi-Tréhel.",
+      "b": "Algoritmo de Bertier.",
+      "c": "Algoritmo de Suzuki-Kasami.",
+      "d": "Algoritmo de Martin."
     },
-    {
-      "question_number": 36,
-      "question_text": "En el contexto de los sistemas de almacenamiento, la tecnología de spanning",
-      "options": {
-        "a": "Mejora el rendimiento del almacenamiento combinando varias unidades de disco.",
-        "b": "Proporciona un mayor espacio de almacenamiento combinado varias unidades de disco.",
-        "c": "Mejora la confiabilidad del almacenamiento combinando varias unidades de disco.",
-        "d": "Mejora la detección y corrección de errores en los datos combinando varias unidades de disco."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Proporciona un mayor espacio de almacenamiento combinado varias unidades de disco."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Algoritmo de Suzuki-Kasami.",
+    "question_explanation": "Suzuki‑Kasami usa un token global y un vector de peticiones: cada solicitud se multicast a todos los nodos y llega siempre al portador del token, garantizando entrega y paso ordenado del testigo."
+  },
+  {
+    "question_number": 36,
+    "question_text": "En el contexto de los sistemas de almacenamiento, la tecnología de spanning",
+    "options": {
+      "a": "Mejora el rendimiento del almacenamiento combinando varias unidades de disco.",
+      "b": "Proporciona un mayor espacio de almacenamiento combinado varias unidades de disco.",
+      "c": "Mejora la confiabilidad del almacenamiento combinando varias unidades de disco.",
+      "d": "Mejora la detección y corrección de errores en los datos combinando varias unidades de disco."
     },
-    {
-      "question_number": 37,
-      "question_text": "La distancia de conexión limitada es un inconveniente característico de",
-      "options": {
-        "a": "Los sistemas de almacenamiento distribuido.",
-        "b": "Los sistemas almacenamiento basados en tecnología NAS.",
-        "c": "Los sistemas de almacenamiento basados en tecnología SAN.",
-        "d": "Los sistemas de almacenamiento para miniordenadores."
-      },
-      "correct_answer_key": null,
-      "correct_answer_text": "Los sistemas de almacenamiento para miniordenadores., Los sistemas de almacenamiento distribuido."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Proporciona un mayor espacio de almacenamiento combinado varias unidades de disco.",
+    "question_explanation": "El spanning (JBOD) concatena discos uno tras otro para formar un volumen grande; no mejora rendimiento ni tolerancia a fallos, solo suma capacidad."
+  },
+  {
+    "question_number": 37,
+    "question_text": "La distancia de conexión limitada es un inconveniente característico de",
+    "options": {
+      "a": "Los sistemas de almacenamiento distribuido.",
+      "b": "Los sistemas almacenamiento basados en tecnología NAS.",
+      "c": "Los sistemas de almacenamiento basados en tecnología SAN.",
+      "d": "Los sistemas de almacenamiento para miniordenadores."
     },
-    {
-      "question_number": 38,
-      "question_text": "La seguridad en los entornos virtualizados, en relación con los entornos no virtualizados",
-      "options": {
-        "a": "No se ve afectada.",
-        "b": "En algunos aspectos se mejora, pero se plantean nuevos retos.",
-        "c": "Se disminuye.",
-        "d": "Se mejora."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "En algunos aspectos se mejora, pero se plantean nuevos retos."
+    "correct_answer_key": null,
+    "correct_answer_text": "Los sistemas de almacenamiento para miniordenadores., Los sistemas de almacenamiento distribuido.",
+    "question_explanation": "Las arquitecturas basadas en buses paralelos SCSI de corta distancia, comunes en miniordenadores, y ciertos sistemas distribuidos sensibles a latencia, sufren restricciones de cableado que limitan la longitud del enlace."
+  },
+  {
+    "question_number": 38,
+    "question_text": "La seguridad en los entornos virtualizados, en relación con los entornos no virtualizados",
+    "options": {
+      "a": "No se ve afectada.",
+      "b": "En algunos aspectos se mejora, pero se plantean nuevos retos.",
+      "c": "Se disminuye.",
+      "d": "Se mejora."
     },
-    {
-      "question_number": 39,
-      "question_text": "Para mejorar el tiempo de respuesta de un servicio que se ejecuta en una máquina virtual",
-      "options": {
-        "a": "Siempre se debe aumentar los recursos del sistema anfitrión.",
-        "b": "Siempre se debe generar una nueva máquina virtual con más recursos.",
-        "c": "Se podría modificar la configuración de la máquina virtual en la que se ejecuta el servicio dándole más recursos.",
-        "d": "Se debe migrar la máquina virtual a otro anfitrión con más recursos."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "Se podría modificar la configuración de la máquina virtual en la que se ejecuta el servicio dándole más recursos."
+    "correct_answer_key": "b",
+    "correct_answer_text": "En algunos aspectos se mejora, pero se plantean nuevos retos.",
+    "question_explanation": "La virtualización facilita snapshots, aislamiento de VMs y mejora la gestión de parches, pero introduce riesgos como escape de hipervisor, VM sprawl y complejidad en el plano de red virtual."
+  },
+  {
+    "question_number": 39,
+    "question_text": "Para mejorar el tiempo de respuesta de un servicio que se ejecuta en una máquina virtual",
+    "options": {
+      "a": "Siempre se debe aumentar los recursos del sistema anfitrión.",
+      "b": "Siempre se debe generar una nueva máquina virtual con más recursos.",
+      "c": "Se podría modificar la configuración de la máquina virtual en la que se ejecuta el servicio dándole más recursos.",
+      "d": "Se debe migrar la máquina virtual a otro anfitrión con más recursos."
     },
-    {
-      "question_number": 40,
-      "question_text": "En un sistema anfitrión KVM, un dispositivo de tipo básico (core devices) de un sistema invitado es de tipo",
-      "options": {
-        "a": "Físico del sistema anfitrión.",
-        "b": "Emulado.",
-        "c": "Controladora.",
-        "d": "Paravirtualizado."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Emulado."
+    "correct_answer_key": "c",
+    "correct_answer_text": "Se podría modificar la configuración de la máquina virtual en la que se ejecuta el servicio dándole más recursos.",
+    "question_explanation": "Antes de escalar horizontalmente se suele ajustar la VM (más vCPU, RAM o IOPS). Muchas plataformas permiten hot‑add, minimizando la interrupción y evitando costes de nuevos hosts."
+  },
+  {
+    "question_number": 40,
+    "question_text": "En un sistema anfitrión KVM, un dispositivo de tipo básico (core devices) de un sistema invitado es de tipo",
+    "options": {
+      "a": "Físico del sistema anfitrión.",
+      "b": "Emulado.",
+      "c": "Controladora.",
+      "d": "Paravirtualizado."
     },
-    {
-      "question_number": 41,
-      "question_text": "El primer caso de sistema virtualizado surgió para",
-      "options": {
-        "a": "Proporcionar mayor velocidad de procesamiento.",
-        "b": "Proporcionar multiprogramación.",
-        "c": "Aumentar la tolerancia a fallos.",
-        "d": "Aumentar la seguridad."
-      },
-      "correct_answer_key": "b",
-      "correct_answer_text": "Proporcionar multiprogramación."
+    "correct_answer_key": "b",
+    "correct_answer_text": "Emulado.",
+    "question_explanation": "Los core devices (chipset PIIX3, VGA Std, etc.) se emulan completamente para garantizar compatibilidad con sistemas operativos invitados, independientemente del hardware real del anfitrión."
+  },
+  {
+    "question_number": 41,
+    "question_text": "El primer caso de sistema virtualizado surgió para",
+    "options": {
+      "a": "Proporcionar mayor velocidad de procesamiento.",
+      "b": "Proporcionar multiprogramación.",
+      "c": "Aumentar la tolerancia a fallos.",
+      "d": "Aumentar la seguridad."
     },
-    {
-      "question_number": 42,
-      "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, ¿qué componente de la configuración de un clúster es el responsable de aislar a un nodo que tenga un comportamiento errático?",
-      "options": {
-        "a": "El demonio corosync.",
-        "b": "El demonio CRMd.",
-        "c": "El recurso STONITH.",
-        "d": "El demonio pacemaker."
-      },
-      "correct_answer_key": "c",
-      "correct_answer_text": "El recurso STONITH."
-    }
-  ]
+    "correct_answer_key": "b",
+    "correct_answer_text": "Proporcionar multiprogramación.",
+    "question_explanation": "IBM creó CP‑67 en los años 60 para que un mainframe ejecutara varias 'Máquinas Virtuales' independientes, permitiendo compartir recursos y mejorar el grado de multiprogramación."
+  },
+  {
+    "question_number": 42,
+    "question_text": "En el contexto del entorno Red Hat Enterprise High Availability Add-On, ¿qué componente de la configuración de un clúster es el responsable de aislar a un nodo que tenga un comportamiento errático?",
+    "options": {
+      "a": "El demonio corosync.",
+      "b": "El demonio CRMd.",
+      "c": "El recurso STONITH.",
+      "d": "El demonio pacemaker."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El recurso STONITH.",
+    "question_explanation": "STONITH (Shoot The Other Node In The Head) alimenta o reinicia forzosamente al nodo inconexo vía IPMI o PDU, evitando que un nodo errático corrompa datos en un clúster."
+  }
+]

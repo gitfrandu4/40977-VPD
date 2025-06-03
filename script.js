@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Button Elements
   const startTestExamenButton = document.getElementById('start-test-examen');
   const startTestP2Button = document.getElementById('start-test-p2');
+  const startTestP3Button = document.getElementById('start-test-p3');
   const nextButton = document.getElementById('next-button');
   const restartButton = document.getElementById('restart-button');
   const backToSelectionButton = document.getElementById('back-to-selection-button');
@@ -257,6 +258,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (startTestP2Button) {
     startTestP2Button.addEventListener('click', function () {
+      const testFile = this.dataset.testfile;
+      const testName = this.querySelector('h3').textContent;
+      fetchQuestions(testFile, testName);
+    });
+  }
+
+  if (startTestP3Button) {
+    startTestP3Button.addEventListener('click', function () {
       const testFile = this.dataset.testfile;
       const testName = this.querySelector('h3').textContent;
       fetchQuestions(testFile, testName);

@@ -1,0 +1,392 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "En el contexto de libvirt, ¿qué es un \"contenedor de almacenamiento\" (storage pool)?",
+    "options": {
+      "a": "Un disco virtual específico asignado a una máquina virtual.",
+      "b": "Una fuente de almacenamiento gestionada por libvirt que puede ser un directorio, partición o recurso de red.",
+      "c": "Un formato de archivo para imágenes de disco, como qcow2 o raw.",
+      "d": "Una utilidad para realizar copias de seguridad de los volúmenes de almacenamiento."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Una fuente de almacenamiento gestionada por libvirt que puede ser un directorio, partición o recurso de red.",
+    "question_explanation": "La introducción de la práctica define un contenedor de almacenamiento (o storage pool) como una fuente de almacenamiento gestionada por libvirt, que puede ser un directorio local, una partición, un volumen LVM, o recursos de red como NFS o iSCSI."
+  },
+  {
+    "question_number": 2,
+    "question_text": "Al clonar una máquina virtual con `virt-clone`, ¿cuál es el propósito principal del parámetro `--mac` como se describe en la Fase 1?",
+    "options": {
+      "a": "Especificar el modelo del adaptador de red virtual.",
+      "b": "Establecer una dirección MAC única para la nueva máquina virtual para evitar conflictos de red.",
+      "c": "Limitar la velocidad de la interfaz de red.",
+      "d": "Configurar el modo de red (bridge, NAT, etc.)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Establecer una dirección MAC única para la nueva máquina virtual para evitar conflictos de red.",
+    "question_explanation": "La Fase 1 explica que al usar `virt-clone --mac=DIRECCION_MAC`, se establece una dirección MAC diferente, lo cual es crucial para evitar conflictos de direcciones en la red, ya que la máquina clonada operará en la misma red que la original."
+  },
+  {
+    "question_number": 3,
+    "question_text": "¿Qué comando `virsh` se utiliza para crear un nuevo volumen de almacenamiento (por ejemplo, un archivo de imagen) dentro de un pool de almacenamiento existente?",
+    "options": {
+      "a": "`virsh pool-create-vol`",
+      "b": "`virsh vol-define`",
+      "c": "`virsh vol-create-as`",
+      "d": "`virsh new-volume`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh vol-create-as`",
+    "question_explanation": "La Tarea 1 de la Fase 2 utiliza el comando `virsh vol-create-as default Vol1_p3.img 1G --format raw` para crear un nuevo volumen en el pool 'default'."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Al crear un volumen con `virsh vol-create-as`, ¿qué especifica el parámetro `--format raw`?",
+    "options": {
+      "a": "Que el volumen utilizará thin provisioning.",
+      "b": "Que el volumen será una imagen de disco simple, bit a bit, sin metadatos adicionales y ocupará todo el espacio asignado desde el principio.",
+      "c": "Que el volumen soportará snapshots.",
+      "d": "Que el volumen estará encriptado."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Que el volumen será una imagen de disco simple, bit a bit, sin metadatos adicionales y ocupará todo el espacio asignado desde el principio.",
+    "question_explanation": "La Tarea 1 de la Fase 2 explica que el formato 'raw' es una imagen de disco simple, bit a bit, sin metadatos adicionales, que ofrece buen rendimiento pero ocupa todo el espacio asignado desde el principio."
+  },
+  {
+    "question_number": 5,
+    "question_text": "¿Qué comando `virsh` se utiliza para asociar un volumen de almacenamiento existente como un disco a una máquina virtual específica?",
+    "options": {
+      "a": "`virsh connect-disk`",
+      "b": "`virsh attach-disk`",
+      "c": "`virsh mount-volume`",
+      "d": "`virsh add-storage`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh attach-disk`",
+    "question_explanation": "La Tarea 1 de la Fase 2 utiliza `virsh attach-disk mvp3 /var/lib/libvirt/images/Vol1_p3.img sda ...` para asociar el volumen a la máquina virtual."
+  },
+  {
+    "question_number": 6,
+    "question_text": "En el comando `virsh attach-disk mvp3 /ruta/volumen.img sda --config --type disk --driver qemu --subdriver raw`, ¿qué indica el parámetro `--config`?",
+    "options": {
+      "a": "Que el disco se formateará antes de asociarse.",
+      "b": "Que la asociación del disco solo será válida para la sesión actual de la VM.",
+      "c": "Que la configuración de la asociación del disco será persistente y se mantendrá tras reiniciar la VM o el host.",
+      "d": "Que se abrirá un editor para configurar manualmente los detalles del disco."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Que la configuración de la asociación del disco será persistente y se mantendrá tras reiniciar la VM o el host.",
+    "question_explanation": "La Tarea 1 de la Fase 2 usa `--config` y explica que esto hace que la configuración sea persistente tras reiniciar. La Tarea 5 usa `--persistent` con el mismo propósito."
+  },
+  {
+    "question_number": 7,
+    "question_text": "Después de asociar un nuevo disco a una máquina virtual Linux, ¿qué utilidad se utiliza comúnmente dentro de la VM para crear particiones en ese nuevo disco (ej. `/dev/sda`)?",
+    "options": {
+      "a": "`mkfs`",
+      "b": "`parted` o `fdisk`",
+      "c": "`mount`",
+      "d": "`lvmcreate`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`parted` o `fdisk`",
+    "question_explanation": "La Tarea 1 de la Fase 2 demuestra el uso de `fdisk /dev/sda` dentro de la máquina virtual para crear una partición en el disco recién asociado."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Para que un sistema de archivos en una partición (ej. `/dev/sda1`) se monte automáticamente cada vez que la máquina virtual Linux arranca, ¿en qué archivo de configuración se debe añadir una entrada?",
+    "options": {
+      "a": "`/etc/mtab`",
+      "b": "`/etc/fstab`",
+      "c": "`/etc/sysconfig/mounts`",
+      "d": "`/boot/grub/grub.cfg`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`/etc/fstab`",
+    "question_explanation": "La Tarea 1 de la Fase 2 muestra el comando `echo \"/dev/sda1 /mnt/nuevo_disco xfs defaults 0 0\" >> /etc/fstab` para configurar el montaje automático."
+  },
+  {
+    "question_number": 9,
+    "question_text": "En el esquema de particionamiento MBR, si todas las particiones primarias ya están en uso, ¿cómo se crean particiones adicionales?",
+    "options": {
+      "a": "Convirtiendo el disco a GPT.",
+      "b": "Creando particiones lógicas dentro de una partición extendida.",
+      "c": "Utilizando volúmenes LVM exclusivamente.",
+      "d": "No es posible crear más particiones."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Creando particiones lógicas dentro de una partición extendida.",
+    "question_explanation": "La Tarea 2 de la Fase 2 explica que en MBR, para superar el límite de 4 particiones primarias, una puede ser 'extendida', dentro de la cual se crean múltiples particiones 'lógicas'."
+  },
+  {
+    "question_number": 10,
+    "question_text": "¿Qué comando `virsh` se utiliza para definir un nuevo pool de almacenamiento en libvirt a partir de una partición del host que ya tiene un sistema de archivos (por ejemplo, `/dev/sda12`) y está montada en un directorio específico?",
+    "options": {
+      "a": "`virsh pool-create-as Contenedor_Particion device --source-path /dev/sda12 --target-path /var/lib/libvirt/Pool_Particion`",
+      "b": "`virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion`",
+      "c": "`virsh pool-mount Contenedor_Particion disk --device /dev/sda12 --dir /var/lib/libvirt/Pool_Particion`",
+      "d": "`virsh define-storage-pool Contenedor_Particion --type partition --device /dev/sda12 --mountpoint /var/lib/libvirt/Pool_Particion`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion`",
+    "question_explanation": "La Tarea 3 de la Fase 2 utiliza el comando `virsh pool-define-as Contenedor_Particion fs --source-dev /dev/sda12 --target /var/lib/libvirt/Pool_Particion` para definir el pool."
+  },
+  {
+    "question_number": 11,
+    "question_text": "Al definir un pool de almacenamiento de tipo `fs` con `virsh pool-define-as`, ¿qué especifica el parámetro `--target`?",
+    "options": {
+      "a": "El dispositivo de bloque de origen.",
+      "b": "El nombre del pool de almacenamiento.",
+      "c": "La ruta al directorio del host donde se espera que esté montada la fuente del pool y donde se almacenarán los volúmenes.",
+      "d": "El formato del sistema de archivos del pool."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La ruta al directorio del host donde se espera que esté montada la fuente del pool y donde se almacenarán los volúmenes.",
+    "question_explanation": "En la Tarea 3 de la Fase 2, `--target /var/lib/libvirt/Pool_Particion` especifica la ruta al directorio donde se almacenarán los volúmenes, que coincide con el punto de montaje de la partición en el host."
+  },
+  {
+    "question_number": 12,
+    "question_text": "Después de definir un pool de almacenamiento con `virsh pool-define-as`, ¿qué comando `virsh` se debe ejecutar para inicializarlo o prepararlo para su uso (por ejemplo, creando la estructura de directorios necesaria)?",
+    "options": {
+      "a": "`virsh pool-format`",
+      "b": "`virsh pool-init`",
+      "c": "`virsh pool-build`",
+      "d": "`virsh pool-prepare`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh pool-build`",
+    "question_explanation": "La Tarea 3 de la Fase 2 utiliza `virsh pool-build Contenedor_Particion` después de definir el pool."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Para que un pool de almacenamiento definido en libvirt se inicie automáticamente cuando el servicio libvirtd arranca, ¿qué comando `virsh` se utiliza?",
+    "options": {
+      "a": "`virsh pool-enable-autostart NombrePool`",
+      "b": "`virsh pool-autostart NombrePool`",
+      "c": "`virsh pool-config --autostart yes NombrePool`",
+      "d": "`virsh set-pool-autostart NombrePool true`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh pool-autostart NombrePool`",
+    "question_explanation": "La Tarea 3 de la Fase 2 muestra el comando `virsh pool-autostart Contenedor_Particion` para marcar el pool como iniciable automáticamente."
+  },
+  {
+    "question_number": 14,
+    "question_text": "¿Qué comando se utiliza en el host anfitrión para mostrar los recursos compartidos (exports) disponibles en un servidor NFS remoto?",
+    "options": {
+      "a": "`nfsstat -e nombre_servidor_nfs`",
+      "b": "`exportfs -s nombre_servidor_nfs`",
+      "c": "`showmount -e nombre_servidor_nfs`",
+      "d": "`rpcinfo -p nombre_servidor_nfs`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`showmount -e nombre_servidor_nfs`",
+    "question_explanation": "La Tarea 4 de la Fase 3 utiliza `showmount -e disnas2.dis.ulpgc.es` para comprobar los directorios exportados por el servidor NFS."
+  },
+  {
+    "question_number": 15,
+    "question_text": "Al definir un pool de almacenamiento de tipo `netfs` para un recurso NFS con `virsh pool-define-as`, ¿qué información especifica el parámetro `--source-host`?",
+    "options": {
+      "a": "La dirección IP o nombre del host anfitrión donde se define el pool.",
+      "b": "La dirección IP o nombre del servidor NFS remoto que exporta el recurso.",
+      "c": "La dirección IP de la interfaz de red que usará libvirt para montar el NFS.",
+      "d": "El nombre del cliente NFS que se registrará en el servidor."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La dirección IP o nombre del servidor NFS remoto que exporta el recurso.",
+    "question_explanation": "En la Tarea 4 de la Fase 3, `virsh pool-define-as CONT_ISOS_COMP netfs --source-host disnas2.dis.ulpgc.es ...` usa `--source-host` para especificar el servidor NFS."
+  },
+  {
+    "question_number": 16,
+    "question_text": "Si un pool de almacenamiento está configurado para iniciarse automáticamente, pero se desea desactivar esta característica temporalmente o permanentemente para un pool llamado `MiPoolNFS`, ¿qué comando `virsh` se usaría?",
+    "options": {
+      "a": "`virsh pool-autostart --off MiPoolNFS`",
+      "b": "`virsh pool-autostart --disable MiPoolNFS`",
+      "c": "`virsh pool-set-autostart MiPoolNFS false`",
+      "d": "`virsh pool-no-autostart MiPoolNFS`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh pool-autostart --disable MiPoolNFS`",
+    "question_explanation": "La Tarea 4 de la Fase 3 utiliza `virsh pool-autostart --disable CONT_ISOS_COMP` para desactivar el inicio automático del pool."
+  },
+  {
+    "question_number": 17,
+    "question_text": "Al crear un volumen qcow2 con `virsh vol-create-as`, especialmente en un almacenamiento en red como NFS, ¿cuál es el beneficio de usar la opción `--prealloc-metadata`?",
+    "options": {
+      "a": "Encripta los metadatos del volumen.",
+      "b": "Reduce el tamaño inicial del archivo de volumen.",
+      "c": "Preasigna el espacio para los metadatos del formato qcow2, lo que puede mejorar el rendimiento.",
+      "d": "Permite que el volumen sea de solo lectura."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Preasigna el espacio para los metadatos del formato qcow2, lo que puede mejorar el rendimiento.",
+    "question_explanation": "La Tarea 5 de la Fase 3 utiliza `virsh vol-create-as ... --prealloc-metadata` y se explica que 'Preasigna los metadatos para mejorar el rendimiento'."
+  },
+  {
+    "question_number": 18,
+    "question_text": "Al asociar un disco a una máquina virtual con `virsh attach-disk`, ¿qué ventaja principal ofrece el uso de `--targetbus virtio` en comparación con un bus emulado como SATA?",
+    "options": {
+      "a": "Mayor compatibilidad con sistemas operativos antiguos.",
+      "b": "Menor consumo de CPU en el host anfitrión.",
+      "c": "Mejor rendimiento del disco debido a la paravirtualización.",
+      "d": "Capacidad de conectar más discos a la máquina virtual."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Mejor rendimiento del disco debido a la paravirtualización.",
+    "question_explanation": "La Tarea 5 de la Fase 3 utiliza `--targetbus virtio` para 'mejor rendimiento'. Virtio es un bus paravirtualizado que reduce la sobrecarga de emulación."
+  },
+  {
+    "question_number": 19,
+    "question_text": "¿Qué comando `virsh` se utiliza para mostrar una lista de todos los pools de almacenamiento definidos, su estado y si están configurados para inicio automático?",
+    "options": {
+      "a": "`virsh pool-status --all`",
+      "b": "`virsh list-pools --details`",
+      "c": "`virsh pool-list --all`",
+      "d": "`virsh show-pools --active --autostart`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh pool-list --all`",
+    "question_explanation": "Las Tareas 3, 4 y 5 utilizan `virsh pool-list --all` (o `virsh pool-list --details` en Pruebas, que da salida similar) para verificar los pools."
+  },
+  {
+    "question_number": 20,
+    "question_text": "¿Qué comando `virsh` permite obtener la configuración XML detallada de un volumen específico, como `MiVolumen.qcow2`, que reside en un pool llamado `MiPool`?",
+    "options": {
+      "a": "`virsh vol-info MiVolumen.qcow2 --pool MiPool --xml`",
+      "b": "`virsh vol-dumpxml MiVolumen.qcow2 --pool MiPool`",
+      "c": "`virsh vol-edit MiVolumen.qcow2 --pool MiPool`",
+      "d": "`virsh get-vol-xml MiVolumen.qcow2 --from-pool MiPool`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh vol-dumpxml MiVolumen.qcow2 --pool MiPool`",
+    "question_explanation": "La sección de Pruebas y Validación utiliza `virsh vol-dumpxml Vol1_p3.img --pool default` y `virsh vol-dumpxml pc25_LQD_ANFITRION1_Vol3_p3 --pool CONT_VOL_COMP`."
+  },
+  {
+    "question_number": 21,
+    "question_text": "¿Qué comando `virsh` muestra información sobre un pool de almacenamiento, como su estado, capacidad total, espacio asignado y disponible?",
+    "options": {
+      "a": "`virsh pool-details NombrePool`",
+      "b": "`virsh pool-dumpxml NombrePool --stats`",
+      "c": "`virsh pool-stat NombrePool`",
+      "d": "`virsh pool-info NombrePool`"
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "`virsh pool-info NombrePool`",
+    "question_explanation": "La sección de Pruebas y Validación muestra un ejemplo de `virsh pool-info Contenedor_Particion`."
+  },
+  {
+    "question_number": 22,
+    "question_text": "Dentro de una máquina virtual Linux, si se añade un disco como `/dev/sdb` y se formatea con XFS, ¿cómo se obtendría su UUID para añadirlo a `/etc/fstab` y asegurar un montaje persistente y correcto?",
+    "options": {
+      "a": "`uuidgen /dev/sdb`",
+      "b": "`blkid /dev/sdb`",
+      "c": "`ls -l /dev/disk/by-uuid/ | grep sdb`",
+      "d": "`fdisk -l /dev/sdb | grep UUID`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`blkid /dev/sdb`",
+    "question_explanation": "La Tarea 3 de la Fase 2, paso 21, y la Tarea 5 de la Fase 3, paso 18, utilizan `blkid /dev/vdb` (o similar) para obtener el UUID del disco dentro de la VM."
+  },
+  {
+    "question_number": 23,
+    "question_text": "Si un comando `virsh attach-disk` se ejecuta sin la opción `--config` o `--persistent`, ¿qué sucede con la asociación del disco?",
+    "options": {
+      "a": "La asociación es persistente por defecto.",
+      "b": "La asociación solo dura hasta que la máquina virtual se apaga (no persiste tras un reinicio de la VM).",
+      "c": "La asociación requiere confirmación manual en cada arranque de la VM.",
+      "d": "El comando fallará porque una de esas opciones es obligatoria."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La asociación solo dura hasta que la máquina virtual se apaga (no persiste tras un reinicio de la VM).",
+    "question_explanation": "La práctica consistentemente usa `--config` o `--persistent` para asegurar que los cambios perduren. Si no se usan, la modificación es temporal para la vida de la VM actual o hasta que el servicio libvirtd se reinicie."
+  },
+  {
+    "question_number": 24,
+    "question_text": "Al crear una partición lógica en el host con `fdisk /dev/sda`, si todas las particiones primarias están ocupadas y existe una partición extendida, ¿qué tipo de partición creará `fdisk` por defecto al seleccionar 'n' (nueva partición)?",
+    "options": {
+      "a": "Una nueva partición primaria si hay espacio.",
+      "b": "Una partición lógica dentro de la partición extendida.",
+      "c": "Preguntará si se desea convertir una primaria a extendida.",
+      "d": "Fallará indicando que no se pueden crear más particiones."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Una partición lógica dentro de la partición extendida.",
+    "question_explanation": "En la Tarea 2 y Tarea 3 de la Fase 2, al usar `fdisk` y seleccionar 'n', se indica 'All primary partitions are in use. Adding logical partition X', lo que confirma que crea una lógica."
+  },
+  {
+    "question_number": 25,
+    "question_text": "En el comando `virsh domblklist mvp3 --details`, ¿qué información proporciona la columna 'Tipo'?",
+    "options": {
+      "a": "El formato del sistema de archivos en el volumen (ej. xfs, ext4).",
+      "b": "El tipo de origen del almacenamiento (ej. 'file' para un archivo de imagen, 'block' para un dispositivo de bloque).",
+      "c": "El tipo de bus utilizado para el disco (ej. sata, virtio).",
+      "d": "Si el disco es de arranque o de datos."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El tipo de origen del almacenamiento (ej. 'file' para un archivo de imagen, 'block' para un dispositivo de bloque).",
+    "question_explanation": "La Tarea 1 de la Fase 2 muestra la salida de `virsh domblklist mvp3 --details` donde la columna 'Tipo' indica 'file'. Las Pruebas y Validación muestran 'file' y 'block'."
+  },
+  {
+    "question_number": 26,
+    "question_text": "¿Cuál es la principal diferencia en el manejo entre un volumen creado como un archivo (ej. `Vol1_p3.img`) y una partición física del host (ej. `/dev/sda11`) cuando se asocian a una VM?",
+    "options": {
+      "a": "El archivo de imagen no necesita ser formateado dentro de la VM, la partición física sí.",
+      "b": "La partición física siempre ofrece mejor rendimiento que un archivo de imagen.",
+      "c": "El archivo de imagen es gestionado por el sistema de archivos del host, mientras que la partición física es un dispositivo de bloque directo.",
+      "d": "Solo los archivos de imagen pueden usar el formato qcow2."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El archivo de imagen es gestionado por el sistema de archivos del host, mientras que la partición física es un dispositivo de bloque directo.",
+    "question_explanation": "Un volumen de archivo como `Vol1_p3.img` reside en el sistema de archivos del host (ej. `/var/lib/libvirt/images/`). Una partición física como `/dev/sda11` es un dispositivo de bloque en sí mismo que se pasa a la VM."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Al crear un pool de almacenamiento de tipo `netfs` (NFS), si el servidor NFS no está accesible o la ruta exportada no existe, ¿qué sucederá probablemente al ejecutar `virsh pool-start NombrePool`?",
+    "options": {
+      "a": "El comando se completará exitosamente, pero los volúmenes no serán accesibles.",
+      "b": "El comando fallará, indicando un error de montaje o de conexión al servidor.",
+      "c": "El pool se iniciará, pero quedará en estado inactivo hasta que el servidor esté disponible.",
+      "d": "Libvirt creará un directorio local temporal para simular el recurso NFS."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El comando fallará, indicando un error de montaje o de conexión al servidor.",
+    "question_explanation": "`virsh pool-start` para un pool `netfs` intenta montar el recurso NFS. Si esto falla (servidor inaccesible, ruta incorrecta, permisos), el comando de inicio del pool fallará."
+  },
+  {
+    "question_number": 28,
+    "question_text": "Si se asocia un disco a una VM con el destino `sda` y luego otro disco con el destino `vdb`, ¿qué implica la diferencia en el prefijo (`s` vs `v`) del nombre del dispositivo dentro de la VM?",
+    "options": {
+      "a": "`s` indica un disco de estado sólido y `v` un disco duro tradicional.",
+      "b": "`s` indica un bus emulado (como SATA/SCSI) y `v` un bus paravirtualizado (virtio).",
+      "c": "`s` se usa para discos primarios y `v` para discos secundarios.",
+      "d": "No hay una diferencia funcional, es solo una convención de nombrado."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`s` indica un bus emulado (como SATA/SCSI) y `v` un bus paravirtualizado (virtio).",
+    "question_explanation": "La práctica menciona esta diferencia en la Tarea 2, nota sobre 'sda' vs 'vda': `/dev/sda` es un dispositivo emulado como SATA/SCSI, mientras que `/dev/vda` (o vdb, vdc) es paravirtualizado (virtio) ofreciendo mejor rendimiento."
+  },
+  {
+    "question_number": 29,
+    "question_text": "Para verificar si un recurso NFS ha sido montado correctamente por libvirt para un pool, ¿qué comando del sistema operativo host se podría usar para listar los puntos de montaje activos y filtrar por el nombre del servidor NFS?",
+    "options": {
+      "a": "`lsblk | grep nfs_server_name`",
+      "b": "`df -h | grep nfs_server_name`",
+      "c": "`virsh pool-list --mounts | grep nfs_server_name`",
+      "d": "`mount | grep nfs_server_name`"
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "`mount | grep nfs_server_name`",
+    "question_explanation": "La Tarea 4 de la Fase 3 utiliza `mount | grep disnas2` para verificar que el sistema de archivos NFS está montado correctamente en el host."
+  },
+  {
+    "question_number": 30,
+    "question_text": "En el contexto de la práctica, ¿cuál es el objetivo de añadir una entrada al archivo `/etc/fstab` dentro de la máquina virtual mvp3 para los discos `/dev/sda1`, `/dev/sdb` y `/dev/vdc`?",
+    "options": {
+      "a": "Definir estos discos en el hipervisor libvirt.",
+      "b": "Formatear automáticamente estos discos en cada arranque.",
+      "c": "Asegurar que los sistemas de archivos en estos discos se monten automáticamente en los directorios especificados cada vez que la máquina virtual arranca.",
+      "d": "Realizar una comprobación del sistema de archivos (fsck) en estos discos durante el arranque."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Asegurar que los sistemas de archivos en estos discos se monten automáticamente en los directorios especificados cada vez que la máquina virtual arranca.",
+    "question_explanation": "En las Tareas 1, 2 y 3 de la Fase 2, y en la Tarea 5 de la Fase 3, se añaden entradas a `/etc/fstab` dentro de la VM para que los sistemas de archivos se monten automáticamente en los puntos de montaje designados (`/mnt/nuevo_disco`, `/mnt/disco_fisico`, `/VDB`, `/VDC`) tras un reinicio."
+  }
+]

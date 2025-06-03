@@ -3,30 +3,71 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test de Virtualización y Sistemas Distribuidos</title>
+    <title>Plataforma de Tests: VPD</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>Test de Conocimientos</h1>
-      <div id="quiz-area">
-        <div id="question-container">
-          <p id="question-number"></p>
-          <p id="question-text"></p>
-        </div>
-        <div id="options-container">
-          <!-- Las opciones se cargarán aquí -->
-        </div>
-        <button id="next-button" class="button">Siguiente Pregunta</button>
-        <div id="feedback-area">
-          <!-- Feedback de la respuesta -->
-        </div>
-        <div id="score-area" style="display: none">
-          <h2>Resultados del Test</h2>
-          <p>Has acertado <span id="correct-answers"></span> de <span id="total-questions"></span> preguntas.</p>
-          <button id="restart-button" class="button">Reiniciar Test</button>
-        </div>
-      </div>
+    <div id="app-container">
+      <header class="app-header">
+        <h1>Plataforma de Tests: Virtualización y Procesamiento Distribuido</h1>
+      </header>
+
+      <main>
+        <section id="selection-screen">
+          <h2>Elige un Test para Comenzar</h2>
+          <div class="test-selection-grid">
+            <button class="test-card" data-testfile="test.json" id="start-test-examen">
+              <h3>Test Examen General</h3>
+              <p>Preguntas variadas sobre virtualización y sistemas distribuidos.</p>
+            </button>
+            <!-- Aquí se podrán añadir más tests en el futuro -->
+            <!-- 
+            <button class="test-card future-test" disabled>
+              <h3>Test Complementario (Próximamente)</h3>
+              <p>Preguntas específicas sobre temas avanzados.</p>
+            </button>
+            <button class="test-card future-test" disabled>
+              <h3>Test Prácticas (Próximamente)</h3>
+              <p>Casos prácticos y escenarios reales.</p>
+            </button>
+             -->
+          </div>
+        </section>
+
+        <section id="quiz-container" class="hidden">
+          <div class="quiz-header">
+            <h2 id="quiz-title">Título del Quiz</h2>
+            <p id="current-score-display">Puntuación Actual: <span id="current-score">0.00</span></p>
+          </div>
+          <div id="quiz-area">
+            <div id="question-container">
+              <p id="question-number"></p>
+              <p id="question-text"></p>
+            </div>
+            <div id="options-container">
+              <!-- Las opciones se cargarán aquí -->
+            </div>
+            <button id="next-button" class="button">Siguiente Pregunta</button>
+            <div id="feedback-area">
+              <!-- Feedback de la respuesta -->
+            </div>
+            <div id="score-area" class="hidden">
+              <h2>Resultados del Test</h2>
+              <p>
+                Puntuación Final: <span id="correct-answers"></span> (de un máximo posible de
+                <span id="total-questions-for-max-score"></span>)
+              </p>
+              <button id="restart-button" class="button">Reiniciar Test</button>
+              <button id="back-to-selection-button" class="button">Volver a Selección</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>&copy; 2024 Virtualización y Procesamiento Distribuido. Todos los derechos reservados.</p>
+      </footer>
     </div>
     <script src="script.js"></script>
   </body>

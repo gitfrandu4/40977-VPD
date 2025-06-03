@@ -1,0 +1,392 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "¿Cuál es la principal diferencia en el propósito de las extensiones de hardware como Intel VT-x/AMD-V y tecnologías como SR-IOV?",
+    "options": {
+      "a": "Intel VT-x/AMD-V mejoran la E/S de red, mientras que SR-IOV mejora el rendimiento de la CPU virtual.",
+      "b": "Intel VT-x/AMD-V facilitan la ejecución eficiente de instrucciones privilegiadas por las VMs, mientras que SR-IOV permite el uso compartido directo de dispositivos PCIe físicos entre VMs.",
+      "c": "Ambas tecnologías se centran exclusivamente en la virtualización de la memoria para optimizar el overcommitment.",
+      "d": "Intel VT-x/AMD-V son para hipervisores Tipo II, y SR-IOV para hipervisores Tipo I."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Intel VT-x/AMD-V facilitan la ejecución eficiente de instrucciones privilegiadas por las VMs, mientras que SR-IOV permite el uso compartido directo de dispositivos PCIe físicos entre VMs.",
+    "question_explanation": "El texto indica que Intel-VT y AMD Pacífica (AMD-V) mejoran el rendimiento de la virtualización (HVM) al permitir que operaciones críticas se manejen sin intervención del hipervisor (Sección 1.4). Por otro lado, SR-IOV es una funcionalidad de PCIe que posibilita el uso compartido del bus PCIe, asignando Funciones Virtuales (VF) directamente a las VMs para E/S casi nativa (Sección 1.6 del segundo documento)."
+  },
+  {
+    "question_number": 2,
+    "question_text": "Considerando la virtualización completa del hardware x86, ¿cuál fue la implicación de las '17 instrucciones problemáticas' y cómo la abordó VMware inicialmente?",
+    "options": {
+      "a": "Estas instrucciones causaban fallos de seguridad, y VMware las eliminó del conjunto de instrucciones de la CPU virtual.",
+      "b": "Estas instrucciones eran necesarias para la paravirtualización, y VMware las implementó mediante hypercalls.",
+      "c": "Eran instrucciones privilegiadas no atrapables que impedían la virtualización transparente; VMware usó 'Binary Translation' para convertirlas en instrucciones virtualizables.",
+      "d": "Estas instrucciones solo afectaban al rendimiento gráfico; VMware desarrolló drivers específicos para solventarlo."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Eran instrucciones privilegiadas no atrapables que impedían la virtualización transparente; VMware usó 'Binary Translation' para convertirlas en instrucciones virtualizables.",
+    "question_explanation": "La Sección 1.5 explica que la arquitectura x86 no fue diseñada para virtualización completa y menciona las 17 instrucciones problemáticas. VMware desarrolló una técnica (Binary Translation) que las 'atrapa' y las convierte en instrucciones seguras para la virtualización antes de la existencia de VT-x/AMD-V."
+  },
+  {
+    "question_number": 3,
+    "question_text": "En el contexto de la paravirtualización, si un sistema operativo invitado está modificado para usar hypercalls, ¿cuál es la consecuencia directa en el rendimiento de E/S en comparación con la emulación completa de dispositivos?",
+    "options": {
+      "a": "El rendimiento de E/S se degrada debido a la sobrecarga de las hypercalls.",
+      "b": "No hay diferencia significativa en el rendimiento de E/S, ya que la complejidad se traslada al SO invitado.",
+      "c": "El rendimiento de E/S mejora significativamente porque se reduce la necesidad de emular hardware complejo, permitiendo una comunicación más directa con el hipervisor.",
+      "d": "La paravirtualización solo afecta el rendimiento de la CPU, no el de E/S."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El rendimiento de E/S mejora significativamente porque se reduce la necesidad de emular hardware complejo, permitiendo una comunicación más directa con el hipervisor.",
+    "question_explanation": "La Sección 1.6 indica que la paravirtualización suele ser muy rápida y la Sección 1.6 del segundo documento menciona que los dispositivos paravirtualizados (que usan hypercalls) aumentan el flujo de E/S y disminuyen la latencia, al tener el SO invitado conciencia de la virtualización y usar una API especial (virtio)."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Si KVM es un módulo del kernel de Linux que convierte el sistema operativo anfitrión en un hipervisor, ¿cómo se clasificaría KVM según los tipos de hipervisores y por qué?",
+    "options": {
+      "a": "Tipo II (Hosted), porque KVM se instala sobre un sistema operativo Linux existente.",
+      "b": "Tipo I (Bare-metal), porque aunque Linux está presente, KVM opera a nivel del kernel con acceso directo al hardware, y el propio Linux actúa como el dominio de gestión principal (similar a dom0 en Xen).",
+      "c": "Híbrido, porque utiliza QEMU (Tipo II) para la emulación de dispositivos y módulos del kernel (Tipo I) para la CPU y memoria.",
+      "d": "Tipo II (Hosted), porque siempre requiere una interfaz gráfica como virt-manager para su gestión."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Tipo I (Bare-metal), porque aunque Linux está presente, KVM opera a nivel del kernel con acceso directo al hardware, y el propio Linux actúa como el dominio de gestión principal (similar a dom0 en Xen).",
+    "question_explanation": "Aunque KVM se ejecuta 'dentro' de Linux, transforma el kernel de Linux en un hipervisor de Tipo I. Linux mismo se convierte en la partición de gestión o servicio, similar al dom0 en Xen. El hipervisor interactúa directamente con el hardware para las tareas de virtualización críticas. QEMU se ejecuta en el espacio de usuario para la emulación, pero el núcleo de la virtualización (CPU, memoria) es gestionado por KVM a nivel de kernel."
+  },
+  {
+    "question_number": 5,
+    "question_text": "¿Cuál es la diferencia fundamental entre la 'Virtualización Nativa' donde el SO invitado está diseñado para la misma CPU del host, y la 'Emulación' donde el SO invitado es para una CPU diferente?",
+    "options": {
+      "a": "La virtualización nativa requiere paravirtualización, la emulación no.",
+      "b": "La virtualización nativa puede usar virtualización asistida por hardware (Intel VT-x/AMD-V) para ejecutar instrucciones directamente en la CPU del host, mientras que la emulación debe traducir cada instrucción del SO invitado a la arquitectura del host, resultando en un rendimiento significativamente menor.",
+      "c": "La emulación siempre resulta en un rendimiento superior debido a la optimización de la traducción de instrucciones.",
+      "d": "La virtualización nativa solo permite un SO invitado, la emulación permite múltiples SOs invitados de diferentes arquitecturas simultáneamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La virtualización nativa puede usar virtualización asistida por hardware (Intel VT-x/AMD-V) para ejecutar instrucciones directamente en la CPU del host, mientras que la emulación debe traducir cada instrucción del SO invitado a la arquitectura del host, resultando en un rendimiento significativamente menor.",
+    "question_explanation": "La Sección 1.6 describe la Virtualización Nativa como aquella que permite ejecutar un SO invitado diseñado para la misma CPU del host, pudiendo usar virtualización por hardware. La Emulación es para SOs de CPU diferente y no puede usar virtualización por hardware, implicando una traducción costosa. El texto también indica que la emulación es de 10 a 100 veces más lenta."
+  },
+  {
+    "question_number": 6,
+    "question_text": "En KVM, la funcionalidad de 'Kernel Same-page Merging (KSM)' permite que las VMs compartan páginas de memoria idénticas. ¿Cuál es el principal beneficio y un posible inconveniente de esta técnica?",
+    "options": {
+      "a": "Beneficio: Aumento significativo de la velocidad de acceso a memoria. Inconveniente: Mayor consumo de CPU para la gestión de KSM.",
+      "b": "Beneficio: Reducción del consumo total de memoria del host, permitiendo mayor densidad de VMs. Inconveniente: Pequeña sobrecarga de CPU para escanear y fusionar páginas, y potencial impacto en seguridad si no se gestiona adecuadamente (ataques de canal lateral).",
+      "c": "Beneficio: Aislamiento completo de la memoria entre VMs. Inconveniente: Imposibilidad de realizar overcommitment de memoria.",
+      "d": "Beneficio: Mejora el rendimiento de E/S de disco. Inconveniente: Requiere que todos los SO invitados sean idénticos."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Beneficio: Reducción del consumo total de memoria del host, permitiendo mayor densidad de VMs. Inconveniente: Pequeña sobrecarga de CPU para escanear y fusionar páginas, y potencial impacto en seguridad si no se gestiona adecuadamente (ataques de canal lateral).",
+    "question_explanation": "La Sección 1.2 del segundo documento lista KSM como una funcionalidad que permite a las VMs compartir páginas de memoria, lo que reduce el consumo total (permitiendo mayor densidad). Si bien no se menciona explícitamente el inconveniente de CPU y seguridad en el texto, es una contrapartida conocida y lógica de tal mecanismo de deduplicación activa. Las otras opciones describen beneficios o inconvenientes incorrectos para KSM."
+  },
+  {
+    "question_number": 7,
+    "question_text": "Considerando los tipos de dispositivos en una MV KVM, ¿por qué se recomienda generalmente usar dispositivos paravirtualizados (ej. `virtio-net`, `virtio-blk`) en lugar de dispositivos completamente emulados cuando el SO invitado los soporta?",
+    "options": {
+      "a": "Porque los dispositivos emulados consumen menos recursos de CPU del host.",
+      "b": "Porque los dispositivos paravirtualizados ofrecen mayor compatibilidad con hardware físico diverso.",
+      "c": "Porque los dispositivos paravirtualizados, al utilizar una API como `virtio`, reducen la sobrecarga de emulación, resultando en un mayor flujo de E/S y menor latencia.",
+      "d": "Porque los dispositivos emulados no permiten la migración en caliente de la MV."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Porque los dispositivos paravirtualizados, al utilizar una API como `virtio`, reducen la sobrecarga de emulación, resultando en un mayor flujo de E/S y menor latencia.",
+    "question_explanation": "La Sección 1.6 del segundo documento establece que los dispositivos paravirtualizados aumentan el flujo de E/S, disminuyen la latencia y aportan nuevas funcionalidades. Menciona que la API `virtio` actúa como capa intermedia y que es recomendable usar dispositivos paravirtualizados frente a emulados siempre que sea posible."
+  },
+  {
+    "question_number": 8,
+    "question_text": "La tecnología SR-IOV (Single Root I/O Virtualization) permite que un único dispositivo PCIe físico sea visto como múltiples dispositivos separados. ¿Cuál es la relación entre Funciones Físicas (PF) y Funciones Virtuales (VF) en este contexto?",
+    "options": {
+      "a": "Cada PF se divide en múltiples VFs; las PFs contienen el repertorio completo de funciones PCIe, mientras que las VFs son funciones 'ligeras' para movimiento de datos, asociadas a una PF.",
+      "b": "Las VFs son abstracciones de software gestionadas por el hipervisor, mientras que las PFs son emuladas por QEMU.",
+      "c": "Una PF es una colección de varias VFs de diferentes dispositivos físicos, agregadas para mayor rendimiento.",
+      "d": "PF y VF son sinónimos para referirse a la misma capacidad de virtualización de E/S."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "Cada PF se divide en múltiples VFs; las PFs contienen el repertorio completo de funciones PCIe, mientras que las VFs son funciones 'ligeras' para movimiento de datos, asociadas a una PF.",
+    "question_explanation": "La Sección 1.6 del segundo documento explica que SR-IOV opera con Funciones Físicas (PF) que tienen el repertorio completo de PCIe, y Funciones Virtuales (VF) que son 'ligeras', contienen recursos para movimiento de datos y cada VF está asociada a una PF. Esto permite asignar VFs directamente a las VMs."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Al configurar el almacenamiento para una MV en KVM, ¿cuál es la diferencia fundamental entre usar un 'archivo de imagen de disco' (como un .qcow2) y asignar directamente una 'partición de disco física' del host a la MV?",
+    "options": {
+      "a": "Las particiones físicas no pueden ser compartidas entre MVs, los archivos de imagen sí.",
+      "b": "Los archivos de imagen siempre ofrecen mejor rendimiento que las particiones físicas.",
+      "c": "Un archivo de imagen es un archivo dentro del sistema de ficheros del host, ofreciendo flexibilidad (snapshots, thin provisioning con qcow2), mientras que una partición física asignada da a la MV acceso a nivel de bloque al dispositivo, potencialmente con menor sobrecarga pero menos flexibilidad.",
+      "d": "Las particiones físicas solo se pueden usar con hipervisores Tipo I, los archivos de imagen con Tipo II."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Un archivo de imagen es un archivo dentro del sistema de ficheros del host, ofreciendo flexibilidad (snapshots, thin provisioning con qcow2), mientras que una partición física asignada da a la MV acceso a nivel de bloque al dispositivo, potencialmente con menor sobrecarga pero menos flexibilidad.",
+    "question_explanation": "La Sección 1.7 del segundo documento menciona que los dispositivos de almacenamiento pueden ser unidades virtuales (archivos de imagen) o unidades físicas (discos o particiones). Los archivos de imagen como qcow2 (Sección 1.7 formatos) ofrecen propiedades como expansión dinámica, mientras que el acceso directo a una partición física (passthrough) puede ofrecer rendimiento cercano al nativo pero con menos funcionalidades de gestión de imagen."
+  },
+  {
+    "question_number": 10,
+    "question_text": "En la arquitectura de red de KVM, un 'switch virtual' (como `virbr0`) gestiona la comunicación. Si este switch opera en modo 'Red NAT', ¿cómo acceden las MVs a redes externas y cómo se gestionan las conexiones entrantes desde el exterior hacia una MV específica?",
+    "options": {
+      "a": "Las MVs usan la misma IP que el host y se comunican directamente. Las conexiones entrantes se enrutan automáticamente.",
+      "b": "Las MVs tienen direcciones IP privadas; el host realiza NAT sobre la dirección fuente para el tráfico saliente. Las conexiones entrantes requieren desvío de puerto explícito (DNAT) en el host.",
+      "c": "Cada MV obtiene una IP pública directamente del router físico. Las conexiones entrantes no son gestionadas por el host.",
+      "d": "Las MVs solo pueden comunicarse entre ellas y con el host, no tienen acceso a redes externas en modo NAT."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Las MVs tienen direcciones IP privadas; el host realiza NAT sobre la dirección fuente para el tráfico saliente. Las conexiones entrantes requieren desvío de puerto explícito (DNAT) en el host.",
+    "question_explanation": "La Sección 1.8 del segundo documento describe la 'Red NAT', indicando que las MVs usan direcciones privadas y el host hace NAT (MASQUERADE) para la conexión al exterior. También menciona que para conectarse desde el exterior se necesita desvío de puerto explícito con iptables."
+  },
+  {
+    "question_number": 11,
+    "question_text": "¿Cuál es la principal diferencia entre una 'memoria no paginada' y una 'memoria paginada' asignada a una máquina virtual, y qué implicación tiene cada una en términos de rendimiento y escalabilidad?",
+    "options": {
+      "a": "No paginada es más lenta pero más escalable; paginada es más rápida pero menos escalable.",
+      "b": "No paginada siempre reside en RAM física, priorizando rendimiento; paginada puede ser intercambiada a disco (swap), priorizando escalabilidad (permitir más VMs con menos RAM física).",
+      "c": "Paginada se refiere a la memoria compartida con KSM, no paginada es exclusiva de la VM.",
+      "d": "Ambos tipos ofrecen el mismo rendimiento y escalabilidad; la elección depende del SO invitado."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "No paginada siempre reside en RAM física, priorizando rendimiento; paginada puede ser intercambiada a disco (swap), priorizando escalabilidad (permitir más VMs con menos RAM física).",
+    "question_explanation": "La Sección 1.6 del segundo documento define 'Memoria no paginada' como aquella que siempre reside en memoria principal (ideal para rendimiento) y 'Memoria paginada' como aquella que puede ser transferida al área de intercambio (ideal para escalabilidad)."
+  },
+  {
+    "question_number": 12,
+    "question_text": "La virtualización a nivel de sistema operativo (contenedores) y la virtualización basada en hipervisores (VMs tradicionales) difieren significativamente en su arquitectura. ¿Cuál de las siguientes afirmaciones describe correctamente una diferencia clave y su implicación?",
+    "options": {
+      "a": "Los contenedores ejecutan cada uno su propio kernel aislado, ofreciendo mayor seguridad que las VMs que comparten el kernel del host.",
+      "b": "Las VMs tradicionales tienen una sobrecarga de recursos mucho menor que los contenedores, permitiendo mayor densidad en el mismo hardware.",
+      "c": "Los contenedores comparten el kernel del sistema operativo host y aíslan procesos en espacios de usuario, resultando en menor sobrecarga y arranque más rápido que las VMs que virtualizan hardware completo y ejecutan kernels invitados completos.",
+      "d": "La virtualización a nivel de SO es un tipo de hipervisor Tipo I, mientras que la basada en hipervisores es siempre Tipo II."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Los contenedores comparten el kernel del sistema operativo host y aíslan procesos en espacios de usuario, resultando en menor sobrecarga y arranque más rápido que las VMs que virtualizan hardware completo y ejecutan kernels invitados completos.",
+    "question_explanation": "La Sección 1.6 ('Virtualización a nivel del Sistema Operativo') explica que las máquinas virtuales comparten el SO con el host y el kernel proporciona múltiples espacios de usuario aislados. La Sección 1.8 ('Virtualización basada en hipervisores versus virtualización a nivel de sistema operativo') destaca que la virtualización a nivel de SO puede ser más pequeña y eficiente. El texto también menciona que los contenedores tienen una penalización de rendimiento mucho menor (1-5%) que las VMs (5-15%)."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Si un hipervisor Tipo I (bare-metal) interactúa directamente con el hardware del sistema anfitrión, ¿cuál es la principal ventaja de rendimiento que esto ofrece sobre un hipervisor Tipo II (hosted)?",
+    "options": {
+      "a": "Los hipervisores Tipo I permiten ejecutar un mayor número de sistemas operativos invitados diferentes simultáneamente.",
+      "b": "Los hipervisores Tipo I eliminan la capa del sistema operativo anfitrión entre el hipervisor y el hardware, reduciendo la latencia y la sobrecarga de recursos.",
+      "c": "Los hipervisores Tipo I son más fáciles de instalar y configurar para usuarios domésticos.",
+      "d": "Los hipervisores Tipo I no requieren extensiones de virtualización de hardware (Intel VT-x/AMD-V)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Los hipervisores Tipo I eliminan la capa del sistema operativo anfitrión entre el hipervisor y el hardware, reduciendo la latencia y la sobrecarga de recursos.",
+    "question_explanation": "La Sección 1.7 describe los hipervisores Tipo I como aquellos que interactúan directamente con el hardware. El texto añade que estos 'suelen ofrecer mejor rendimiento al eliminar la capa del sistema operativo anfitrión'. Los Tipo II, en cambio, 'utilizan el sistema operativo del host para acceder y coordinar los recursos', lo que introduce sobrecarga."
+  },
+  {
+    "question_number": 14,
+    "question_text": "La técnica de 'overcommitment' de CPU en KVM implica asignar más VCPUs a las máquinas virtuales de las que el host posee físicamente. ¿Bajo qué principio funciona esta técnica y cuál es su principal riesgo?",
+    "options": {
+      "a": "Funciona asumiendo que todas las VMs usarán sus VCPUs al 100% simultáneamente; el riesgo es el sobrecalentamiento del host.",
+      "b": "Funciona aprovechando que no todas las VMs utilizan sus VCPUs asignadas al máximo todo el tiempo, permitiendo una mayor utilización del hardware; el riesgo es la degradación del rendimiento (contención de CPU) si muchas VMs demandan recursos simultáneamente.",
+      "c": "Funciona creando VCPUs puramente emuladas que no consumen ciclos reales del host; el riesgo es la inestabilidad del sistema operativo invitado.",
+      "d": "Funciona duplicando las VCPUs físicas mediante hyperthreading avanzado; el riesgo es que solo es compatible con ciertos modelos de CPU."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Funciona aprovechando que no todas las VMs utilizan sus VCPUs asignadas al máximo todo el tiempo, permitiendo una mayor utilización del hardware; el riesgo es la degradación del rendimiento (contención de CPU) si muchas VMs demandan recursos simultáneamente.",
+    "question_explanation": "La Sección 1.2 del segundo documento menciona 'CPU and memory Overcommitting' como una funcionalidad principal. El término 'overcommitment' en el glosario del primer documento lo define como 'práctica de asignar más recursos virtuales que los físicamente disponibles, aprovechando que no todas las VMs utilizan sus recursos al 100% simultáneamente'. El riesgo inherente es la contención si la demanda supera la capacidad."
+  },
+  {
+    "question_number": 15,
+    "question_text": "Cuando se utiliza una 'Interfaz modo puente (bridge)' para la red de una máquina virtual KVM, ¿cuál es el resultado principal en términos de conectividad de red para la MV?",
+    "options": {
+      "a": "La MV obtiene una dirección IP de una subred interna gestionada por NAT en el host, aislada de la LAN física.",
+      "b": "La MV se conecta directamente a la LAN física del host, apareciendo como otro dispositivo en esa red y obteniendo una dirección IP de la misma subred que el host.",
+      "c": "La MV solo puede comunicarse con otras MVs en el mismo host, sin acceso a la LAN física ni a Internet.",
+      "d": "La MV utiliza la dirección IP del host y comparte sus puertos mediante Port Address Translation (PAT)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La MV se conecta directamente a la LAN física del host, apareciendo como otro dispositivo en esa red y obteniendo una dirección IP de la misma subred que el host.",
+    "question_explanation": "La Sección 1.8 del segundo documento, bajo 'Interfaz modo puente (bridge)', explica que se usa 'para conectar MVs a la misma LAN que el host físico' y que 'Las MVs conectadas al bridge poseen direcciones de la misma red que la interface física'."
+  },
+  {
+    "question_number": 16,
+    "question_text": "En la arquitectura KVM, QEMU es responsable de la emulación de hardware. ¿Cómo interactúa KVM (módulo del kernel) con QEMU para ejecutar una máquina virtual?",
+    "options": {
+      "a": "KVM reemplaza completamente a QEMU, manejando tanto la virtualización de CPU/memoria como la emulación de dispositivos.",
+      "b": "QEMU se ejecuta en el kernel junto con KVM, proporcionando una API de bajo nivel para la gestión de VMs.",
+      "c": "KVM maneja la virtualización de CPU y memoria aprovechando las extensiones de hardware, mientras que QEMU se ejecuta en el espacio de usuario para emular dispositivos de E/S y coordinar con KVM.",
+      "d": "QEMU es un hipervisor Tipo I y KVM es un conjunto de herramientas de gestión que se ejecutan sobre QEMU."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "KVM maneja la virtualización de CPU y memoria aprovechando las extensiones de hardware, mientras que QEMU se ejecuta en el espacio de usuario para emular dispositivos de E/S y coordinar con KVM.",
+    "question_explanation": "La Sección 1.1 del segundo documento indica que KVM tiene módulos del kernel para hacer eficiente la virtualización (CPU, memoria) y QEMU emula los sistemas invitados, donde cada invitado es un proceso `qemu-system-x86` en el host. Esta es la interacción estándar: KVM para el core de virtualización y QEMU para la emulación de periféricos."
+  },
+  {
+    "question_number": 17,
+    "question_text": "Considerando la 'Virtualización Parcial', ¿cuál es su limitación fundamental en comparación con la 'Virtualización Nativa' o la 'Emulación'?",
+    "options": {
+      "a": "La virtualización parcial solo puede ejecutar sistemas operativos de 32 bits.",
+      "b": "La virtualización parcial no permite la ejecución de múltiples instancias separadas de sistemas operativos invitados completos; se enfoca más en aislar procesos compartiendo recursos.",
+      "c": "La virtualización parcial requiere hardware específico que no es común en servidores x86.",
+      "d": "La virtualización parcial ofrece un rendimiento superior a la nativa debido a la menor cantidad de hardware virtualizado."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La virtualización parcial no permite la ejecución de múltiples instancias separadas de sistemas operativos invitados completos; se enfoca más en aislar procesos compartiendo recursos.",
+    "question_explanation": "La Sección 1.6 ('Virtualización Parcial') establece que 'No permite varias instancias separadas de sistemas operativos invitados. No sería realmente una máquina virtual', y se enfoca en compartir recursos y aislar procesos."
+  },
+  {
+    "question_number": 18,
+    "question_text": "¿Qué es un 'snapshot' en el contexto de la virtualización de máquinas?",
+    "options": {
+      "a": "Una copia completa del archivo de imagen de disco de la VM, que se puede usar como backup.",
+      "b": "Una captura del estado completo de una máquina virtual (memoria, disco, configuración de dispositivos) en un momento específico, permitiendo revertir a ese estado.",
+      "c": "Un registro de los cambios realizados en el sistema de archivos de la VM, similar a un log de transacciones.",
+      "d": "Una versión optimizada de la VM para ejecución en modo de solo lectura."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Una captura del estado completo de una máquina virtual (memoria, disco, configuración de dispositivos) en un momento específico, permitiendo revertir a ese estado.",
+    "question_explanation": "La Sección 1.10 ('Glosario de términos') define 'Snapshot' como la 'Captura del estado completo de una máquina virtual en un momento específico, permitiendo revertir a ese estado posteriormente'."
+  },
+  {
+    "question_number": 19,
+    "question_text": "La propiedad 'Differencing Disks' (Discos Diferenciales) para imágenes de disco de MV implica una estructura jerárquica. ¿Cómo funciona y cuál es su principal utilidad?",
+    "options": {
+      "a": "Combina múltiples discos físicos en un único disco virtual más grande para la MV.",
+      "b": "Crea múltiples copias idénticas del disco base para redundancia y tolerancia a fallos.",
+      "c": "Parte de una imagen base (baseline) y los cambios se escriben en imágenes adicionales (child disks), permitiendo que múltiples VMs compartan la imagen base y ahorrando espacio, o para crear puntos de restauración no destructivos.",
+      "d": "Divide un disco virtual grande en varios archivos más pequeños para facilitar su gestión y transporte."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Parte de una imagen base (baseline) y los cambios se escriben en imágenes adicionales (child disks), permitiendo que múltiples VMs compartan la imagen base y ahorrando espacio, o para crear puntos de restauración no destructivos.",
+    "question_explanation": "La Sección 1.7 del segundo documento describe 'Differencing Disks' como una estructura donde 'Se parte de una imagen inicial (baseline virtual disk) y se van generando imágenes adicionales (child disks)'. Esto es la base de los snapshots y el ahorro de espacio mediante imágenes base compartidas."
+  },
+  {
+    "question_number": 20,
+    "question_text": "Si se configura una red virtual KVM en modo 'aislada', ¿qué tipo de conectividad se espera para las máquinas virtuales conectadas a esta red?",
+    "options": {
+      "a": "Las MVs pueden comunicarse entre sí y con la red externa a través de NAT.",
+      "b": "Las MVs pueden comunicarse entre sí y con el host, pero no con redes externas.",
+      "c": "Las MVs solo pueden comunicarse entre sí, sin acceso al host ni a redes externas.",
+      "d": "Las MVs no pueden comunicarse en absoluto, ni siquiera entre ellas."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Las MVs solo pueden comunicarse entre sí, sin acceso al host ni a redes externas.",
+    "question_explanation": "La Sección 1.8 del segundo documento describe la 'Red aislada' como para 'MV sin conexión' y muestra reglas de iptables que rechazan el tráfico hacia/desde el exterior (`-j REJECT`). Aunque el diagrama implica comunicación entre MVs dentro del switch virtual, el aislamiento principal es respecto al host y el exterior."
+  },
+  {
+    "question_number": 21,
+    "question_text": "El concepto de 'PCI Passthrough' (asignación de dispositivo) permite a una MV usar directamente un dispositivo PCI físico del host. ¿Qué tecnología de hardware del procesador es fundamental para garantizar que estas transferencias de E/S se realicen de manera segura y aislada?",
+    "options": {
+      "a": "Hyper-Threading.",
+      "b": "Extensiones de virtualización de CPU como Intel VT-x o AMD-V.",
+      "c": "Tecnologías IOMMU como Intel VT-d o AMD-Vi.",
+      "d": "ECC (Error-Correcting Code) Memory."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Tecnologías IOMMU como Intel VT-d o AMD-Vi.",
+    "question_explanation": "La Sección 1.6 del segundo documento, al hablar de 'Dispositivos físicos del sistema anfitrión', menciona que los sistemas modernos ofrecen funcionalidades de DMA y reasignación de interrupciones para garantizar transferencias seguras, citando Intel VT-d y AMD-Vi. Luego, VFIO se menciona como un manejador que utiliza la funcionalidad IOMMU del procesador."
+  },
+  {
+    "question_number": 22,
+    "question_text": "Al definir un contenedor de almacenamiento en `libvirt`, ¿cuál es la diferencia entre un tipo de pool `dir` y un tipo `fs`?",
+    "options": {
+      "a": "`dir` es para directorios locales, `fs` es para sistemas de archivos en red como NFS.",
+      "b": "`dir` utiliza un directorio existente en el host como fuente, mientras que `fs` utiliza un dispositivo de bloque pre-formateado y montado (como una partición) como fuente.",
+      "c": "`dir` solo permite volúmenes en formato `raw`, `fs` permite `qcow2`.",
+      "d": "`fs` es un alias obsoleto para `netfs`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`dir` utiliza un directorio existente en el host como fuente, mientras que `fs` utiliza un dispositivo de bloque pre-formateado y montado (como una partición) como fuente.",
+    "question_explanation": "Aunque no se detalla explícitamente en este texto la diferencia `dir` vs `fs`, la práctica 3 sí lo hace notar. El texto actual (Sección 1.7 del segundo documento) dice que los contenedores se pueden desplegar en 'espacios de almacenamiento local: directorios, discos físicos, particiones...'. `dir` es para un directorio simple; `fs` es para un sistema de archivos montado desde un dispositivo de bloque. `netfs` es para NFS."
+  },
+  {
+    "question_number": 23,
+    "question_text": "La utilidad `virsh` es una herramienta de línea de comandos principal para gestionar KVM a través de `libvirt`. Si se realizan cambios en la configuración de una VM con `virsh edit` pero la VM está en ejecución, ¿estos cambios son persistentes o temporales por defecto?",
+    "options": {
+      "a": "Siempre son persistentes y se aplican inmediatamente.",
+      "b": "Son temporales y se pierden al apagar la VM, a menos que se use una opción específica para persistir.",
+      "c": "`virsh edit` solo modifica la configuración persistente; para cambios en vivo se usa `virsh attach-device` u otros comandos con opciones de persistencia.",
+      "d": "Los cambios son persistentes, pero solo se aplican después de reiniciar la VM."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh edit` solo modifica la configuración persistente; para cambios en vivo se usa `virsh attach-device` u otros comandos con opciones de persistencia.",
+    "question_explanation": "La Sección 1.5 del segundo documento dice que para el manejo de archivos XML se debe usar, entre otros, 'excepcionalmente utilizando la orden `virsh edit`'. `virsh edit` modifica la definición persistente de un dominio (VM). Para aplicar cambios a una VM en ejecución y que además sean persistentes, se suelen usar comandos específicos como `attach-disk` con la opción `--config` o `--persistent`."
+  },
+  {
+    "question_number": 24,
+    "question_text": "El 'ballooning' de memoria (ej. `virtio-balloon`) es un mecanismo utilizado en virtualización. ¿Cuál es su propósito principal?",
+    "options": {
+      "a": "Comprimir la memoria de la VM para reducir su huella en el host.",
+      "b": "Permitir al hipervisor reclamar memoria no utilizada de una VM o devolverle memoria dinámicamente, según las necesidades del host y del invitado.",
+      "c": "Crear un área de intercambio (swap) dentro de la memoria de la VM para mejorar el rendimiento.",
+      "d": "Expandir la capacidad máxima de memoria de la VM más allá de los límites físicos del host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Permitir al hipervisor reclamar memoria no utilizada de una VM o devolverle memoria dinámicamente, según las necesidades del host y del invitado.",
+    "question_explanation": "La Sección 1.6 del segundo documento lista 'Dispositivo de memoria balloon (virtio-ballon)' como un tipo de dispositivo paravirtualizado. El glosario (Sección 1.10 del primer documento) define 'Ballooning' como un 'Mecanismo para ajustar dinámicamente la memoria asignada a una VM según las necesidades del sistema'."
+  },
+  {
+    "question_number": 25,
+    "question_text": "¿Qué limitación importante presentaba la arquitectura x86 original que dificultó la virtualización completa antes de la introducción de extensiones como Intel VT-x y AMD-V?",
+    "options": {
+      "a": "La incapacidad de ejecutar múltiples sistemas operativos, incluso de forma nativa.",
+      "b": "La falta de un gestor de memoria robusto, lo que impedía el aislamiento entre VMs.",
+      "c": "La existencia de instrucciones privilegiadas que no generaban una excepción (trap) cuando se ejecutaban en un modo menos privilegiado, impidiendo al hipervisor interceptarlas y emularlas eficientemente.",
+      "d": "La ausencia de soporte para direccionamiento de memoria de más de 32 bits."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La existencia de instrucciones privilegiadas que no generaban una excepción (trap) cuando se ejecutaban en un modo menos privilegiado, impidiendo al hipervisor interceptarlas y emularlas eficientemente.",
+    "question_explanation": "La Sección 1.5 ('Virtualización completa del hardware x86') explica que la arquitectura x86 no fue diseñada para admitir virtualización completa y menciona las '17 instrucciones de x86 que provocan errores o funcionamientos anómalos cuando se virtualiza'. El detalle técnico sobre 'instrucciones privilegiadas no atrapables' aclara este punto."
+  },
+  {
+    "question_number": 26,
+    "question_text": "En la virtualización a nivel de Sistema Operativo, como la que utilizan Docker o LXC, ¿por qué se considera que hay una menor sobrecarga de recursos en comparación con la virtualización basada en hipervisores?",
+    "options": {
+      "a": "Porque cada contenedor tiene su propio kernel altamente optimizado y ligero.",
+      "b": "Porque los contenedores comparten el kernel del sistema operativo anfitrión y solo virtualizan el espacio de usuario y los recursos necesarios, eliminando la necesidad de ejecutar un SO completo por cada instancia.",
+      "c": "Porque los contenedores utilizan una forma avanzada de paravirtualización que es más eficiente que las hypercalls tradicionales.",
+      "d": "Porque los contenedores no realizan virtualización de E/S, accediendo directamente al hardware sin ninguna capa de abstracción."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Porque los contenedores comparten el kernel del sistema operativo anfitrión y solo virtualizan el espacio de usuario y los recursos necesarios, eliminando la necesidad de ejecutar un SO completo por cada instancia.",
+    "question_explanation": "La Sección 1.6 ('Virtualización a nivel del Sistema Operativo') indica que 'Las máquinas virtuales comparten el sistema operativo con el host' y 'El kernel proporciona múltiples espacios de usuario aislados'. Esto implica que no se ejecuta un SO completo por instancia, reduciendo la sobrecarga."
+  },
+  {
+    "question_number": 27,
+    "question_text": "La 'migración en caliente' (live migration) es una característica valiosa en entornos virtualizados. ¿Qué describe este proceso?",
+    "options": {
+      "a": "Actualizar el sistema operativo de una VM sin necesidad de reiniciarla.",
+      "b": "Mover una máquina virtual en ejecución de un servidor físico a otro sin interrumpir su funcionamiento ni la conexión de los usuarios.",
+      "c": "Clonar una máquina virtual mientras está en ejecución para crear una copia de seguridad instantánea.",
+      "d": "Aumentar los recursos de CPU o RAM de una VM mientras está en funcionamiento."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Mover una máquina virtual en ejecución de un servidor físico a otro sin interrumpir su funcionamiento ni la conexión de los usuarios.",
+    "question_explanation": "La Sección 1.2 ('Utilidad') menciona 'Migración en caliente de máquinas virtuales de un servidor físico a otro'. El glosario (Sección 1.10) define 'Live migration' como 'Proceso de mover una VM en ejecución de un host físico a otro sin interrumpir su funcionamiento'."
+  },
+  {
+    "question_number": 28,
+    "question_text": "En KVM, cada sistema invitado en ejecución da lugar a un proceso en el sistema anfitrión. ¿Cuál es el nombre típico de este proceso?",
+    "options": {
+      "a": "`kvm_guest_process`",
+      "b": "`libvirtd_vm_instance`",
+      "c": "`qemu-system-x86_64` (o similar según la arquitectura)",
+      "d": "`vmm_worker_thread`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`qemu-system-x86_64` (o similar según la arquitectura)",
+    "question_explanation": "La Sección 1.1 del segundo documento ('Principales componentes') establece que QEMU emula los sistemas invitados y que 'Cada sistema invitado en ejecución da lugar a un proceso en el sistema anfitrión. Procesos con nombre “`qemu-system-x86`”'."
+  },
+  {
+    "question_number": 29,
+    "question_text": "Si se desea limitar las operaciones de E/S de disco de una máquina virtual KVM para evitar que monopolice el subsistema de almacenamiento, ¿qué funcionalidad de KVM/libvirt se podría utilizar?",
+    "options": {
+      "a": "Kernel Same-page Merging (KSM).",
+      "b": "Disk I/O throttling (ej. orden `blkdeviotune` de `virsh`).",
+      "c": "Virtual CPU (VCPU) hot add.",
+      "d": "SR-IOV para el controlador de disco."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Disk I/O throttling (ej. orden `blkdeviotune` de `virsh`).",
+    "question_explanation": "La Sección 1.2 del segundo documento ('Funcionalidades principales') menciona 'Posibilidad de limitar las operaciones E/S de disco (Disk I/O throttling) en los sistemas huéspedes (orden blkdeviotune de virsh)'."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Una 'red virtual enrutada' en KVM permite que las VMs usen direcciones IP reales (enrutables) y se conecten al exterior. ¿Cómo gestiona el host el tráfico en este escenario, según las reglas de `iptables` mostradas?",
+    "options": {
+      "a": "El host realiza NAT para todo el tráfico de las VMs, ocultando sus IPs reales.",
+      "b": "El host bloquea todo el tráfico entre las VMs y el exterior.",
+      "c": "El host actúa como un router, permitiendo (FORWARD) el tráfico hacia y desde la subred de las VMs sin realizar NAT.",
+      "d": "El host crea un túnel VPN para cada VM para asegurar la comunicación."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El host actúa como un router, permitiendo (FORWARD) el tráfico hacia y desde la subred de las VMs sin realizar NAT.",
+    "question_explanation": "La Sección 1.8 del segundo documento ('Red enrutada') indica que se usa para 'MV con direcciones reales (enrutables)' y 'Conexión al exterior'. Las reglas de `iptables` mostradas (`-A FORWARD ... -j ACCEPT`) son para permitir el reenvío de paquetes, que es la función de un router, sin la regla de MASQUERADE característica del NAT."
+  }
+]

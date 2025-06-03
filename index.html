@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test de Virtualización y Sistemas Distribuidos</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Test de Conocimientos</h1>
+      <div id="quiz-area">
+        <div id="question-container">
+          <p id="question-number"></p>
+          <p id="question-text"></p>
+        </div>
+        <div id="options-container">
+          <!-- Las opciones se cargarán aquí -->
+        </div>
+        <button id="next-button" class="button">Siguiente Pregunta</button>
+        <div id="feedback-area">
+          <!-- Feedback de la respuesta -->
+        </div>
+        <div id="score-area" style="display: none">
+          <h2>Resultados del Test</h2>
+          <p>Has acertado <span id="correct-answers"></span> de <span id="total-questions"></span> preguntas.</p>
+          <button id="restart-button" class="button">Reiniciar Test</button>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

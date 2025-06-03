@@ -134,10 +134,33 @@ main {
 #current-score-display {
   font-size: 1em;
   font-weight: 600;
-  color: #667eea;
-  background-color: #e9e7fd;
-  padding: 5px 10px;
+  color: #667eea; /* Default text color */
+  background-color: #e9e7fd; /* Default background */
+  padding: 8px 12px; /* Slightly more padding */
   border-radius: 6px;
+  transition: background-color 0.5s ease, color 0.5s ease; /* Smooth transition */
+}
+
+/* Dynamic Score Color Classes */
+#current-score-display.score-excellent {
+  background-color: #28a745; /* Dark Green */
+  color: white;
+}
+#current-score-display.score-good {
+  background-color: #90ee90; /* Light Green */
+  color: #155724; /* Darker green text for contrast */
+}
+#current-score-display.score-okay {
+  background-color: #ffc107; /* Yellow/Amber */
+  color: #333; /* Dark text for contrast */
+}
+#current-score-display.score-needs-improvement {
+  background-color: #fd7e14; /* Orange */
+  color: white;
+}
+#current-score-display.score-struggling {
+  background-color: #dc3545; /* Red */
+  color: white;
 }
 
 #quiz-area {
@@ -332,6 +355,7 @@ button:focus,
   }
   #current-score-display {
     align-self: flex-start;
+    margin-top: 5px; /* Add some space when stacked */
   }
   #options-container button,
   .button {

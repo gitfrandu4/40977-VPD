@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Feedback and Score Elements
   const feedbackArea = document.getElementById('feedback-area');
   const scoreArea = document.getElementById('score-area');
-  const currentScoreDisplayEl = document.getElementById('current-score-display'); // The p tag
-  const currentScoreEl = document.getElementById('current-score'); // The span inside
+  const currentScoreDisplayContainerEl = document.getElementById('current-score-display'); // The <p> tag for styling
+  const currentScoreTextEl = document.getElementById('current-score'); // The <span> for the score text
   const correctAnswersEl = document.getElementById('correct-answers');
   const totalQuestionsEl = document.getElementById('total-questions'); // For the old message, might remove or repurpose
   const totalQuestionsForMaxScoreEl = document.getElementById('total-questions-for-max-score');
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let shuffledQuestions = [];
   let currentQuizFile = '';
   let currentQuizName = '';
+  let questionsAnswered = 0;
 
   // --- UI Navigation ---
   function showSelectionScreen() {
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     quizContainer.classList.remove('hidden');
     scoreArea.classList.add('hidden');
     quizArea.style.display = 'block';
-    currentScoreDisplayEl.style.display = 'block'; // Show real-time score display
+    if (currentScoreDisplayContainerEl) currentScoreDisplayContainerEl.style.display = 'block';
     nextButton.style.display = 'block';
   }
 
@@ -91,15 +92,46 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateCurrentScoreDisplay() {
-    if (currentScoreEl) {
-      currentScoreEl.textContent = score.toFixed(2);
+    if (currentScoreTextEl) {
+      currentScoreTextEl.textContent = score.toFixed(2);
+    }
+
+    if (currentScoreDisplayContainerEl) {
+      // Remove all existing score performance classes
+      currentScoreDisplayContainerEl.classList.remove(
+        'score-excellent',
+        'score-good',
+        'score-okay',
+        'score-needs-improvement',
+        'score-struggling',
+      );
+
+      if (questionsAnswered > 0) {
+        const performanceRatio = score / questionsAnswered; // Max score for N answered questions is N*1 = N
+
+        if (performanceRatio >= 0.75) {
+          currentScoreDisplayContainerEl.classList.add('score-excellent');
+        } else if (performanceRatio >= 0.5) {
+          currentScoreDisplayContainerEl.classList.add('score-good');
+        } else if (performanceRatio >= 0.25) {
+          currentScoreDisplayContainerEl.classList.add('score-okay');
+        } else if (performanceRatio >= 0) {
+          // Includes zero, which can happen with a mix of correct/incorrect
+          currentScoreDisplayContainerEl.classList.add('score-needs-improvement');
+        } else {
+          // performanceRatio < 0
+          currentScoreDisplayContainerEl.classList.add('score-struggling');
+        }
+      }
+      // If questionsAnswered is 0, no class is added, so it uses default styles defined in CSS.
     }
   }
 
   function startQuiz(quizNameToDisplay) {
     score = 0;
     currentQuestionIndex = 0;
-    updateCurrentScoreDisplay();
+    questionsAnswered = 0; // Reset for a new quiz session
+    updateCurrentScoreDisplay(); // Initialize score display (will remove color classes due to questionsAnswered = 0)
     shuffledQuestions = shuffleArray([...questions]);
 
     showQuizContainer(quizNameToDisplay); // Handles visibility of containers
@@ -140,6 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const buttons = optionsContainer.getElementsByTagName('button');
     let selectedButton = null; // Initialize to null
 
+    questionsAnswered++; // Increment here as an answer is being processed
+
     for (let btn of buttons) {
       btn.disabled = true;
       // Ensure btn.textContent is not null and selectedKey is not null before calling startsWith
@@ -172,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     }
-    updateCurrentScoreDisplay();
+    updateCurrentScoreDisplay(); // Update score text and color based on performance
     nextButton.disabled = false;
     if (currentQuestionIndex === shuffledQuestions.length - 1) {
       nextButton.textContent = 'Ver Resultados';
@@ -181,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showFinalScore() {
     quizArea.style.display = 'none';
-    currentScoreDisplayEl.style.display = 'none'; // Hide real-time score
+    if (currentScoreDisplayContainerEl) currentScoreDisplayContainerEl.style.display = 'none';
     scoreArea.classList.remove('hidden');
     correctAnswersEl.textContent = score.toFixed(2);
     if (totalQuestionsForMaxScoreEl) totalQuestionsForMaxScoreEl.textContent = shuffledQuestions.length;

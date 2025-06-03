@@ -10,7 +10,7 @@
       - [Tema 1.2: El sistema anfitrión y anatomía de la máquina virtual en KVM](#tema-12-el-sistema-anfitrión-y-anatomía-de-la-máquina-virtual-en-kvm)
     - [2. Recursos Almacenamiento Virtual KVM](#2-recursos-almacenamiento-virtual-kvm)
     - [3. Recursos de red en KVM](#3-recursos-de-red-en-kvm)
-    - [4. WIP](#4-wip)
+    - [4. Almacenamiento Distribuido](#4-almacenamiento-distribuido)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
     - [Práctica 2: Operaciones con máquinas virtuales](#práctica-2-operaciones-con-máquinas-virtuales)
@@ -253,7 +253,31 @@ La virtualización en KVM proporciona mecanismos robustos para la gestión de re
 
 La correcta elección y configuración de estos recursos de red es fundamental para la funcionalidad, seguridad y rendimiento de los entornos virtualizados con KVM.
 
-### 4. WIP
+### 4. Almacenamiento Distribuido
+
+Los sistemas de almacenamiento distribuido constituyen una infraestructura fundamental que permite el acceso compartido de múltiples sistemas al recurso de almacenamiento de un sistema de información. Este módulo explora:
+
+- **Conceptos fundamentales**: Definición, características y taxonomía de sistemas DSN (Distributed Storage Network).
+- **Evolución histórica**: Desde los mainframes de los 60s hasta las soluciones modernas de almacenamiento en la nube y sistemas definidos por software (SDS).
+
+- **Redes de almacenamiento**: Arquitecturas SAN (Storage Area Network) y NAS (Network Attached Storage), con sus topologías características:
+
+  - Topologías punto a punto
+  - Bucle arbitrado (Fibre Channel Arbitrated Loop)
+  - Fabric (basada en switches)
+
+- **Protocolos y tecnologías de acceso**:
+
+  - Consideraciones de niveles OSI para comunicación en sistemas distribuidos
+  - Técnicas de redundancia y optimización: RAID (niveles 0-6 y combinaciones) y mirroring
+
+- **Almacenamiento iSCSI**: Protocolo que encapsula comandos SCSI sobre TCP/IP, permitiendo construir SANs sobre infraestructura Ethernet estándar:
+  - Arquitectura de nodos target (servidores) e initiator (clientes)
+  - Proceso de login, autenticación y establecimiento de sesiones
+  - Estructura de PDUs (Protocol Data Units) para comandos y datos
+  - Mecanismos de seguridad: autenticación in-band e IPSec
+
+La implementación de sistemas de almacenamiento distribuido ofrece beneficios críticos como mayor disponibilidad de datos, acceso compartido eficiente, independencia de tecnologías específicas, y en implementaciones modernas, características avanzadas como replicación geográfica, autoescalado y reparación automática de fallos.
 
 ## Prácticas
 

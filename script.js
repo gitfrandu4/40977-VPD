@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentQuestionIndex < shuffledQuestions.length) {
       const question = shuffledQuestions[currentQuestionIndex];
       questionNumberEl.textContent = `Pregunta ${currentQuestionIndex + 1} de ${shuffledQuestions.length}`;
-      questionTextEl.textContent = question.question_text;
+      questionTextEl.innerHTML = marked.parse(question.question_text);
       optionsContainer.innerHTML = '';
       feedbackArea.textContent = '';
       feedbackArea.className = 'feedback-area';
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       optionKeys.forEach((key) => {
         if (question.options[key] !== null && question.options[key] !== undefined) {
           const button = document.createElement('button');
-          button.textContent = `${key.toUpperCase()}) ${question.options[key]}`;
+          button.innerHTML = marked.parse(`${key.toUpperCase()}) ${question.options[key]}`);
           button.setAttribute('aria-label', `Opción ${key}: ${question.options[key]}`);
           button.onclick = () =>
             selectAnswer(key, question.correct_answer_key, question.correct_answer_text, question.question_explanation);
@@ -192,19 +192,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (correctKey === null) {
       // Handle questions with no single correct answer key (e.g., informational)
-      feedbackArea.textContent = `Información Adicional: ${correctAnswerText}`;
-      feedbackArea.className = 'feedback-area'; // Neutral feedback style
+      feedbackArea.innerHTML = marked.parse(
+        `**Información Adicional:** ${correctAnswerText || 'No hay una única respuesta correcta para esta pregunta.'}`,
+      );
+      feedbackArea.className = 'feedback-info'; // Special class for info
       // No score change for these questions
     } else if (selectedKey === correctKey) {
       score++;
       if (selectedButton) selectedButton.classList.add('correct');
-      feedbackArea.textContent = '¡Correcto!';
-      feedbackArea.className = 'feedback-area correct';
+      feedbackArea.innerHTML = marked.parse('¡Correcto!');
+      feedbackArea.className = 'feedback-correct';
     } else {
       score -= 0.25;
       if (selectedButton) selectedButton.classList.add('incorrect');
-      feedbackArea.textContent = `Incorrecto. La respuesta correcta era: ${correctKey.toUpperCase()}) ${correctAnswerText}`;
-      feedbackArea.className = 'feedback-area incorrect';
+      feedbackArea.innerHTML = marked.parse(
+        `Incorrecto. La respuesta correcta era: **${correctKey.toUpperCase()})** ${correctAnswerText}`,
+      );
+      feedbackArea.className = 'feedback-incorrect';
 
       // Highlight the correct answer if a correctKey exists
       for (let btn of buttons) {
@@ -218,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Display explanation if available
     if (questionExplanation && questionExplanation.trim() !== '') {
-      explanationTextEl.innerHTML = questionExplanation; // Use innerHTML if explanation contains HTML
+      explanationTextEl.innerHTML = marked.parse(questionExplanation);
       explanationArea.classList.remove('hidden');
     } else {
       explanationArea.classList.add('hidden');

@@ -9,7 +9,7 @@
       - [Tema 1.1: Fundamentos y tecnologías de virtualización](#tema-11-fundamentos-y-tecnologías-de-virtualización)
       - [Tema 1.2: El sistema anfitrión y anatomía de la máquina virtual en KVM](#tema-12-el-sistema-anfitrión-y-anatomía-de-la-máquina-virtual-en-kvm)
     - [2. Recursos Almacenamiento Virtual KVM](#2-recursos-almacenamiento-virtual-kvm)
-    - [3. WIP](#3-wip)
+    - [3. Recursos de red en KVM](#3-recursos-de-red-en-kvm)
     - [4. WIP](#4-wip)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
@@ -186,7 +186,72 @@ virsh domblklist nombre_vm --details
 
 Los aspectos fundamentales de este módulo incluyen la comprensión de los diferentes tipos de almacenamiento disponibles, el ciclo de vida completo de los recursos de almacenamiento, y cómo estos recursos pueden ser integrados en las máquinas virtuales para proporcionar diferentes funcionalidades como discos adicionales, acceso a medios extraíbles o almacenamiento compartido.
 
-### 3. WIP
+### 3. Recursos de red en KVM
+
+La virtualización en KVM proporciona mecanismos robustos para la gestión de redes virtuales, permitiendo conectar las máquinas virtuales entre sí y con redes externas. Los conceptos clave incluyen:
+
+- **Componentes de Red Virtualizables**: KVM, a través de libvirt, permite virtualizar controladores de interfaz de red (NICs), switches virtuales y bridges. Soporta protocolos estándar como DHCP, TCP/IP y NAT.
+
+- **Switch Virtual (Red Virtual)**:
+
+  - Representa una red virtual a la que se conectan las máquinas virtuales y el anfitrión.
+  - El sistema anfitrión gestiona la comunicación entre redes virtuales y con el exterior, actuando como enrutador.
+  - En Linux, cada switch virtual se manifiesta como una interfaz de red (por ejemplo, `virbr0` es la interfaz para la red NAT por defecto llamada "default").
+  - **Ciclo de Vida**: Se gestionan con comandos `virsh` como `net-define` (crear desde XML), `net-start` (activar), `net-autostart` (activar al inicio), `net-destroy` (desactivar) y `net-undefine` (eliminar definición).
+
+- **Modos de Operación del Switch Virtual**:
+
+  - **Red NAT (Network Address Translation)**:
+    - Las MVs obtienen direcciones IP privadas.
+    - El anfitrión realiza NAT para permitir que las MVs accedan a redes externas.
+    - Para conexiones entrantes desde el exterior hacia una MV, se requiere configurar el desvío de puertos explícitamente (DNAT) en el anfitrión.
+    - Ejemplo de configuración XML para una red NAT:
+      ```xml
+      <network>
+        <name>mi_red_nat</name>
+        <forward mode='nat'>
+          <nat>
+            <port start='1024' end='65535'/>
+          </nat>
+        </forward>
+        <bridge name='virbr1' stp='on' delay='0'/>
+        <ip address='192.168.150.1' netmask='255.255.255.0'>
+          <dhcp>
+            <range start='192.168.150.100' end='192.168.150.200'/>
+          </dhcp>
+        </ip>
+      </network>
+      ```
+  - **Red Enrutada (Routed Network)**:
+    - Las MVs utilizan direcciones IP "reales" o enrutables en la red externa.
+    - El anfitrión actúa como un enrutador, permitiendo el tráfico bidireccional entre las MVs y la red externa sin NAT.
+    - Requiere configuración de enrutamiento adecuada y reglas de cortafuegos para permitir el flujo de paquetes.
+  - **Red Aislada (Isolated Network)**:
+    - Las MVs pueden comunicarse entre sí y con el anfitrión dentro de esta red.
+    - No hay conectividad con redes externas al switch virtual aislado.
+    - Útil para entornos de prueba o para segmentos de red que deben estar completamente separados.
+    - Ejemplo de configuración XML para una red aislada:
+      ```xml
+      <network>
+        <name>mi_red_aislada</name>
+        <bridge name='virbr2' stp='on' delay='0'/>
+        <ip address='10.0.0.1' netmask='255.255.255.0'>
+          <dhcp>
+            <range start='10.0.0.10' end='10.0.0.20'/>
+          </dhcp>
+        </ip>
+      </network>
+      ```
+
+- **Interfaz en Modo Bridge (Puente de Red)**:
+  - Permite conectar las máquinas virtuales directamente a la misma red local (LAN) que el sistema anfitrión.
+  - Se crea un dispositivo de puente (bridge) en el anfitrión (ej. `br0`).
+  - La interfaz de red física del anfitrión (ej. `eth0`) se asocia a este bridge, perdiendo su configuración IP directa.
+  - Las interfaces virtuales de las MVs se conectan al bridge.
+  - Como resultado, las MVs obtienen direcciones IP de la misma subred que el anfitrión y otros dispositivos en la LAN, apareciendo como nodos independientes en la red física.
+  - La configuración se realiza a nivel del sistema operativo anfitrión, modificando los scripts de configuración de red.
+
+La correcta elección y configuración de estos recursos de red es fundamental para la funcionalidad, seguridad y rendimiento de los entornos virtualizados con KVM.
 
 ### 4. WIP
 

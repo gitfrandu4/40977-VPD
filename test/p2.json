@@ -1,0 +1,392 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "En el ecosistema KVM, ¿cuál es la función principal de QEMU?",
+    "options": {
+      "a": "Proporcionar una API estable para la administración de máquinas virtuales.",
+      "b": "Integrarse en el núcleo Linux para hacer más eficiente la virtualización.",
+      "c": "Emular los dispositivos de hardware para los sistemas invitados.",
+      "d": "Gestionar la interfaz gráfica para la creación de máquinas virtuales."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Emular los dispositivos de hardware para los sistemas invitados.",
+    "question_explanation": "QEMU (Quick Emulator) es el encargado de emular los dispositivos de hardware para los sistemas invitados. Cada sistema invitado en ejecución se manifiesta como un proceso qemu-system-x86_64 en el sistema anfitrión, como se indica en la Introducción de la práctica."
+  },
+  {
+    "question_number": 2,
+    "question_text": "¿Cuál de los siguientes componentes de KVM proporciona una API estable para la administración de máquinas virtuales, independientemente del hypervisor subyacente?",
+    "options": {
+      "a": "Los módulos del kernel kvm.ko.",
+      "b": "QEMU.",
+      "c": "Libvirt.",
+      "d": "virt-manager."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Libvirt.",
+    "question_explanation": "Libvirt es una biblioteca que proporciona una API estable para la administración de máquinas virtuales, independientemente del hypervisor subyacente, como se menciona en la Introducción."
+  },
+  {
+    "question_number": 3,
+    "question_text": "Cuando una máquina virtual KVM está en ejecución, ¿dónde se encuentra una copia temporal de su archivo de definición XML que puede contener información de estado adicional?",
+    "options": {
+      "a": "/etc/libvirt/qemu/",
+      "b": "/var/lib/libvirt/images/",
+      "c": "/run/libvirt/qemu/",
+      "d": "/usr/share/edk2/ovmf/"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "/run/libvirt/qemu/",
+    "question_explanation": "Según la Tarea 1, cuando la máquina virtual está en ejecución, aparece una copia adicional del archivo de definición XML en /run/libvirt/qemu/, que es una copia temporal utilizada durante la ejecución de la VM."
+  },
+  {
+    "question_number": 4,
+    "question_text": "¿Cuál es una ventaja clave del formato qcow2 para las imágenes de disco en KVM/QEMU mencionada en la práctica?",
+    "options": {
+      "a": "Ofrece la máxima compatibilidad con otros hipervisores.",
+      "b": "Es el formato más rápido para operaciones de lectura/escritura.",
+      "c": "Permite la expansión dinámica, ocupando solo el espacio realmente utilizado.",
+      "d": "Es el único formato que permite la conexión directa a dispositivos físicos."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Permite la expansión dinámica, ocupando solo el espacio realmente utilizado.",
+    "question_explanation": "La Tarea 1 explica que el formato qcow2 (QEMU Copy-On-Write v2) ofrece ventajas como expansión dinámica, lo que significa que el archivo solo ocupa el espacio realmente utilizado."
+  },
+  {
+    "question_number": 5,
+    "question_text": "Al crear una máquina virtual manualmente a partir de una copia de seguridad, ¿cuál de los siguientes elementos NO es estrictamente necesario modificar en el archivo XML copiado para evitar conflictos con la máquina original?",
+    "options": {
+      "a": "El nombre de la máquina virtual (`<name>`).",
+      "b": "El UUID de la máquina virtual (`<uuid>`).",
+      "c": "El tipo de emulador (`<emulator>`).",
+      "d": "La dirección MAC de la interfaz de red (`<mac address>`)."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El tipo de emulador (`<emulator>`).",
+    "question_explanation": "La Tarea 2 detalla que al clonar manualmente, es crucial cambiar el nombre, UUID, ruta del disco y dirección MAC para evitar conflictos. El tipo de emulador (ej. /usr/bin/qemu-system-x86_64) generalmente se mantiene igual a menos que se cambie la arquitectura o la versión de QEMU intencionadamente."
+  },
+  {
+    "question_number": 6,
+    "question_text": "¿Qué comando se utiliza para registrar una nueva máquina virtual en libvirt a partir de su archivo de definición XML?",
+    "options": {
+      "a": "`virsh create <archivo.xml>`",
+      "b": "`virsh define <archivo.xml>`",
+      "c": "`virsh attach-device <archivo.xml>`",
+      "d": "`virsh edit <nombre_vm>`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh define <archivo.xml>`",
+    "question_explanation": "La Tarea 2 muestra el uso del comando `virsh define /etc/libvirt/qemu/clon_copiando_ficheros.xml` para definir (registrar) una nueva máquina virtual en libvirt."
+  },
+  {
+    "question_number": 7,
+    "question_text": "Después de copiar una imagen de disco .qcow2 para una nueva máquina virtual, ¿qué propietario y grupo se recomienda asignar al archivo para que el servicio QEMU/KVM pueda acceder a él?",
+    "options": {
+      "a": "root:root",
+      "b": "libvirt:libvirt",
+      "c": "qemu:qemu",
+      "d": "kvm:kvm"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "qemu:qemu",
+    "question_explanation": "La Tarea 2 indica que se debe ejecutar `chown qemu:qemu` en el archivo de imagen de disco para asignar el propietario y grupo \"qemu\", permitiendo que el servicio QEMU/KVM acceda a él."
+  },
+  {
+    "question_number": 8,
+    "question_text": "¿Cuál es el comando para clonar una máquina virtual llamada \"mvp1\" a una nueva llamada \"clon_nuevo\" con un nuevo archivo de disco \"clon_nuevo.qcow2\" usando `virt-clone`?",
+    "options": {
+      "a": "`virt-clone --original mvp1 --name clon_nuevo --disk /var/lib/libvirt/images/clon_nuevo.qcow2`",
+      "b": "`virt-clone --source mvp1 --target clon_nuevo --file /var/lib/libvirt/images/clon_nuevo.qcow2`",
+      "c": "`virt-clone --original mvp1 --name clon_nuevo --file /var/lib/libvirt/images/clon_nuevo.qcow2`",
+      "d": "`virt-clone --from mvp1 --to clon_nuevo --image /var/lib/libvirt/images/clon_nuevo.qcow2`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virt-clone --original mvp1 --name clon_nuevo --file /var/lib/libvirt/images/clon_nuevo.qcow2`",
+    "question_explanation": "La Tarea 4 muestra el comando `virt-clone --original mvp1 --name clon_virt_clone --file /var/lib/libvirt/images/clon_virt_clone.qcow2`. La opción correcta sigue esta sintaxis."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Una ventaja de `virt-clone` sobre la clonación manual es que `virt-clone`:",
+    "options": {
+      "a": "Permite una mayor personalización de la configuración de hardware.",
+      "b": "Es la única forma de clonar máquinas virtuales en ejecución.",
+      "c": "Automatiza la generación de un nuevo UUID y la asignación de una MAC única.",
+      "d": "Crea clones que ocupan menos espacio en disco."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Automatiza la generación de un nuevo UUID y la asignación de una MAC única.",
+    "question_explanation": "La Tarea 4 menciona que `virt-clone` automatiza todo el proceso de clonación, incluyendo la copia del disco, la generación de un nuevo UUID y la asignación de una dirección MAC única."
+  },
+  {
+    "question_number": 10,
+    "question_text": "¿Qué parámetro del comando `virt-install` se utiliza para especificar la cantidad de memoria RAM asignada a la nueva máquina virtual?",
+    "options": {
+      "a": "`--memory`",
+      "b": "`--ram-size`",
+      "c": "`--ram`",
+      "d": "`--mem`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`--ram`",
+    "question_explanation": "La Tarea 5 utiliza `virt-install ... --ram 2048 ...` para asignar 2048 MB de RAM. El parámetro es `--ram`."
+  },
+  {
+    "question_number": 11,
+    "question_text": "En el comando `virt-install`, ¿qué especifica el parámetro `--disk path=/ruta/imagen.qcow2,size=10`?",
+    "options": {
+      "a": "Conecta un disco existente de 10 MB ubicado en /ruta/imagen.qcow2.",
+      "b": "Crea un nuevo disco virtual de 10 GB en /ruta/imagen.qcow2.",
+      "c": "Define 10 particiones en el disco /ruta/imagen.qcow2.",
+      "d": "Limita el tamaño del disco a 10% del espacio libre en /ruta/."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Crea un nuevo disco virtual de 10 GB en /ruta/imagen.qcow2.",
+    "question_explanation": "La Tarea 5 usa `--disk path=/var/lib/libvirt/images/Creacion_virt_install.qcow2,size=10`, explicando que crea un nuevo disco virtual de 10 GB."
+  },
+  {
+    "question_number": 12,
+    "question_text": "¿Cuál es el propósito de instalar `qemu-guest-agent` en una máquina virtual KVM?",
+    "options": {
+      "a": "Habilitar el acceso SSH directo al sistema invitado.",
+      "b": "Mejorar la integración entre el sistema anfitrión y la máquina virtual.",
+      "c": "Aumentar la seguridad del sistema operativo invitado.",
+      "d": "Permitir la clonación en caliente de la máquina virtual."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Mejorar la integración entre el sistema anfitrión y la máquina virtual.",
+    "question_explanation": "La Tarea 5 indica que se recomienda instalar el agente de invitado QEMU para mejorar la integración entre el sistema anfitrión y la máquina virtual. Las conclusiones también mencionan esto."
+  },
+  {
+    "question_number": 13,
+    "question_text": "¿Qué comando se utiliza para habilitar el servicio `qemu-guest-agent` para que se inicie en el arranque del sistema y lo inicia inmediatamente en un sistema Fedora?",
+    "options": {
+      "a": "`sudo service qemu-guest-agent start && sudo chkconfig qemu-guest-agent on`",
+      "b": "`sudo systemctl start qemu-guest-agent && sudo systemctl enable qemu-guest-agent`",
+      "c": "`sudo systemctl enable --now qemu-guest-agent`",
+      "d": "`sudo dnf enable --now qemu-guest-agent`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`sudo systemctl enable --now qemu-guest-agent`",
+    "question_explanation": "La Tarea 5 muestra el comando `sudo systemctl enable --now qemu-guest-agent` y explica que habilita el servicio para el arranque y lo inicia inmediatamente."
+  },
+  {
+    "question_number": 14,
+    "question_text": "¿En qué directorio se almacenan típicamente las imágenes de disco (.qcow2) de las máquinas virtuales KVM gestionadas por libvirt?",
+    "options": {
+      "a": "/etc/libvirt/qemu/",
+      "b": "/run/libvirt/qemu/",
+      "c": "/var/lib/libvirt/images/",
+      "d": "/usr/share/qemu/"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "/var/lib/libvirt/images/",
+    "question_explanation": "La sección 'Estructura de archivos de KVM' y varias tareas (ej. Tarea 1, Tarea 4) indican que `/var/lib/libvirt/images/` es la ubicación para las imágenes de disco."
+  },
+  {
+    "question_number": 15,
+    "question_text": "¿Cuál es la ubicación de los archivos XML que contienen la definición persistente de las máquinas virtuales KVM?",
+    "options": {
+      "a": "`/var/log/libvirt/qemu/`",
+      "b": "`/run/libvirt/qemu/`",
+      "c": "`/etc/libvirt/qemu/`",
+      "d": "`/opt/kvm/definitions/`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`/etc/libvirt/qemu/`",
+    "question_explanation": "La Tarea 1 y la sección 'Estructura de archivos de KVM' aclaran que `/etc/libvirt/qemu/` es donde se encuentran los archivos XML de definición persistente."
+  },
+  {
+    "question_number": 16,
+    "question_text": "Al modificar manualmente el archivo XML de una máquina virtual clonada, ¿por qué es crucial generar un nuevo UUID?",
+    "options": {
+      "a": "Para optimizar el rendimiento de la red.",
+      "b": "Para evitar conflictos de identificación con la máquina virtual original.",
+      "c": "Para habilitar la migración en vivo.",
+      "d": "Para asegurar la compatibilidad con diferentes versiones de QEMU."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Para evitar conflictos de identificación con la máquina virtual original.",
+    "question_explanation": "La Tarea 2 menciona que se debe generar un nuevo UUID para evitar conflictos, ya que libvirt usa el UUID para identificar unívocamente cada VM."
+  },
+  {
+    "question_number": 17,
+    "question_text": "¿Qué tipo de red se configura comúnmente con `--network network=default` en `virt-install`, permitiendo a las VMs acceder a Internet a través de la IP del host?",
+    "options": {
+      "a": "Red en modo bridge.",
+      "b": "Red NAT (Network Address Translation).",
+      "c": "Red aislada (host-only).",
+      "d": "Red macvtap."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Red NAT (Network Address Translation).",
+    "question_explanation": "La Tarea 5 explica que la red `default` en KVM es comúnmente una red NAT, que permite a las VMs acceder a Internet usando la IP del anfitrión."
+  },
+  {
+    "question_number": 18,
+    "question_text": "¿Qué comando `virsh` se utiliza para listar todas las máquinas virtuales definidas, tanto en ejecución como apagadas?",
+    "options": {
+      "a": "`virsh list --running`",
+      "b": "`virsh list --inactive`",
+      "c": "`virsh list --all`",
+      "d": "`virsh status --all`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh list --all`",
+    "question_explanation": "Las Tareas 2 y 4 utilizan `virsh list --all` para mostrar todas las máquinas virtuales definidas, independientemente de su estado."
+  },
+  {
+    "question_number": 19,
+    "question_text": "Si se tiene una máquina virtual definida llamada \"mi_vm\" que está apagada, ¿qué comando `virsh` se usaría para iniciarla?",
+    "options": {
+      "a": "`virsh create mi_vm`",
+      "b": "`virsh resume mi_vm`",
+      "c": "`virsh define mi_vm`",
+      "d": "`virsh start mi_vm`"
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "`virsh start mi_vm`",
+    "question_explanation": "Las Tareas 2 y 4 usan `virsh start <nombre_vm>` para iniciar una máquina virtual que está definida pero apagada."
+  },
+  {
+    "question_number": 20,
+    "question_text": "En el comando `virt-install`, ¿para qué sirve el parámetro `--os-variant`?",
+    "options": {
+      "a": "Para seleccionar la arquitectura de la CPU (ej. x86_64, arm64).",
+      "b": "Para especificar la versión exacta del kernel del sistema operativo invitado.",
+      "c": "Para optimizar la configuración de la máquina virtual para un sistema operativo específico.",
+      "d": "Para elegir el idioma de instalación del sistema operativo."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Para optimizar la configuración de la máquina virtual para un sistema operativo específico.",
+    "question_explanation": "La Tarea 5 explica que `--os-variant fedora40` optimiza la configuración para Fedora, mejorando la compatibilidad y el rendimiento para ese SO específico."
+  },
+  {
+    "question_number": 21,
+    "question_text": "Según la práctica, ¿qué método de creación/clonación de VMs es descrito como de \"Alta complejidad\" y \"Baja automatización\", pero ofrece \"Personalización extrema\"?",
+    "options": {
+      "a": "Clonación con virt-manager.",
+      "b": "Clonación con virt-clone.",
+      "c": "Creación con virt-install.",
+      "d": "Copia manual de archivos."
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "Copia manual de archivos.",
+    "question_explanation": "La tabla 'Comparativa de Métodos' en el resumen visual describe la 'Copia Manual' con Alta complejidad, Baja automatización y Alta flexibilidad (personalización extrema)."
+  },
+  {
+    "question_number": 22,
+    "question_text": "¿Cuál herramienta es ideal para la clonación rápida de VMs y es fácilmente integrable en scripts, según la comparativa de métodos?",
+    "options": {
+      "a": "virt-manager",
+      "b": "Copia manual",
+      "c": "virt-clone",
+      "d": "virt-install"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "virt-clone",
+    "question_explanation": "La tabla 'Comparativa de Métodos' indica que `virt-clone` es de Baja complejidad, Alta automatización y es ideal para clonación rápida y scripts."
+  },
+  {
+    "question_number": 23,
+    "question_text": "Al modificar manualmente el archivo XML de una máquina virtual clonada, ¿cuál es el propósito de cambiar la `<mac address>`?",
+    "options": {
+      "a": "Para cambiar el fabricante de la tarjeta de red virtual.",
+      "b": "Para evitar conflictos de direccionamiento en la red.",
+      "c": "Para aumentar la velocidad de la conexión de red.",
+      "d": "Para habilitar el soporte de VLANs."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Para evitar conflictos de direccionamiento en la red.",
+    "question_explanation": "La Tarea 2 menciona la necesidad de cambiar la dirección MAC para evitar conflictos de red, ya que direcciones MAC duplicadas causarían problemas de conectividad."
+  },
+  {
+    "question_number": 24,
+    "question_text": "¿Qué opción del comando `virt-install` se utiliza para especificar la imagen ISO que se usará para instalar el sistema operativo en la nueva máquina virtual?",
+    "options": {
+      "a": "`--disk`",
+      "b": "`--location`",
+      "c": "`--iso`",
+      "d": "`--cdrom`"
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "`--cdrom`",
+    "question_explanation": "La Tarea 5 usa el parámetro `--cdrom /ISO/Fedora-Server-netinst-x86_64-41-1.4.iso` para conectar la imagen ISO de instalación."
+  },
+  {
+    "question_number": 25,
+    "question_text": "¿Qué proceso se manifiesta como `qemu-system-x86_64` en el sistema anfitrión por cada sistema invitado KVM en ejecución?",
+    "options": {
+      "a": "El demonio libvirtd.",
+      "b": "El módulo del kernel kvm.ko.",
+      "c": "La emulación de hardware del sistema invitado.",
+      "d": "El gestor de conexión de virt-manager."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La emulación de hardware del sistema invitado.",
+    "question_explanation": "La Introducción explica que QEMU es el encargado de emular los dispositivos de hardware y cada sistema invitado en ejecución se manifiesta como un proceso `qemu-system-x86_64`."
+  },
+  {
+    "question_number": 26,
+    "question_text": "Para clonar una máquina virtual usando `virt-manager`, ¿cuál es una recomendación importante respecto al estado de la máquina virtual original?",
+    "options": {
+      "a": "Debe estar en ejecución para copiar su estado de memoria RAM.",
+      "b": "Debe estar suspendida para asegurar la consistencia de los archivos.",
+      "c": "Debe estar apagada para evitar inconsistencias en el estado de los archivos del disco.",
+      "d": "Su estado no importa, virt-manager maneja cualquier situación."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Debe estar apagada para evitar inconsistencias en el estado de los archivos del disco.",
+    "question_explanation": "La Tarea 3 indica que para clonar una máquina virtual (con virt-manager), es recomendable que esté detenida (apagada) para evitar inconsistencias en el estado de los archivos."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Al usar `virt-install` para crear una VM con `--network network=default,model=virtio`, ¿qué tipo de dispositivo de red se está especificando con `model=virtio`?",
+    "options": {
+      "a": "Un dispositivo de red emulado genérico (ej. e1000).",
+      "b": "Un dispositivo de red paravirtualizado para mejor rendimiento.",
+      "c": "Un dispositivo de red físico pasado directamente a la VM.",
+      "d": "Un dispositivo de red USB."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Un dispositivo de red paravirtualizado para mejor rendimiento.",
+    "question_explanation": "`model=virtio` especifica el uso de un dispositivo de red paravirtualizado VirtIO. Estos dispositivos están optimizados para virtualización y ofrecen mejor rendimiento que los dispositivos emulados, como se infiere de la práctica y los conceptos del Tema 1.2 mencionados en las Conclusiones."
+  },
+  {
+    "question_number": 28,
+    "question_text": "¿Qué comando se utilizaría para cambiar los permisos de un archivo de imagen de disco llamado `nueva_vm.qcow2` a lectura y escritura solo para el propietario?",
+    "options": {
+      "a": "`chmod 755 /var/lib/libvirt/images/nueva_vm.qcow2`",
+      "b": "`chmod 644 /var/lib/libvirt/images/nueva_vm.qcow2`",
+      "c": "`chmod 600 /var/lib/libvirt/images/nueva_vm.qcow2`",
+      "d": "`chmod 777 /var/lib/libvirt/images/nueva_vm.qcow2`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`chmod 600 /var/lib/libvirt/images/nueva_vm.qcow2`",
+    "question_explanation": "La Tarea 2 muestra el comando `chmod 600` para establecer permisos restrictivos (lectura y escritura solo para el propietario) en el archivo de imagen de disco."
+  },
+  {
+    "question_number": 29,
+    "question_text": "Dentro del archivo XML de definición de una máquina virtual KVM, ¿qué etiqueta principal contiene la configuración de los dispositivos como discos e interfaces de red?",
+    "options": {
+      "a": "`<metadata>`",
+      "b": "`<os>`",
+      "c": "`<devices>`",
+      "d": "`<resources>`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`<devices>`",
+    "question_explanation": "El ejemplo de archivo XML en la Tarea 2 muestra que la etiqueta `<devices>` encapsula las definiciones de `<disk>`, `<interface>`, `<emulator>`, etc."
+  },
+  {
+    "question_number": 30,
+    "question_text": "En la práctica, después de crear una nueva VM con `virt-install` e instalar Fedora, se modifica la configuración de SSH para permitir el login directo como root. ¿Qué línea se añade al archivo `/etc/ssh/sshd_config` para lograr esto?",
+    "options": {
+      "a": "`AllowRootLogin yes`",
+      "b": "`RootLoginPermitted yes`",
+      "c": "`PermitRootLogin yes`",
+      "d": "`EnableRootAccess true`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`PermitRootLogin yes`",
+    "question_explanation": "La Tarea 5 muestra el comando `echo \"PermitRootLogin yes\" | sudo tee -a /etc/ssh/sshd_config` para configurar el acceso SSH como root."
+  }
+]

@@ -5,42 +5,55 @@ alwaysApply: false
 ---
 # Quiz Application Structure
 
-This project is a web-based quiz application designed for studying.
+This project is a web-based quiz application designed for studying, built with HTML, CSS, and JavaScript. It supports loading multiple tests from JSON files and can render Markdown in questions, options, and explanations.
 
 ## Key Files:
 
 *   **[`index.html`](mdc:index.html)**: This is the main entry point of the application. It defines the overall HTML structure, including:
-    *   A selection screen where users can choose a quiz.
-    *   The main quiz area where questions, options, feedback, and explanations are displayed.
+    *   A selection screen where users can choose a quiz (e.g., "Test Examen General" loading from `test/examen.json`, "Test Práctica 2" loading from `test/p2.json`).
+    *   The main quiz container where questions, options, feedback, and explanations are dynamically displayed.
     *   Header and footer for the application.
-    *   Links to the CSS stylesheet ([`styles.css`](mdc:styles.css)) and the JavaScript logic file ([`script.js`](mdc:script.js)).
+    *   Links to the CSS stylesheet ([`styles.css`](mdc:styles.css)), the JavaScript logic file ([`script.js`](mdc:script.js)), and the `marked.js` library (via CDN) for Markdown parsing.
+
 *   **[`styles.css`](mdc:styles.css)**: This file contains all the CSS rules for styling the application. It handles:
-    *   The overall layout and appearance of the selection screen and quiz interface.
-    *   Responsive design for various screen sizes, especially mobile devices.
-    *   Dynamic styling for elements like the score display (color-coded based on performance) and feedback messages.
-    *   Styling for test selection cards, buttons, and other UI components.
+    *   The overall layout and appearance of the test selection screen (with cards for each test) and the active quiz interface.
+    *   Responsive design for various screen sizes, aiming for mobile-friendliness.
+    *   Dynamic styling for elements like the real-time score display (color-coded based on performance: excellent, good, okay, needs improvement, struggling) and feedback messages (correct/incorrect/info).
+    *   Styling for buttons, question/option containers, explanation areas, and other UI components.
 
 *   **[`script.js`](mdc:script.js)**: This file houses all the client-side JavaScript logic that powers the quiz. Its responsibilities include:
-    *   Fetching quiz data (questions, options, answers, explanations) from a JSON file (e.g., [`test.json`](mdc:test.json)).
-    *   Managing the UI state, switching between the test selection screen and the active quiz view.
-    *   Randomly shuffling questions and answer options.
-    *   Dynamically rendering questions, options, and explanations on the page.
-    *   Handling user interactions, such as selecting an answer.
-    *   Calculating the score (including penalties for incorrect answers) and updating the real-time score display with color-coding for performance.
-    *   Providing immediate feedback on answers (correct/incorrect).
-    *   Displaying question explanations after an answer is submitted.
-    *   Showing the final score and providing options to restart the quiz or return to the selection screen.
+    *   Fetching quiz data (questions, options, answers, explanations) from specified JSON files (e.g., [`test/examen.json`](mdc:test/examen.json), [`test/p2.json`](mdc:test/p2.json)) when a user selects a test.
+    *   Using the `marked.js` library (`marked.parse()`) to convert Markdown content from the JSON data into HTML. This allows rich text formatting (like inline code using backticks ` `` `, `**bold**`, `*italic*`, lists, etc.) for question text, answer options, feedback messages, and explanations before rendering them using `innerHTML`.
+    *   Managing the UI state by showing/hiding the selection screen versus the quiz container.
+    *   Randomly shuffling questions and the order of answer options for each question.
+    *   Dynamically rendering the current question number, question text, and answer option buttons.
+    *   Handling user interactions, such as selecting an answer. When an answer is selected, buttons are disabled, and feedback is provided.
+    *   Calculating the score: +1 for a correct answer, -0.25 for an incorrect answer. Questions with `correct_answer_key: null` do not affect the score.
+    *   Updating the real-time score display (`current-score`) and its background color dynamically based on performance (score relative to questions answered).
+    *   Providing immediate visual feedback on answers: styling buttons as correct/incorrect, and displaying textual feedback.
+    *   Displaying question explanations (from the `question_explanation` field in the JSON) in a dedicated area if an explanation exists.
+    *   Showing the final score screen with the total score and the maximum possible score (number of questions).
+    *   Allowing the user to restart the *current* test or navigate back to the test selection screen.
+    *   Handling cases where `correct_answer_key` might be `null` by displaying `correct_answer_text` as informational and not changing the score.
 
-*   **[`test.json`](mdc:test.json)**: This JSON file serves as the database for the quiz questions. Each question object typically includes:
-    *   `question_text`: The text of the question.
-    *   `options`: An object mapping option keys (e.g., "a", "b") to option texts.
-    *   `correct_answer_key`: The key of the correct option.
-    *   `correct_answer_text`: The full text of the correct answer.
-    *   `question_explanation`: A detailed explanation for the question, displayed after the user answers.
+*   **JSON Test Files (e.g., [`test.json`](mdc:test.json), `test/examen.json`, `test/p2.json`)**: These files serve as the database for the quiz questions. Each file is an array of question objects. Each question object typically includes:
+    *   `question_number` (integer, for reference, though the app shuffles questions).
+    *   `question_text`: The text of the question (can contain Markdown).
+    *   `options`: An object mapping option keys (e.g., "a", "b", "c", "d") to option texts (can contain Markdown).
+    *   `correct_answer_key`: The key (string) of the correct option (e.g., "b"). Can be `null` for informational questions.
+    *   `correct_answer_text`: The full text of the correct answer (can contain Markdown).
+    *   `question_explanation`: An optional detailed explanation for the question, displayed after the user answers (can contain Markdown).
 
 ## Workflow:
 
-1.  The user is first presented with the selection screen (defined in `index.html`, styled by `styles.css`).
-2.  Upon selecting a test, `script.js` fetches the corresponding JSON data.
-3.  `script.js` then populates the quiz area in `index.html` with questions and handles the quiz logic.
-4.  `styles.css` ensures the quiz is presented in a user-friendly and responsive manner.
+1.  The user is first presented with the selection screen (defined in `index.html`, styled by `styles.css`), showing available tests as cards.
+2.  Upon clicking a test card (e.g., "Test Examen General"), `script.js` is triggered to fetch the corresponding JSON data (e.g., `test/examen.json`) and the test name from the button's attributes/content.
+3.  `script.js` shuffles the fetched questions and their options.
+4.  It then dynamically populates the quiz area in `index.html`: for each question, it parses any Markdown in the `question_text` and option texts using `marked.parse()` and renders the HTML.
+5.  When the user selects an answer:
+    *   Feedback is generated (parsing Markdown if present) and displayed.
+    *   The selected option and correct/incorrect options are styled.
+    *   The score is updated, and the real-time score display is refreshed with appropriate color-coding.
+    *   The question explanation (if available) is parsed from Markdown and displayed.
+6.  This continues until all questions are answered, then a final score screen is shown.
+7.  `styles.css` ensures the quiz is presented in a user-friendly, responsive, and accessible manner throughout the process.

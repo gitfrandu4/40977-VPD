@@ -1,0 +1,392 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "En el contexto de la migración en vivo de máquinas virtuales KVM, ¿por qué es el almacenamiento compartido (como NFS) un requisito fundamental y qué problema principal se evita al utilizarlo?",
+    "options": {
+      "a": "Permite una compresión más eficiente de la imagen de disco durante la transferencia, acelerando la migración.",
+      "b": "Asegura que tanto el host de origen como el de destino puedan acceder simultáneamente a los archivos de disco de la VM, eliminando la necesidad de copiar el disco entero durante la migración en vivo y permitiendo una transición de acceso rápida.",
+      "c": "Facilita la configuración de la red para la VM, ya que la IP puede permanecer estática independientemente del host.",
+      "d": "Reduce la carga en la CPU del host de origen al descargar las operaciones de E/S al servidor de almacenamiento compartido."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Asegura que tanto el host de origen como el de destino puedan acceder simultáneamente a los archivos de disco de la VM, eliminando la necesidad de copiar el disco entero durante la migración en vivo y permitiendo una transición de acceso rápida.",
+    "question_explanation": "La Introducción y la sección 2 (Requisitos Previos) enfatizan que el almacenamiento compartido es crucial. La documentación de Red Hat citada indica: 'el sistema de almacenamiento debe ser compartido y accesible mediante la misma ruta tanto en el host de origen como en el de destino'. Esto permite que, una vez transferida la memoria y el estado de la CPU, el host destino pueda tomar control del disco sin necesidad de una copia masiva del mismo, lo cual es esencial para la rapidez de la migración en vivo."
+  },
+  {
+    "question_number": 2,
+    "question_text": "Al clonar una VM (`mvp1`) a una nueva (`mvp4_lqd25`) con `virt-clone` para prepararla para migración, y especificando `--file /var/lib/libvirt/images/COMPARTIDO/pc25_LQD_ANFITRION1_p4.qcow2`, ¿cuál es la implicación directa de usar una ruta dentro del directorio `/var/lib/libvirt/images/COMPARTIDO/` que corresponde a un pool NFS?",
+    "options": {
+      "a": "El archivo de disco se creará localmente en el host de clonación y luego se moverá automáticamente al almacenamiento compartido.",
+      "b": "La imagen de disco de la nueva VM se crea directamente en el almacenamiento compartido NFS, haciéndola accesible para otros hosts configurados para usar ese mismo pool.",
+      "c": "Esto solo crea una referencia simbólica en el almacenamiento compartido; el disco real permanece en el pool 'default' del host de clonación.",
+      "d": "`virt-clone` no puede crear volúmenes directamente en pools NFS; se requiere un paso manual para mover el disco."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La imagen de disco de la nueva VM se crea directamente en el almacenamiento compartido NFS, haciéndola accesible para otros hosts configurados para usar ese mismo pool.",
+    "question_explanation": "La Tarea 2 de la sección de Requisitos Previos muestra el comando `virt-clone` especificando una ruta dentro del directorio `COMPARTIDO`, que es el punto de montaje del pool NFS `CONT_VOL_COMP`. Esto asegura que el disco de la VM clonada reside en el almacenamiento compartido desde su creación, un requisito para la migración."
+  },
+  {
+    "question_number": 3,
+    "question_text": "Si el nombre de host completamente cualificado (FQDN) no está configurado correctamente o la resolución DNS entre los hosts de origen y destino falla, ¿cómo podría esto afectar específicamente la ejecución del comando `virsh migrate --live mvp4_lqd25 qemu+ssh://lq-d26.vpd.com/system`?",
+    "options": {
+      "a": "No tendría ningún efecto si la conexión SSH se puede establecer mediante la dirección IP.",
+      "b": "La migración fallaría porque libvirt utiliza los FQDN para la comunicación de control y para establecer la conexión de migración segura (qemu+ssh), incluso si el SSH básico por IP funciona. Errores de resolución impedirían a libvirt conectar con el daemon en el host destino.",
+      "c": "Solo afectaría la capacidad de la VM migrada para acceder a recursos de red, no el proceso de migración en sí.",
+      "d": "La migración procedería, pero el nombre de la VM en el host destino podría ser incorrecto."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La migración fallaría porque libvirt utiliza los FQDN para la comunicación de control y para establecer la conexión de migración segura (qemu+ssh), incluso si el SSH básico por IP funciona. Errores de resolución impedirían a libvirt conectar con el daemon en el host destino.",
+    "question_explanation": "La Tarea 1 (Configuración del Nombre de Host) destaca la importancia del FQDN. Libvirt, especialmente para la URI `qemu+ssh://<host>/system`, depende de la resolución correcta del nombre de host para conectarse al daemon libvirtd en el host destino. Sin una resolución FQDN adecuada, la conexión de control de libvirt fallará."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Durante la configuración del cortafuegos (Firewalld) para la migración, se abre el rango de puertos TCP 49152-49216. ¿Cuál es el propósito principal de estos puertos en el proceso de migración en vivo de KVM?",
+    "options": {
+      "a": "Son utilizados por el servicio SSH para la autenticación y transferencia segura de claves.",
+      "b": "Son los puertos estándar para el acceso a consolas VNC o SPICE de las máquinas virtuales.",
+      "c": "Son utilizados por libvirt/QEMU para la transferencia de datos de la VM, como el estado de la memoria RAM y la sincronización de la CPU, directamente entre los hosts durante la migración en vivo.",
+      "d": "Son necesarios para que el almacenamiento compartido NFS se comunique con los clientes libvirt."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Son utilizados por libvirt/QEMU para la transferencia de datos de la VM, como el estado de la memoria RAM y la sincronización de la CPU, directamente entre los hosts durante la migración en vivo.",
+    "question_explanation": "La Tarea 2 (Configuración del Cortafuegos) menciona que este rango de puertos es utilizado por libvirt para la migración. La nota técnica asociada explica que estos puertos permiten la transferencia de memoria RAM, sincronización de CPU y comunicación de control. La documentación de Red Hat también confirma este rango para la comunicación entre instancias de libvirt durante la migración."
+  },
+  {
+    "question_number": 5,
+    "question_text": "Al generar claves SSH con `ssh-keygen` para el usuario root con el fin de realizar migraciones sin contraseña, si se deja la passphrase en blanco, ¿cuál es la principal implicación de seguridad y qué se recomienda para entornos de producción?",
+    "options": {
+      "a": "Implicación: La clave privada no estará encriptada en disco, por lo que si el archivo de clave privada es comprometido, el atacante obtiene acceso directo. Recomendación: Usar siempre una passphrase robusta.",
+      "b": "Implicación: La clave pública se vuelve más vulnerable a ataques de fuerza bruta. Recomendación: Usar claves ED25519 en lugar de RSA.",
+      "c": "Implicación: SSH no permitirá la autenticación sin passphrase por defecto por razones de seguridad. Recomendación: Modificar la configuración del servidor SSH para permitirlo.",
+      "d": "Implicación: No hay implicaciones de seguridad significativas si los permisos del archivo de clave privada son correctos. Recomendación: Continuar sin passphrase para la automatización."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "Implicación: La clave privada no estará encriptada en disco, por lo que si el archivo de clave privada es comprometido, el atacante obtiene acceso directo. Recomendación: Usar siempre una passphrase robusta.",
+    "question_explanation": "La Tarea 3.3.1 menciona que se puede dejar la passphrase en blanco para automatizar, pero la nota técnica destaca que estas claves para root otorgan privilegios completos y recomienda para producción crear un usuario específico con privilegios limitados. Dejar la passphrase en blanco significa que la clave privada no está protegida en disco; si se compromete, el acceso es inmediato. Para producción, usar un agente SSH con una clave protegida por passphrase es una mejor práctica, o un usuario dedicado."
+  },
+  {
+    "question_number": 6,
+    "question_text": "En el comando `virsh migrate --live mvp4_lqd25 qemu+ssh://lq-d26.vpd.com/system`, ¿qué función específica cumple cada componente de la URI `qemu+ssh://lq-d26.vpd.com/system`?",
+    "options": {
+      "a": "`qemu` es el nombre de la VM, `ssh` es el usuario, `lq-d26.vpd.com` es el pool de destino y `system` indica migración del sistema completo.",
+      "b": "`qemu` especifica el hipervisor, `ssh` indica el protocolo de transporte seguro para la conexión de libvirt, `lq-d26.vpd.com` es el FQDN del host destino, y `system` se refiere a la instancia del daemon libvirtd del sistema (no de sesión).",
+      "c": "`qemu` indica el formato del disco, `ssh` el nivel de encriptación, `lq-d26.vpd.com` la interfaz de red a usar y `system` el SO de la VM.",
+      "d": "`qemu+ssh` es un alias para migración en vivo, `lq-d26.vpd.com` el nombre del cluster, y `system` el tipo de almacenamiento a usar en destino."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`qemu` especifica el hipervisor, `ssh` indica el protocolo de transporte seguro para la conexión de libvirt, `lq-d26.vpd.com` es el FQDN del host destino, y `system` se refiere a la instancia del daemon libvirtd del sistema (no de sesión).",
+    "question_explanation": "La URI de conexión de libvirt es estructurada. `qemu` indica que se conecta a un hipervisor QEMU/KVM. `ssh` especifica que la conexión al daemon libvirtd remoto se tunelizará sobre SSH. `lq-d26.vpd.com` es el host al que se conectará. `/system` indica que se conectará a la instancia del daemon libvirtd que gestiona las VMs del sistema (ejecutado como root), en contraposición a `/session` para VMs de usuario."
+  },
+  {
+    "question_number": 7,
+    "question_text": "Durante una migración en vivo, se menciona una 'fase de pre-copia' seguida de una 'transferencia iterativa'. ¿Qué se transfiere principalmente durante estas fases y por qué la transferencia es iterativa antes de la pausa final?",
+    "options": {
+      "a": "Disco y CPU; es iterativa para permitir cambios en el disco mientras se copia.",
+      "b": "Memoria RAM; es iterativa porque mientras la VM sigue funcionando en el origen, sus páginas de memoria cambian ('dirty pages'), y estas páginas modificadas deben ser retransmitidas en ciclos sucesivos hasta que la cantidad de memoria sucia sea lo suficientemente pequeña para una pausa y transferencia final rápidas.",
+      "c": "Configuración de red y estado de dispositivos; es iterativa para adaptarse a cambios en la topología de red.",
+      "d": "Archivos del sistema operativo invitado; es iterativa para verificar la integridad de los archivos en cada paso."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Memoria RAM; es iterativa porque mientras la VM sigue funcionando en el origen, sus páginas de memoria cambian ('dirty pages'), y estas páginas modificadas deben ser retransmitidas en ciclos sucesivos hasta que la cantidad de memoria sucia sea lo suficientemente pequeña para una pausa y transferencia final rápidas.",
+    "question_explanation": "La nota técnica en la Tarea 3.3.2 describe el proceso: '1. Fase de pre-copia: ...se transfiere la memoria inicial al destino. 2. Transferencia iterativa: Se detectan y transfieren las páginas de memoria que han cambiado... 3. Fase de convergencia: El proceso se repite hasta que la tasa de cambio de memoria es lo suficientemente baja.' Esto describe la copia iterativa de páginas de memoria 'sucias'."
+  },
+  {
+    "question_number": 8,
+    "question_text": "¿Cuál es la diferencia fundamental en el estado de la VM en el host de origen y destino después de una migración con `virsh migrate --live --persistent --undefinesource ...` comparada con una simple `virsh migrate --live ...`?",
+    "options": {
+      "a": "Con `--persistent --undefinesource`, la VM se apaga en el origen y se define como no persistente en el destino.",
+      "b": "Con `--persistent --undefinesource`, la VM se elimina (undefine) del host de origen y su definición se hace persistente en el host de destino. Sin estas opciones, la VM podría seguir definida en el origen y su definición en el destino podría ser temporal.",
+      "c": "Ambas opciones resultan en el mismo estado final; `--persistent` y `--undefinesource` son para optimizar el rendimiento de la red.",
+      "d": "`--undefinesource` solo borra los logs de la VM en el origen, `--persistent` guarda el estado de la memoria en disco en el destino."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Con `--persistent --undefinesource`, la VM se elimina (undefine) del host de origen y su definición se hace persistente en el host de destino. Sin estas opciones, la VM podría seguir definida en el origen y su definición en el destino podría ser temporal.",
+    "question_explanation": "La Tarea 3.3.2 explica que `--persistent` hace que la VM persista en el host destino tras reiniciarlo, y `--undefinesource` elimina la definición de la VM en el host origen. Sin `--persistent`, la definición en el destino podría ser solo para la sesión actual. Sin `--undefinesource`, la VM seguiría definida en el origen."
+  },
+  {
+    "question_number": 9,
+    "question_text": "El comando `sudo ssh root@lq-d26.vpd.com \"sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)/d' ~/.ssh/authorized_keys\"` se usa para revocar el acceso SSH. ¿Cómo logra esta revocación y por qué es importante este paso?",
+    "options": {
+      "a": "Deshabilita la cuenta root en el host remoto. Es importante para prevenir accesos no autorizados.",
+      "b": "Elimina la clave pública del host local del archivo `authorized_keys` en el host remoto, impidiendo futuras conexiones sin contraseña usando esa clave. Es importante para seguir el principio de privilegio mínimo.",
+      "c": "Borra todo el archivo `authorized_keys` en el host remoto. Es importante para resetear la seguridad SSH.",
+      "d": "Cambia los permisos del archivo `authorized_keys` a solo lectura. Es importante para evitar modificaciones no deseadas."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Elimina la clave pública del host local del archivo `authorized_keys` en el host remoto, impidiendo futuras conexiones sin contraseña usando esa clave. Es importante para seguir el principio de privilegio mínimo.",
+    "question_explanation": "La Tarea 3.3.4 explica que este comando elimina la entrada de la clave pública del archivo `authorized_keys` remoto. El `sed` busca la parte central de la clave pública (obtenida con `cat ... | cut ...`) y elimina la línea que la contiene. Esto revoca el acceso específico otorgado por esa clave, lo cual es una buena práctica de seguridad post-operación."
+  },
+  {
+    "question_number": 10,
+    "question_text": "Si después de una migración, `virsh list --all` en el host destino muestra la VM como 'ejecutando', pero el acceso a la consola con `virsh console mvp4_lqd25` no funciona y la VM no responde al ping, ¿cuál de las siguientes NO sería una causa probable relacionada directamente con el proceso de migración o la configuración del entorno?",
+    "options": {
+      "a": "Problemas con la configuración de red de la VM en el nuevo host (ej. conflicto de IP si no se manejó la MAC, o problemas con el bridge/switch virtual en el destino).",
+      "b": "Fallo en la transferencia completa del estado de la memoria o CPU, dejando la VM en un estado inconsistente.",
+      "c": "Incompatibilidad del 'cpu-model' si la VM fue definida con uno específico y los hosts tienen CPUs significativamente diferentes.",
+      "d": "El archivo de imagen de disco de la VM en el almacenamiento compartido NFS se corrompió debido a un fallo del servidor NFS no relacionado con la migración."
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "El archivo de imagen de disco de la VM en el almacenamiento compartido NFS se corrompió debido a un fallo del servidor NFS no relacionado con la migración.",
+    "question_explanation": "Las opciones a, b y c son problemas potenciales directamente relacionados con la migración o la configuración del entorno de virtualización. Un fallo del servidor NFS que corrompa el disco es un problema de infraestructura de almacenamiento externo, no un fallo inherente al proceso de migración de libvirt en sí, aunque afectaría a la VM."
+  },
+  {
+    "question_number": 11,
+    "question_text": "El texto menciona que el arranque de una VM con disco en almacenamiento externo (NFS) puede ser más lento. ¿Cuál es la razón técnica principal de esta posible demora en comparación con un disco local en el host anfitrión?",
+    "options": {
+      "a": "El protocolo NFS introduce una sobrecarga de encriptación en todas las operaciones de E/S.",
+      "b": "La latencia de red inherente al acceso a un recurso remoto (servidor NFS) para cada operación de lectura/escritura del disco, y el posible cuello de botella del ancho de banda de red.",
+      "c": "Los discos en NFS están, por defecto, en modo de solo lectura durante el arranque inicial.",
+      "d": "Libvirt necesita convertir el formato del disco (ej. qcow2) a un formato compatible con NFS en tiempo real durante el arranque."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La latencia de red inherente al acceso a un recurso remoto (servidor NFS) para cada operación de lectura/escritura del disco, y el posible cuello de botella del ancho de banda de red.",
+    "question_explanation": "La nota al final de la Tarea 2 (Requisitos Previos) indica esta demora. El acceso a un disco local es significativamente más rápido (menor latencia, mayor ancho de banda) que acceder a un archivo a través de una red, incluso una LAN rápida. Cada operación de E/S al disco de la VM incurre en la latencia de la red hacia el servidor NFS."
+  },
+  {
+    "question_number": 12,
+    "question_text": "Al configurar Firewalld, si `firewall-cmd --get-active-zones` indica que la interfaz física `enp6s0` está en la zona `FedoraServer`, y se desea permitir la migración entre este host y otro en la misma red física, ¿en qué zona se deben añadir las reglas para los puertos 49152-49216/tcp?",
+    "options": {
+      "a": "En la zona `libvirt`, porque la migración es una operación de libvirt.",
+      "b": "En una nueva zona personalizada creada específicamente para la migración.",
+      "c": "En la zona `FedoraServer` (o la zona activa de la interfaz `enp6s0`), porque el tráfico de migración entre los daemons libvirt de los hosts físicos pasará por esta interfaz.",
+      "d": "En la zona `public`, ya que la migración implica comunicación externa."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "En la zona `FedoraServer` (o la zona activa de la interfaz `enp6s0`), porque el tráfico de migración entre los daemons libvirt de los hosts físicos pasará por esta interfaz.",
+    "question_explanation": "La Tarea 2 (Configuración del Cortafuegos) identifica la zona activa para `enp6s0` como `FedoraServer`. El tráfico de migración entre los hosts físicos (no entre la VM y el host local) utilizará las interfaces de red físicas de los hosts. Por lo tanto, las reglas deben aplicarse a la zona asociada con la interfaz física que maneja esta comunicación inter-host."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Al clonar `mvp1` a `mvp4_lqd25` usando `virt-clone`, se especifica `--mac=00:16:3e:31:13:b3`. ¿Por qué es crucial esta especificación de una MAC única, incluso si `virt-clone` podría generar una si se omite, especialmente si ambas VMs (original y clon) podrían coexistir en la misma red virtual o física?",
+    "options": {
+      "a": "Para asegurar que la VM clonada utilice un driver de red paravirtualizado.",
+      "b": "Para evitar conflictos de direcciones MAC en la capa 2 de la red, lo que causaría problemas de comunicación impredecibles para una o ambas VMs si tuvieran la misma MAC.",
+      "c": "Para forzar que la VM clonada obtenga una dirección IP específica del servidor DHCP.",
+      "d": "La especificación manual de MAC es solo para fines de documentación y no tiene impacto funcional."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Para evitar conflictos de direcciones MAC en la capa 2 de la red, lo que causaría problemas de comunicación impredecibles para una o ambas VMs si tuvieran la misma MAC.",
+    "question_explanation": "La nota técnica en la Tarea 2 (Requisitos Previos) destaca la importancia de cambiar identificadores únicos, incluida la MAC, para evitar conflictos. Direcciones MAC duplicadas en el mismo segmento de red causan problemas severos de conectividad."
+  },
+  {
+    "question_number": 14,
+    "question_text": "El comando `ssh-copy-id root@lq-d26.vpd.com` facilita la configuración de la autenticación basada en claves. ¿Qué acción específica realiza este comando en el host destino (`lq-d26.vpd.com`)?",
+    "options": {
+      "a": "Copia la clave privada del host local al directorio `.ssh` del usuario root en el host destino.",
+      "b": "Añade la clave pública del host local (generalmente de `~/.ssh/id_rsa.pub`) al archivo `~/.ssh/authorized_keys` del usuario root en el host destino.",
+      "c": "Crea un nuevo par de claves SSH en el host destino y lo sincroniza con el host local.",
+      "d": "Configura el daemon SSH en el host destino para que acepte conexiones sin contraseña desde cualquier host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Añade la clave pública del host local (generalmente de `~/.ssh/id_rsa.pub`) al archivo `~/.ssh/authorized_keys` del usuario root en el host destino.",
+    "question_explanation": "La Tarea 3.3.1 explica que `ssh-copy-id` copia la clave pública al archivo `authorized_keys` del usuario especificado en el host destino. Esto permite que el host local se autentique usando su clave privada correspondiente sin necesidad de contraseña."
+  },
+  {
+    "question_number": 15,
+    "question_text": "El documento introductorio distingue entre migración en frío y migración en vivo. ¿Cuál es la característica distintiva de la migración en vivo que la hace preferible para servicios críticos?",
+    "options": {
+      "a": "La migración en vivo transfiere solo la configuración de la VM, no su estado de ejecución.",
+      "b": "La migración en vivo permite que la VM continúe funcionando durante la mayor parte del proceso de traslado, minimizando el tiempo de inactividad perceptible por los usuarios a unos pocos milisegundos.",
+      "c": "La migración en vivo es más rápida porque no requiere almacenamiento compartido.",
+      "d": "La migración en vivo solo es posible entre hosts con hardware idéntico."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La migración en vivo permite que la VM continúe funcionando durante la mayor parte del proceso de traslado, minimizando el tiempo de inactividad perceptible por los usuarios a unos pocos milisegundos.",
+    "question_explanation": "La Introducción define la migración en vivo como aquella en la que 'La VM continúa funcionando durante el proceso de migración, minimizando el tiempo de inactividad'. La cita de Red Hat también menciona 'sin interrupciones perceptibles'."
+  },
+  {
+    "question_number": 16,
+    "question_text": "Al verificar el estado de un pool de almacenamiento compartido como `CONT_VOL_COMP` usando `virsh pool-info`, ¿por qué son cruciales los valores de 'Estado' y 'Disponible' antes de intentar clonar una VM en él?",
+    "options": {
+      "a": "'Estado' debe ser 'inactivo' para permitir nuevas escrituras, y 'Disponible' indica la velocidad de acceso.",
+      "b": "'Estado' debe ser 'ejecutando' para que el pool sea utilizable por libvirt, y 'Disponible' confirma que hay suficiente espacio libre para alojar la nueva imagen de disco de la VM.",
+      "c": "'Estado' no es relevante si 'Autoinicio' está activado, y 'Disponible' solo se actualiza después de la clonación.",
+      "d": "'Estado' debe ser 'montado_nfs', y 'Disponible' es el tamaño total del servidor NFS, no del pool específico."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "'Estado' debe ser 'ejecutando' para que el pool sea utilizable por libvirt, y 'Disponible' confirma que hay suficiente espacio libre para alojar la nueva imagen de disco de la VM.",
+    "question_explanation": "La sección de Requisitos Previos muestra `virsh pool-info` y la nota técnica asociada explica que el 'Estado' debe ser 'ejecutando' y la 'Capacidad y disponibilidad' aseguran que hay espacio. Si el pool no está ejecutando o no hay espacio, la clonación fallará."
+  },
+  {
+    "question_number": 17,
+    "question_text": "Si se realiza una migración en vivo con `virsh migrate --live mvp4_lqd25 <URI_destino>` (sin `--undefinesource`), ¿qué sucede con la definición de `mvp4_lqd25` en el host de origen una vez que la migración se completa con éxito?",
+    "options": {
+      "a": "La definición se elimina automáticamente del host de origen.",
+      "b": "La definición permanece en el host de origen, pero la VM se marca como 'migrada' o 'inactiva'.",
+      "c": "La definición se transfiere completamente al host destino, dejando una copia de seguridad en el origen.",
+      "d": "El comportamiento es indefinido y depende de la versión de libvirt."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La definición permanece en el host de origen, pero la VM se marca como 'migrada' o 'inactiva'.",
+    "question_explanation": "La opción `--undefinesource` es la que explícitamente elimina la definición del host de origen. Sin ella, la VM se detiene en el origen (si estaba corriendo) y su definición permanece, aunque ya no esté activa allí. Típicamente, `virsh list` la mostraría como 'apagado' o 'shut off' en el origen."
+  },
+  {
+    "question_number": 18,
+    "question_text": "Después de añadir reglas permanentes a Firewalld con `firewall-cmd --add-service=... --permanent`, ¿por qué es necesario ejecutar `firewall-cmd --reload` y qué ocurriría si este paso se omite?",
+    "options": {
+      "a": "`--reload` reinicia el servicio de red; si se omite, la red no funcionará.",
+      "b": "`--reload` aplica las reglas permanentes a la configuración en ejecución sin interrumpir conexiones existentes; si se omite, las nuevas reglas permanentes no tendrán efecto hasta el próximo reinicio completo del servicio Firewalld o del sistema.",
+      "c": "`--reload` es un alias para `--list-all`; si se omite, no se pueden verificar las reglas.",
+      "d": "`--reload` guarda la configuración en disco; si se omite, los cambios se pierden al reiniciar."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`--reload` aplica las reglas permanentes a la configuración en ejecución sin interrumpir conexiones existentes; si se omite, las nuevas reglas permanentes no tendrán efecto hasta el próximo reinicio completo del servicio Firewalld o del sistema.",
+    "question_explanation": "La Tarea 2 (Configuración del Cortafuegos) ejecuta `firewall-cmd --reload` después de añadir reglas permanentes. La función de `--reload` en Firewalld es cargar la configuración persistente (permanente) en la configuración activa (en ejecución) sin dejar caer las conexiones activas. Sin este paso, las reglas añadidas con `--permanent` solo se activarían tras un `systemctl restart firewalld` o reinicio del host."
+  },
+  {
+    "question_number": 19,
+    "question_text": "La salida de `virsh dominfo` para una VM migrada muestra 'Messages: tainted: potentially unsafe use of host CPU passthrough'. ¿Qué significa 'CPU passthrough' y cómo podría complicar futuras migraciones a hosts con CPUs diferentes?",
+    "options": {
+      "a": "CPU passthrough significa que la VM usa una CPU emulada, lo que mejora la compatibilidad pero reduce el rendimiento. No complica la migración.",
+      "b": "CPU passthrough expone el modelo exacto y las características de la CPU del host físico a la VM. Si se migra a un host con una CPU que carece de esas características exactas, la VM podría no arrancar o funcionar incorrectamente.",
+      "c": "CPU passthrough es una técnica para compartir VCPUs entre múltiples VMs, lo que puede causar conflictos durante la migración.",
+      "d": "'Tainted' se refiere a que la VM ha sido modificada manualmente fuera de libvirt, lo que siempre impide la migración."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "CPU passthrough expone el modelo exacto y las características de la CPU del host físico a la VM. Si se migra a un host con una CPU que carece de esas características exactas, la VM podría no arrancar o funcionar incorrectamente.",
+    "question_explanation": "La nota técnica en la Sección 4 (Pruebas y Validación) alude a esto. CPU passthrough (o host-model) da a la VM acceso a todas las características de la CPU física del host, lo que puede ser bueno para el rendimiento. Sin embargo, si el host destino tiene una CPU diferente (otro fabricante, familia, o simplemente menos características), la VM que espera esas características específicas puede fallar. Por eso se recomienda usar modelos de CPU base para mejor portabilidad."
+  },
+  {
+    "question_number": 20,
+    "question_text": "Al usar `virsh migrate --verbose ...`, ¿qué tipo de información adicional se espera que muestre este flag durante el proceso de migración?",
+    "options": {
+      "a": "Solo un mensaje de 'éxito' o 'fallo' al final.",
+      "b": "Detalles sobre la configuración de red de la VM.",
+      "c": "Información de progreso más detallada, como el porcentaje de memoria transferida, las etapas de la migración (pre-copia, transferencia de RAM sucia, etc.), y posibles advertencias o errores intermedios.",
+      "d": "Un listado completo de los archivos de la VM que se están transfiriendo."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Información de progreso más detallada, como el porcentaje de memoria transferida, las etapas de la migración (pre-copia, transferencia de RAM sucia, etc.), y posibles advertencias o errores intermedios.",
+    "question_explanation": "El flag `--verbose` en los comandos de línea generalmente instruye al programa para que proporcione más detalles sobre sus operaciones. En `virsh migrate`, esto incluiría actualizaciones de progreso sobre la transferencia de memoria, el estado de la sincronización y cualquier paso intermedio, como se ve en la salida de ejemplo: `Migración: [100,00 %]`."
+  },
+  {
+    "question_number": 21,
+    "question_text": "Considerando que el almacenamiento compartido para la migración se implementa mediante NFS, ¿cómo facilita NFS específicamente la continuidad del acceso al disco de la VM durante y después de la migración en vivo?",
+    "options": {
+      "a": "NFS crea una copia local del disco en cada host y las sincroniza en tiempo real.",
+      "b": "El servidor NFS permite que múltiples hosts (origen y destino) monten y accedan al mismo sistema de archivos (donde reside la imagen de disco de la VM) de forma concurrente. Libvirt simplemente cambia qué host tiene el 'control' activo de la VM sobre ese disco.",
+      "c": "NFS bloquea el acceso del host de origen al disco tan pronto como comienza la migración, transfiriendo la propiedad del bloqueo al host destino.",
+      "d": "NFS utiliza un protocolo de transferencia de bloques optimizado que es más rápido que copiar el archivo de disco directamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El servidor NFS permite que múltiples hosts (origen y destino) monten y accedan al mismo sistema de archivos (donde reside la imagen de disco de la VM) de forma concurrente. Libvirt simplemente cambia qué host tiene el 'control' activo de la VM sobre ese disco.",
+    "question_explanation": "El almacenamiento compartido (NFS en este caso) significa que el archivo de disco de la VM no necesita ser copiado entre hosts. Ambos hosts pueden acceder al mismo archivo en el servidor NFS. Durante la migración, el host origen sigue escribiendo en él, y tras la breve pausa, el host destino toma el relevo de las operaciones de E/S sobre ese mismo archivo."
+  },
+  {
+    "question_number": 22,
+    "question_text": "Si el comando `hostname -f` en un host Linux no devuelve un FQDN válido o falla, y se sospecha un problema de configuración local para la resolución de nombres (independientemente de DNS), ¿qué archivo de sistema es el primero que un administrador debería revisar y potencialmente modificar para definir el FQDN localmente?",
+    "options": {
+      "a": "`/etc/nsswitch.conf`",
+      "b": "`/etc/hostname`",
+      "c": "`/etc/hosts`",
+      "d": "`/etc/resolv.conf`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`/etc/hosts`",
+    "question_explanation": "La Tarea 1 (Configuración del Nombre de Host) menciona la importancia del FQDN. Si la resolución DNS no funciona, el archivo `/etc/hosts` permite definir mapeos locales de IP a nombres de host, incluyendo el FQDN del propio host. `/etc/hostname` (o similar según la distribución) define el nombre corto, y `/etc/resolv.conf` los servidores DNS. `/etc/nsswitch.conf` define el orden de resolución."
+  },
+  {
+    "question_number": 23,
+    "question_text": "La URI de migración `qemu+ssh://...` indica que la conexión de control de libvirt entre los hosts se realiza sobre SSH. ¿Qué aspecto de seguridad fundamental proporciona SSH a esta conexión?",
+    "options": {
+      "a": "Compresión de datos para acelerar la transferencia.",
+      "b": "Autenticación del host (verificando la identidad del servidor destino) y encriptación de toda la comunicación de control de libvirt entre los daemons.",
+      "c": "Balanceo de carga entre múltiples interfaces de red.",
+      "d": "Aislamiento de la VM del tráfico de red del host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Autenticación del host (verificando la identidad del servidor destino) y encriptación de toda la comunicación de control de libvirt entre los daemons.",
+    "question_explanation": "SSH (Secure Shell) es un protocolo que proporciona un canal seguro sobre una red insegura. Sus características principales incluyen la autenticación robusta de las partes y la encriptación del tráfico, lo que protege la comunicación de control de libvirt contra escuchas y manipulaciones."
+  },
+  {
+    "question_number": 24,
+    "question_text": "Tras una migración exitosa, poder conectarse a la consola de la VM migrada usando `virsh console mvp4_lqd25` en el host destino valida principalmente que:",
+    "options": {
+      "a": "La configuración de red de la VM es completamente funcional.",
+      "b": "El almacenamiento compartido sigue siendo accesible y el rendimiento es óptimo.",
+      "c": "La VM se ha iniciado correctamente en el host destino, su sistema operativo está respondiendo a nivel de consola, y libvirt la está gestionando activamente.",
+      "d": "Todas las aplicaciones dentro de la VM están funcionando sin errores."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La VM se ha iniciado correctamente en el host destino, su sistema operativo está respondiendo a nivel de consola, y libvirt la está gestionando activamente.",
+    "question_explanation": "Conectarse a la consola serie de la VM (`virsh console`) indica que el sistema operativo invitado está en un estado suficientemente funcional para presentar una terminal y que libvirt puede interactuar con ella. No valida por sí mismo la red completa de la VM ni el estado de todas sus aplicaciones internas, aunque es un buen indicador de que la VM está 'viva'."
+  },
+  {
+    "question_number": 25,
+    "question_text": "Si una máquina virtual es migrada utilizando la opción `--persistent` y el host de destino se reinicia posteriormente, ¿cuál es el comportamiento esperado de la máquina virtual migrada cuando el host de destino vuelva a estar operativo?",
+    "options": {
+      "a": "La máquina virtual permanecerá definida pero apagada, requiriendo un inicio manual.",
+      "b": "La máquina virtual se iniciará automáticamente si su configuración de autoinicio original (antes de la migración) estaba activada, ya que la definición persistente incluye esta propiedad.",
+      "c": "La máquina virtual se eliminará del host destino, ya que `--persistent` solo se aplica a la sesión actual.",
+      "d": "La máquina virtual intentará migrar de nuevo al host de origen automáticamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La máquina virtual se iniciará automáticamente si su configuración de autoinicio original (antes de la migración) estaba activada, ya que la definición persistente incluye esta propiedad.",
+    "question_explanation": "La Tarea 3.3.2 explica que `--persistent` hace que la VM persista en el host destino después de reiniciarlo. Una definición persistente de libvirt incluye si la VM está configurada para autoinicio (`virsh autostart <vm>`). Si estaba marcada para autoinicio, libvirtd la iniciará cuando el servicio arranque en el host destino."
+  },
+  {
+    "question_number": 26,
+    "question_text": "En el comando `ssh-keygen -t rsa -b 4096`, ¿qué representa el parámetro `-b 4096` y por qué se considera más seguro que, por ejemplo, `-b 2048`?",
+    "options": {
+      "a": "`-b 4096` especifica el número de bloques de la clave; un mayor número de bloques es más rápido.",
+      "b": "`-b 4096` establece el tamaño de la clave en bits; claves más largas (4096 bits vs 2048 bits) son exponencialmente más difíciles de romper mediante ataques de fuerza bruta o factorización, ofreciendo mayor seguridad.",
+      "c": "`-b 4096` indica el algoritmo de backup de la clave; 4096 es una versión más reciente.",
+      "d": "`-b 4096` es el puerto TCP que usará SSH para esta clave; puertos más altos son más seguros."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`-b 4096` establece el tamaño de la clave en bits; claves más largas (4096 bits vs 2048 bits) son exponencialmente más difíciles de romper mediante ataques de fuerza bruta o factorización, ofreciendo mayor seguridad.",
+    "question_explanation": "La Tarea 3.3.1 indica que `-b 4096` establece el tamaño de la clave a 4096 bits, recomendado para mayor seguridad. En criptografía asimétrica como RSA, la seguridad de la clave depende directamente de su longitud en bits; claves más largas requieren significativamente más poder computacional para ser comprometidas."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Red Hat recomienda usar la función 'cpu-model' en la definición XML de la VM para producción. ¿Por qué es esto particularmente importante para la fiabilidad de la migración en vivo entre hosts que podrían tener CPUs de diferentes generaciones o fabricantes, incluso si son de la misma arquitectura base (x86_64)?",
+    "options": {
+      "a": "Define un conjunto común y estable de características de CPU para la VM, enmascarando las diferencias específicas entre los hosts y asegurando que la VM encuentre un entorno de CPU compatible tras la migración.",
+      "b": "Permite a la VM utilizar el 100% de la capacidad de la CPU física, independientemente del modelo.",
+      "c": "Es un requisito para habilitar la virtualización anidada dentro de la VM.",
+      "d": "Optimiza la asignación de VCPUs a núcleos físicos, mejorando el balanceo de carga."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "Define un conjunto común y estable de características de CPU para la VM, enmascarando las diferencias específicas entre los hosts y asegurando que la VM encuentre un entorno de CPU compatible tras la migración.",
+    "question_explanation": "La nota técnica en la Sección 4 (Pruebas y Validación) cita a Red Hat sobre la compatibilidad de CPU. Definir un 'cpu-model' específico (por ejemplo, un modelo base como 'Haswell-noTSX' o 'EPYC-IBPB') en la configuración XML de la VM asegura que la VM solo vea un conjunto de características de CPU que se espera esté disponible en todos los hosts potenciales del clúster de migración. Esto evita problemas si la VM se migra de un host con una CPU muy nueva a uno con una CPU un poco más antigua que carece de ciertas instrucciones o características."
+  },
+  {
+    "question_number": 28,
+    "question_text": "El comando `sed -i '/$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)/d' ~/.ssh/authorized_keys` es una forma de eliminar una clave SSH específica. ¿Qué parte de este comando es responsable de identificar la clave pública que se va a eliminar del archivo `authorized_keys`?",
+    "options": {
+      "a": "La opción `-i` de `sed`.",
+      "b": "La expresión `$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)` que extrae el cuerpo de la clave pública local.",
+      "c": "El patrón `/.../d` de `sed` que indica la acción de borrado.",
+      "d": "La ruta `~/.ssh/authorized_keys` que especifica el archivo a modificar."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La expresión `$(cat ~/.ssh/id_rsa.pub | cut -d' ' -f2)` que extrae el cuerpo de la clave pública local.",
+    "question_explanation": "El comando `cat ~/.ssh/id_rsa.pub` muestra la clave pública. `cut -d' ' -f2` extrae el segundo campo de esa salida, que es la cadena de la clave en sí (base64). Esta cadena se usa como patrón para `sed` para encontrar y eliminar la línea que la contiene en `authorized_keys`."
+  },
+  {
+    "question_number": 29,
+    "question_text": "¿De qué manera la migración en vivo de máquinas virtuales, como se describe en la práctica, contribuye al balanceo de carga y al mantenimiento sin tiempo de inactividad en un centro de datos virtualizado?",
+    "options": {
+      "a": "Aumentando automáticamente los recursos de las VMs bajo carga y apagando las VMs en hosts que necesitan mantenimiento.",
+      "b": "Permitiendo mover VMs activas desde hosts sobrecargados a hosts con más capacidad, o desde hosts que requieren mantenimiento a otros hosts operativos, todo ello sin interrumpir el servicio de las VMs.",
+      "c": "Creando clones de las VMs en múltiples hosts para distribuir la carga y conmutando el tráfico al clon más disponible durante el mantenimiento.",
+      "d": "Reduciendo la cantidad de memoria RAM que utiliza cada VM, lo que permite ejecutar más VMs por host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Permitiendo mover VMs activas desde hosts sobrecargados a hosts con más capacidad, o desde hosts que requieren mantenimiento a otros hosts operativos, todo ello sin interrumpir el servicio de las VMs.",
+    "question_explanation": "La Sección 5 (Conclusiones) establece que la migración permite 'Mantenimiento sin tiempo de inactividad' y 'Balanceo de carga'. Esto se logra moviendo las VMs en ejecución sin interrupción perceptible, lo que permite evacuar un host para mantenimiento o redistribuir las cargas de trabajo."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Después de clonar `mvp1` a `mvp4_lqd25` y arrancarla, ¿por qué es un paso de verificación importante ejecutar `virsh domifaddr mvp4_lqd25` antes de proceder con configuraciones que dependen de la red o antes de la migración?",
+    "options": {
+      "a": "Para confirmar que la VM ha heredado la misma dirección IP que la VM original.",
+      "b": "Para obtener la dirección MAC y la dirección IP asignada a la interfaz de red de la nueva VM, lo cual es esencial para la conectividad SSH, la configuración del cortafuegos, y para asegurar que no hay conflictos de IP si la MAC cambió.",
+      "c": "Para forzar a la VM a solicitar una nueva concesión DHCP.",
+      "d": "Para verificar el modelo de la tarjeta de red virtual (ej. virtio, e1000)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Para obtener la dirección MAC y la dirección IP asignada a la interfaz de red de la nueva VM, lo cual es esencial para la conectividad SSH, la configuración del cortafuegos, y para asegurar que no hay conflictos de IP si la MAC cambió.",
+    "question_explanation": "La Tarea 2 (Requisitos Previos), paso 7, utiliza `virsh domifaddr` para obtener la IP de la VM clonada. Esto es crucial para verificar que la VM está en la red, para poder acceder a ella por SSH (como en el paso 8), y para confirmar que la nueva MAC (especificada o generada) ha resultado en una IP funcional (generalmente vía DHCP), evitando conflictos."
+  }
+]

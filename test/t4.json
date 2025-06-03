@@ -1,0 +1,197 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "Al comparar una SAN tradicional basada en Fibre Channel con un sistema de almacenamiento basado en iSCSI, ¿cuál es la principal diferencia en términos de infraestructura de red requerida y la capa OSI en la que operan predominantemente sus protocolos de transporte de almacenamiento?",
+    "options": {
+      "a": "Fibre Channel opera en Capa 2 y requiere switches FC dedicados; iSCSI opera en Capa 4 (TCP) sobre redes Ethernet estándar, reutilizando la infraestructura LAN/WAN existente.",
+      "b": "Ambos operan principalmente en Capa 3 (IP) y pueden usar la misma infraestructura Ethernet, pero Fibre Channel ofrece mayor ancho de banda.",
+      "c": "Fibre Channel es un protocolo de Capa 7 que se ejecuta sobre cualquier red; iSCSI es un protocolo de Capa 2 específico para Ethernet.",
+      "d": "iSCSI requiere una red física separada similar a Fibre Channel para un rendimiento óptimo, operando ambos en Capa 1."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "Fibre Channel opera en Capa 2 y requiere switches FC dedicados; iSCSI opera en Capa 4 (TCP) sobre redes Ethernet estándar, reutilizando la infraestructura LAN/WAN existente.",
+    "question_explanation": "Fibre Channel (FC) es un protocolo de red principalmente de Capa 2 (aunque tiene sus propias capas) diseñado específicamente para redes de almacenamiento, requiriendo hardware dedicado (HBAs FC, switches FC). iSCSI, por otro lado, encapsula comandos SCSI en TCP (Capa 4) sobre IP (Capa 3), lo que le permite utilizar la infraestructura de red Ethernet estándar, haciéndolo más flexible y a menudo más económico, aunque potencialmente con mayor latencia o contención si la red no está bien dimensionada."
+  },
+  {
+    "question_number": 2,
+    "question_text": "La topología de SAN 'Bucle Arbitrado' (FC-AL) permite hasta 127 nodos, pero tiene una limitación crítica cuando se establece una conexión. ¿Cuál es esta limitación y cómo la supera la topología 'Switch Fabric'?",
+    "options": {
+      "a": "En FC-AL, todos los nodos comparten el mismo medio físico y solo un par de nodos puede comunicarse a la vez, monopolizando el ancho de banda del bucle; Switch Fabric permite múltiples conexiones concurrentes a través del switch, cada una potencialmente a pleno ancho de banda del puerto.",
+      "b": "FC-AL sufre de alta latencia debido al arbitraje, mientras que Switch Fabric elimina el arbitraje por completo.",
+      "c": "La limitación de FC-AL es la distancia física entre nodos (máximo 10 km); Switch Fabric no tiene esta limitación.",
+      "d": "En FC-AL, la falla de un solo nodo interrumpe todo el bucle; Switch Fabric aísla las fallas a nivel de puerto."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "En FC-AL, todos los nodos comparten el mismo medio físico y solo un par de nodos puede comunicarse a la vez, monopolizando el ancho de banda del bucle; Switch Fabric permite múltiples conexiones concurrentes a través del switch, cada una potencialmente a pleno ancho de banda del puerto.",
+    "question_explanation": "La Sección 4.1.5 describe FC-AL indicando: 'Cuando se establece una conexión, todo el ancho de banda del bucle se dedica a ella'. Esto implica que solo una comunicación puede ocurrir a la vez. La topología Switch Fabric, por otro lado, 'Permite múltiples conexiones concurrentemente usando todo el ancho de banda', ya que el switch puede establecer rutas dedicadas entre pares de puertos."
+  },
+  {
+    "question_number": 3,
+    "question_text": "En un sistema RAID 5, que utiliza striping con paridad distribuida (flotante), ¿cuál es el impacto principal en el rendimiento durante operaciones de escritura intensivas y por qué se produce este efecto?",
+    "options": {
+      "a": "Las escrituras son extremadamente rápidas porque la paridad se calcula en paralelo sin sobrecarga.",
+      "b": "Las escrituras sufren una penalización de rendimiento (conocida como 'write penalty') porque para cada bloque de datos escrito, se debe leer el bloque de datos antiguo, leer el bloque de paridad antiguo, calcular la nueva paridad y luego escribir el nuevo bloque de datos y el nuevo bloque de paridad (operación Read-Modify-Write).",
+      "c": "El rendimiento de escritura es idéntico al de RAID 0, ya que la paridad no afecta la velocidad de escritura.",
+      "d": "RAID 5 no permite operaciones de escritura solapadas, lo que limita severamente el rendimiento en entornos multiusuario."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Las escrituras sufren una penalización de rendimiento (conocida como 'write penalty') porque para cada bloque de datos escrito, se debe leer el bloque de datos antiguo, leer el bloque de paridad antiguo, calcular la nueva paridad y luego escribir el nuevo bloque de datos y el nuevo bloque de paridad (operación Read-Modify-Write).",
+    "question_explanation": "La tabla RAID en la Sección 4.1.5 indica que RAID 5 'Se pueden solapar operaciones de escritura' y 'El mejor para sistemas multiusuarios'. Sin embargo, el proceso de actualización de la paridad en RAID 5 para escrituras pequeñas implica leer los datos antiguos y la paridad antigua para calcular la nueva paridad, lo que se conoce como 'write penalty'. Esto requiere típicamente 4 operaciones de E/S (2 lecturas, 2 escrituras) para una única escritura lógica, impactando el rendimiento de escritura aleatoria."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Considere la replicación de disco ('disk mirroring'). ¿Cuál es la principal diferencia entre la replicación síncrona y la asíncrona en términos de consistencia de datos (RPO - Recovery Point Objective) y el impacto en el rendimiento de la aplicación primaria?",
+    "options": {
+      "a": "Síncrona tiene un RPO mayor (más pérdida de datos) pero mejor rendimiento; Asíncrona tiene RPO cero pero mayor latencia.",
+      "b": "Síncrona garantiza RPO cero (sin pérdida de datos) ya que la escritura primaria no se confirma hasta que se completa en el espejo, pero puede introducir latencia en la aplicación primaria. Asíncrona tiene un RPO mayor que cero (potencial pérdida de datos recientes) pero menor impacto en la latencia de la aplicación primaria.",
+      "c": "Ambas ofrecen RPO cero, pero la síncrona es más costosa de implementar.",
+      "d": "Asíncrona es más segura porque utiliza un historial de cambios, mientras que la síncrona puede perder datos si falla el enlace durante la escritura."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Síncrona garantiza RPO cero (sin pérdida de datos) ya que la escritura primaria no se confirma hasta que se completa en el espejo, pero puede introducir latencia en la aplicación primaria. Asíncrona tiene un RPO mayor que cero (potencial pérdida de datos recientes) pero menor impacto en la latencia de la aplicación primaria.",
+    "question_explanation": "La Sección 4.1.5 define 'Replicación síncrona' como aquella donde la replicación ocurre cuando el dato cambia, y 'Replicación asíncrona' donde se realiza a posteriori. Esto implica que la síncrona espera la confirmación del sitio remoto, garantizando que no se pierdan datos (RPO=0) pero añadiendo la latencia de la escritura remota a la operación primaria. La asíncrona no espera, por lo que impacta menos la aplicación pero puede haber una ventana de pérdida de datos si ocurre un desastre antes de que la última réplica se complete (RPO > 0)."
+  },
+  {
+    "question_number": 5,
+    "question_text": "El protocolo iSCSI mapea el modelo de invocación remota de SCSI sobre TCP. ¿Qué significa la afirmación 'para alcanzar una mayor eficiencia iSCSI no utiliza de forma estricta la secuencia orden/data/estado/mensajes empleada por el protocolo SCSI, permitiéndolas combinaciones de estas fases'?",
+    "options": {
+      "a": "iSCSI elimina por completo la fase de estado para reducir la sobrecarga de la red.",
+      "b": "iSCSI permite que una PDU iSCSI contenga, por ejemplo, tanto el comando SCSI como los datos de escritura asociados, o que una respuesta contenga tanto los datos leídos como el estado final, optimizando el número de intercambios de red en comparación con un modelo SCSI estrictamente secuencial.",
+      "c": "iSCSI prioriza siempre el envío de datos antes que las órdenes para mejorar el throughput.",
+      "d": "iSCSI reemplaza los mensajes SCSI por mensajes TCP estándar, perdiendo la granularidad de las fases SCSI."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "iSCSI permite que una PDU iSCSI contenga, por ejemplo, tanto el comando SCSI como los datos de escritura asociados, o que una respuesta contenga tanto los datos leídos como el estado final, optimizando el número de intercambios de red en comparación con un modelo SCSI estrictamente secuencial.",
+    "question_explanation": "La Sección 4.2.3 sobre características de iSCSI establece: 'Una orden y sus datos asociados pueden formar parte de un único mensaje. Los datos y estado de la respuesta pueden combinarse en un único mensaje.' Esto describe la capacidad de iSCSI de empaquetar múltiples fases de una transacción SCSI en menos PDUs iSCSI, reduciendo así el número de idas y vueltas en la red TCP y mejorando la eficiencia."
+  },
+  {
+    "question_number": 6,
+    "question_text": "Durante el proceso de Login iSCSI, se negocian los parámetros de la sesión después de la autenticación. ¿Cuál de los siguientes NO sería un parámetro típicamente negociado en esta fase, que impacte directamente el flujo de datos SCSI posterior?",
+    "options": {
+      "a": "El tamaño máximo de PDU de datos que el iniciador o el target pueden recibir (`MaxRecvDataSegmentLength`).",
+      "b": "Si se utilizará o no digestión de encabezado o datos para la integridad (`HeaderDigest`, `DataDigest`).",
+      "c": "El número máximo de conexiones permitidas dentro de la sesión (`MaxConnections`).",
+      "d": "El tipo de sistema de archivos que se utilizará en el LUN expuesto por el target (ej. NTFS, XFS)."
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "El tipo de sistema de archivos que se utilizará en el LUN expuesto por el target (ej. NTFS, XFS).",
+    "question_explanation": "La fase de login iSCSI (Sección 4.2.3) negocia parámetros operativos de la conexión iSCSI. Esto incluye el tamaño de PDU, uso de digests, y gestión de la sesión como el número de conexiones. El tipo de sistema de archivos (NTFS, XFS, etc.) es una abstracción de nivel superior gestionada por el sistema operativo del iniciador después de que el LUN iSCSI se presenta como un dispositivo de bloque; no es parte de la negociación del protocolo iSCSI en sí."
+  },
+  {
+    "question_number": 7,
+    "question_text": "El 'Principio de Lealtad de orden iSCSI' establece que 'Para cualquier solicitud iSCSI enviada en una conexión, las correspondientes secuencias de datos y/o respuestas deben ser retornadas en la misma conexión'. ¿Cuál es la razón fundamental detrás de este principio en un entorno multi-conexión por sesión?",
+    "options": {
+      "a": "Para simplificar la implementación del target, ya que solo necesita rastrear una conexión por solicitud.",
+      "b": "Para asegurar que el orden de los comandos SCSI, que puede ser crítico para la integridad de los datos (ej. una escritura seguida de una lectura del mismo bloque), se preserve correctamente a través de la red TCP, incluso si la sesión iSCSI utiliza múltiples conexiones TCP para paralelismo.",
+      "c": "Para facilitar el balanceo de carga entre múltiples conexiones TCP dentro de una misma sesión.",
+      "d": "Es un requisito de seguridad para prevenir ataques de 'man-in-the-middle' a nivel de conexión TCP."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Para asegurar que el orden de los comandos SCSI, que puede ser crítico para la integridad de los datos (ej. una escritura seguida de una lectura del mismo bloque), se preserve correctamente a través de la red TCP, incluso si la sesión iSCSI utiliza múltiples conexiones TCP para paralelismo.",
+    "question_explanation": "Aunque una sesión iSCSI puede tener múltiples conexiones TCP para mejorar el rendimiento, el protocolo SCSI subyacente a menudo depende de un ordenamiento estricto de los comandos para una LUN específica. El principio de lealtad de orden (Sección 4.2.3) asegura que una transacción SCSI completa (comando, datos, estado) se mantenga dentro de una única conexión TCP, lo que ayuda a mantener la semántica de ordenamiento de SCSI a pesar de la naturaleza potencialmente desordenada de las redes IP y el paralelismo de múltiples conexiones TCP."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Un PDU iSCSI de petición del iniciador con código de operación `0x02` (Solicitud de función de tarea de gestión SCSI) difiere de uno con código `0x01` (Orden SCSI) en su propósito. ¿En qué escenario un iniciador utilizaría `0x02` en lugar de `0x01`?",
+    "options": {
+      "a": "`0x02` se usa para operaciones de lectura/escritura de bajo nivel, mientras `0x01` es para formatear LUNs.",
+      "b": "`0x02` se utiliza para solicitar al target que realice acciones de gestión sobre tareas SCSI ya existentes o futuras (ej. abortar una tarea, resetear una LUN), mientras que `0x01` encapsula un comando SCSI estándar (CDB) para ser ejecutado en una LUN.",
+      "c": "`0x01` es para iniciar una nueva conexión dentro de la sesión, `0x02` para cerrarla.",
+      "d": "`0x02` se usa exclusivamente durante la fase de login, `0x01` en la fase de funcionalidad completa."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`0x02` se utiliza para solicitar al target que realice acciones de gestión sobre tareas SCSI ya existentes o futuras (ej. abortar una tarea, resetear una LUN), mientras que `0x01` encapsula un comando SCSI estándar (CDB) para ser ejecutado en una LUN.",
+    "question_explanation": "La tabla de códigos de operación del iniciador (Sección 4.2.3) indica que `0x01` es para una 'Orden SCSI' (contiene un CDB). `0x02` es para 'Solicitud de función de tarea de gestión SCSI', que 'Permite al initiator especificar el control de la ejecución de una o más tareas'. Las funciones de gestión de tareas SCSI incluyen abortar comandos, resetear dispositivos, etc., que son operaciones de control, no de E/S de datos directas."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Si un target iSCSI envía una PDU de respuesta con código de operación `0x31` (Listo para transferir - R2T), ¿qué implica esto para el flujo de una operación de escritura iniciada por el iniciador?",
+    "options": {
+      "a": "El target ha completado la escritura y está listo para la siguiente orden.",
+      "b": "El target está indicando que no puede aceptar los datos de escritura en este momento y el iniciador debe reintentar.",
+      "c": "El target está solicitando explícitamente al iniciador que envíe un segmento específico de los datos de escritura. Esto se usa cuando el target controla el flujo de datos de escritura (modo solicitado) en lugar de que el iniciador los envíe inmediatamente (modo no solicitado).",
+      "d": "Indica un error en el formato de los datos de escritura enviados previamente por el iniciador."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El target está solicitando explícitamente al iniciador que envíe un segmento específico de los datos de escritura. Esto se usa cuando el target controla el flujo de datos de escritura (modo solicitado) en lugar de que el iniciador los envíe inmediatamente (modo no solicitado).",
+    "question_explanation": "La tabla de códigos de operación del target (Sección 4.2.3) para `0x31` (R2T) dice: 'Indica que el nodo target está listo para transmitir'. En el contexto de una escritura iSCSI, si el target no está preparado para recibir todos los datos de una vez (o si la escritura es grande y se divide), puede enviar R2Ts para indicar al iniciador qué bloques de datos debe enviar y cuándo, gestionando así el buffering y el flujo."
+  },
+  {
+    "question_number": 10,
+    "question_text": "Los nombres iSCSI deben identificar unívocamente a los nodos globalmente. Si un nodo iSCSI (iniciador o target) tiene múltiples interfaces de red o adaptadores iSCSI, ¿a qué está asociado el nombre iSCSI único?",
+    "options": {
+      "a": "A cada interfaz de red o HBA iSCSI individualmente; un nodo con dos interfaces tendría dos nombres iSCSI.",
+      "b": "Al nodo iSCSI en su conjunto, independientemente del número de interfaces de red o adaptadores que posea. Un nodo tiene un solo nombre iSCSI, aunque pueda ser accesible por múltiples rutas.",
+      "c": "Al LUN específico que se está accediendo; cada LUN tiene su propio nombre iSCSI.",
+      "d": "A la sesión TCP/IP; cada nueva sesión genera un nombre iSCSI temporal."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Al nodo iSCSI en su conjunto, independientemente del número de interfaces de red o adaptadores que posea. Un nodo tiene un solo nombre iSCSI, aunque pueda ser accesible por múltiples rutas.",
+    "question_explanation": "La Sección 4.2.3 sobre Nombres iSCSI establece: 'Los nombres están asociados a los nodos; no a las interfaces controladoras.' y 'Los nombres deben identificar unívocamente a los nodos iSCSI a nivel global.' Esto significa que el nombre (ej. IQN) identifica al ente lógico (el iniciador o el target como sistema), no a sus puertos físicos individuales."
+  },
+  {
+    "question_number": 11,
+    "question_text": "En iSCSI, la autenticación 'In-band' y el uso de IPSec son mecanismos de seguridad complementarios. ¿Qué aspecto de la seguridad aborda principalmente cada uno y por qué podrían ser necesarios ambos?",
+    "options": {
+      "a": "In-band asegura la integridad de los datos; IPSec la confidencialidad. Ambos son necesarios para una protección completa.",
+      "b": "In-band autentica los nodos iSCSI (iniciador/target) durante el login para controlar el acceso; IPSec puede proporcionar confidencialidad (cifrado), integridad y autenticación a nivel de paquete IP para proteger los datos SCSI en tránsito. Ambos pueden ser necesarios para asegurar el acceso Y proteger los datos.",
+      "c": "IPSec es para autenticar los nodos; In-band (CHAP) es para cifrar los datos SCSI.",
+      "d": "Ambos mecanismos proporcionan cifrado, pero IPSec es más robusto y se prefiere en redes no confiables."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "In-band autentica los nodos iSCSI (iniciador/target) durante el login para controlar el acceso; IPSec puede proporcionar confidencialidad (cifrado), integridad y autenticación a nivel de paquete IP para proteger los datos SCSI en tránsito. Ambos pueden ser necesarios para asegurar el acceso Y proteger los datos.",
+    "question_explanation": "La Sección 4.2.3 sobre Seguridad iSCSI explica que la autenticación In-band (como CHAP, durante el login PDU) se usa para que los 'Nodos targets deben autenticar a los nodos initiators'. IPSec, por otro lado, se usa 'Para proteger los bloques de datos' proporcionando 'Integridad criptográfica', 'Autenticación de datos' (a nivel de paquete) y 'Confidencialidad mediante el envío de datos encriptados'. Por lo tanto, la autenticación In-band controla *quién* puede acceder, mientras que IPSec protege *qué* se transmite."
+  },
+  {
+    "question_number": 12,
+    "question_text": "Al comparar una SAN basada en Fibre Channel con una solución NAS, ¿cuál es la diferencia fundamental en el tipo de acceso al almacenamiento que cada una proporciona a los clientes/servidores y los protocolos típicamente utilizados?",
+    "options": {
+      "a": "SAN proporciona acceso a nivel de archivo (file-level) usando NFS/CIFS; NAS proporciona acceso a nivel de bloque (block-level) usando FC/iSCSI.",
+      "b": "SAN proporciona acceso a nivel de bloque (block-level), presentando LUNs que los servidores ven como discos crudos, usando protocolos como FC o iSCSI. NAS proporciona acceso a nivel de archivo (file-level) a través de la red, usando protocolos como NFS o CIFS/SMB.",
+      "c": "Ambas proporcionan acceso a nivel de bloque, pero SAN es para Linux y NAS para Windows.",
+      "d": "NAS es una forma de SAN optimizada para redes Ethernet de baja velocidad."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "SAN proporciona acceso a nivel de bloque (block-level), presentando LUNs que los servidores ven como discos crudos, usando protocolos como FC o iSCSI. NAS proporciona acceso a nivel de archivo (file-level) a través de la red, usando protocolos como NFS o CIFS/SMB.",
+    "question_explanation": "La Sección 4.1.5 define SAN como una red que usa protocolos especializados (FC, iSCSI) para transportar datos, típicamente bloques SCSI, lo que resulta en acceso a nivel de bloque. NAS se define como un 'gestor de archivos a una LAN' 'orientado a transferencia de archivos' usando protocolos LAN como NFS/CIFS. Esta distinción (bloque vs archivo) es fundamental."
+  },
+  {
+    "question_number": 13,
+    "question_text": "La tecnología 'Spanning' o JBOD (Just a Bunch of Disks) combina varias unidades de disco para proporcionar un volumen mayor. ¿En qué se diferencia crucialmente de RAID 0 (striping sin paridad) en términos de cómo se presentan y gestionan los datos?",
+    "options": {
+      "a": "JBOD siempre incluye redundancia, RAID 0 no.",
+      "b": "RAID 0 distribuye los bloques de datos secuencialmente a través de todos los discos del array para mejorar el rendimiento de E/S paralelo; JBOD concatena los discos para formar un único volumen lógico grande, pero los datos se escriben secuencialmente en un disco hasta llenarlo antes de pasar al siguiente, sin mejora de rendimiento por paralelismo inherente.",
+      "c": "JBOD es un tipo de RAID con paridad, RAID 0 es solo striping.",
+      "d": "RAID 0 solo puede usar discos idénticos, JBOD puede combinar discos de diferentes tamaños y velocidades."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "RAID 0 distribuye los bloques de datos secuencialmente a través de todos los discos del array para mejorar el rendimiento de E/S paralelo; JBOD concatena los discos para formar un único volumen lógico grande, pero los datos se escriben secuencialmente en un disco hasta llenarlo antes de pasar al siguiente, sin mejora de rendimiento por paralelismo inherente.",
+    "question_explanation": "La Sección 4.1.5 describe Spanning (JBOD) como una tecnología que 'combina varias unidades de disco para proporcionar un mayor espacio de almacenamiento'. RAID 0, por otro lado, usa 'striping para conseguir rendimiento'. Striping implica dividir los datos en bloques y escribirlos alternativamente en los discos del conjunto, permitiendo lecturas/escrituras paralelas. JBOD simplemente los une de forma lineal; se llena un disco, luego el siguiente."
+  },
+  {
+    "question_number": 14,
+    "question_text": "En el contexto del almacenamiento iSCSI para virtualización, si un hipervisor actúa como 'iSCSI initiator', ¿qué papel juega un LUN (Logical Unit Number) expuesto por el 'iSCSI target'?",
+    "options": {
+      "a": "El LUN es un archivo de configuración en el iniciador que define los parámetros de conexión al target.",
+      "b": "El LUN representa una unidad lógica de almacenamiento (un 'disco virtual' a nivel de bloque) en el iSCSI target, que el hipervisor (iniciador) puede descubrir y presentar a las máquinas virtuales como si fuera un disco local.",
+      "c": "El LUN es el nombre de host del servidor iSCSI target.",
+      "d": "El LUN es un identificador de sesión TCP utilizado para la comunicación entre el iniciador y el target."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El LUN representa una unidad lógica de almacenamiento (un 'disco virtual' a nivel de bloque) en el iSCSI target, que el hipervisor (iniciador) puede descubrir y presentar a las máquinas virtuales como si fuera un disco local.",
+    "question_explanation": "La Sección 4.2.3 (Almacenamiento compartido iSCSI...) explica que el 'iSCSI target – Sirve unidades lógicas de almacenamiento LUN...'. En SCSI (y por extensión iSCSI), un LUN es la dirección de una unidad lógica específica dentro de un target. El iniciador se conecta al target y luego accede a los LUNs que este le presenta, que aparecen como dispositivos de bloque."
+  },
+  {
+    "question_number": 15,
+    "question_text": "Si una sesión iSCSI entre un iniciador y un target utiliza múltiples conexiones TCP, y una de estas conexiones TCP falla pero las otras permanecen activas, ¿cómo debería la implementación de iSCSI manejar las órdenes SCSI que estaban en tránsito o pendientes de respuesta en la conexión fallida?",
+    "options": {
+      "a": "La sesión iSCSI completa debe terminarse inmediatamente y todas las órdenes pendientes se pierden.",
+      "b": "El iniciador debe reintentar automáticamente las órdenes fallidas en una de las conexiones TCP restantes de la misma sesión, posiblemente usando mecanismos como el PDU SNACK para solicitar retransmisiones o verificar el estado de las órdenes.",
+      "c": "Las órdenes en la conexión fallida se consideran completadas con éxito para no bloquear la aplicación.",
+      "d": "El target iSCSI es responsable de redirigir las respuestas de la conexión fallida a una conexión activa sin intervención del iniciador."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El iniciador debe reintentar automáticamente las órdenes fallidas en una de las conexiones TCP restantes de la misma sesión, posiblemente usando mecanismos como el PDU SNACK para solicitar retransmisiones o verificar el estado de las órdenes.",
+    "question_explanation": "El protocolo iSCSI está diseñado para ser resiliente a fallos de conexión TCP dentro de una sesión. Si una conexión falla, el iniciador puede (y debe) intentar recuperar las tareas que estaban en esa conexión. La PDU SNACK (Sequence Number ACKnowledgement) (código de iniciador `0x10`) se utiliza para solicitar la retransmisión o el estado de PDUs numeradas, lo que es crucial para la recuperación tras un fallo de conexión dentro de una sesión multiconexión."
+  }
+]

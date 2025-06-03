@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const startTestP4Button = document.getElementById('start-test-p4');
   const startTestT1Button = document.getElementById('start-test-t1');
   const startTestT2Button = document.getElementById('start-test-t2');
-  
+  const startTestT3Button = document.getElementById('start-test-t3');
+  const startTestT4Button = document.getElementById('start-test-t4');
+
   const nextButton = document.getElementById('next-button');
   const restartButton = document.getElementById('restart-button');
   const backToSelectionButton = document.getElementById('back-to-selection-button');

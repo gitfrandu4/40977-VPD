@@ -1,0 +1,262 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "En KVM, un 'switch virtual' como `virbr0` y una 'interfaz en modo bridge' (puente de host) son dos mecanismos para conectar máquinas virtuales a la red. ¿Cuál es la diferencia fundamental en cómo cada uno de ellos integra las VMs en la red del anfitrión y la LAN física?",
+    "options": {
+      "a": "El switch virtual `virbr0` siempre opera en modo NAT, aislando las VMs; el bridge de host siempre opera en modo enrutado, requiriendo IPs públicas para las VMs.",
+      "b": "El switch virtual (ej. `virbr0` por defecto) crea una red privada separada para las VMs (ej. 192.168.122.0/24), y el anfitrión enruta o hace NAT para ellas. Un bridge de host conecta la NIC virtual de la VM directamente a la LAN física del anfitrión, haciendo que la VM aparezca como otro dispositivo en la misma subred física que el anfitrión.",
+      "c": "Ambos mecanismos funcionan de manera idéntica, siendo `virbr0` simplemente la implementación por defecto de un bridge de host en libvirt.",
+      "d": "El switch virtual solo permite comunicación entre VMs en el mismo host, mientras que el bridge permite la comunicación con la red externa pero no entre VMs."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El switch virtual (ej. `virbr0` por defecto) crea una red privada separada para las VMs (ej. 192.168.122.0/24), y el anfitrión enruta o hace NAT para ellas. Un bridge de host conecta la NIC virtual de la VM directamente a la LAN física del anfitrión, haciendo que la VM aparezca como otro dispositivo en la misma subred física que el anfitrión.",
+    "question_explanation": "El texto explica que un switch virtual (Sección 'Switch virtual') crea una red virtual donde el anfitrión gestiona la comunicación externa (NAT, enrutada, aislada). `virbr0` es la interfaz de esta red, típicamente NAT por defecto. La 'Interfaz modo Bridge' (Sección 'Interfaz modo Bridge') se usa para conectar VMs 'a la misma LAN que el host físico', obteniendo direcciones de esa red. Esto significa que el bridge virtualmente extiende la LAN física al interior de la VM, mientras que el switch virtual crea una red interna."
+  },
+  {
+    "question_number": 2,
+    "question_text": "La regla de `iptables` `-A POSTROUTING -s 192.168.122.0/24 ! -d 192.168.122.0/24 -o eth0 -j MASQUERADE` se usa para una red NAT en KVM (asumiendo que `virbr0` está asociada a `192.168.122.0/24` y `eth0` es la interfaz externa del host). ¿Qué función específica realiza `-j MASQUERADE` para los paquetes salientes de las VMs?",
+    "options": {
+      "a": "Rechaza todos los paquetes que no coincidan con la dirección IP de la interfaz `eth0`.",
+      "b": "Modifica la dirección IP de origen de los paquetes salientes de las VMs (de la red `192.168.122.0/24`) por la dirección IP de la interfaz de salida del host (`eth0`), permitiendo que las VMs compartan la IP del host para acceder a redes externas y que las respuestas puedan retornar correctamente.",
+      "c": "Cifra los paquetes salientes para asegurar la comunicación entre las VMs y la red externa.",
+      "d": "Redirige todo el tráfico de la red `192.168.122.0/24` a un proxy transparente en el host."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Modifica la dirección IP de origen de los paquetes salientes de las VMs (de la red `192.168.122.0/24`) por la dirección IP de la interfaz de salida del host (`eth0`), permitiendo que las VMs compartan la IP del host para acceder a redes externas y que las respuestas puedan retornar correctamente.",
+    "question_explanation": "En la Sección 'Red NAT', la regla mostrada (aunque usa `-o virbr0-nic` que es incorrecto, debería ser la interfaz externa) usa `-j MASQUERADE`. El target `MASQUERADE` en `iptables` se usa en la cadena `POSTROUTING` para realizar Network Address Translation (NAT) de origen. Reemplaza la IP de origen de los paquetes con la IP de la interfaz de salida del host. Es una forma de SNAT (Source NAT) que es dinámica, especialmente útil cuando la IP externa del host puede cambiar (ej. DHCP)."
+  },
+  {
+    "question_number": 3,
+    "question_text": "En la definición XML de una red virtual KVM, como la red 'default', ¿qué indica principalmente el elemento `<forward mode='nat'>`?",
+    "options": {
+      "a": "Que la red está configurada para permitir solo tráfico NAT entre las máquinas virtuales, sin acceso externo.",
+      "b": "Que el anfitrión actuará como un gateway NAT para las máquinas virtuales conectadas a esta red, permitiéndoles acceder a redes externas utilizando la dirección IP del anfitrión.",
+      "c": "Que todas las máquinas virtuales en esta red deben usar direcciones IP estáticas definidas por el administrador.",
+      "d": "Que la red utiliza un protocolo de traducción de direcciones específico para la virtualización, diferente del NAT estándar."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Que el anfitrión actuará como un gateway NAT para las máquinas virtuales conectadas a esta red, permitiéndoles acceder a redes externas utilizando la dirección IP del anfitrión.",
+    "question_explanation": "El ejemplo de configuración XML para una 'Red NAT' (Sección 'Red NAT') muestra `<forward mode='nat'>`. Esto instruye a libvirt para configurar el host de tal manera que el tráfico de las VMs en esta red virtual sea sometido a NAT cuando intente alcanzar redes externas, usando la IP del host como IP de origen enmascarada."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Un administrador desea crear una nueva red virtual, activarla, asegurar que se inicie automáticamente con el sistema y, posteriormente, eliminarla por completo del sistema. ¿Cuál es la secuencia correcta de comandos `virsh net-*` para este ciclo de vida completo, asumiendo que `my_network.xml` es el archivo de definición?",
+    "options": {
+      "a": "`net-start my_network.xml`, `net-autostart my_network`, `net-destroy my_network`, `net-undefine my_network.xml`",
+      "b": "`net-define my_network.xml`, `net-start my_network`, `net-autostart my_network`, `net-destroy my_network`, `net-undefine my_network`",
+      "c": "`net-create my_network.xml`, `net-enable my_network`, `net-stop my_network`, `net-delete my_network`",
+      "d": "`net-define my_network`, `net-activate my_network`, `net-persist my_network`, `net-deactivate my_network`, `net-remove my_network`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`net-define my_network.xml`, `net-start my_network`, `net-autostart my_network`, `net-destroy my_network`, `net-undefine my_network`",
+    "question_explanation": "La Sección 'Ciclo de vida' lista los comandos: Definición (`net-define path_fich_config`), Activación (`net-start Identificador_Red`), Configurar para arranque automático (`net-autostart Identificador_Red`), Desactivar (`net-destroy Identificador_Red`), y Eliminar (`net-undefine Identificador_Red`). Los identificadores de red usados en los comandos después de `net-define` son el nombre de la red, no el nombre del archivo XML."
+  },
+  {
+    "question_number": 5,
+    "question_text": "Si una red virtual KVM se configura como 'aislada', y las reglas de `iptables` en el host son `-A FORWARD -o virbrX -j REJECT --reject-with icmp-port-unreachable` y `-A FORWARD -i virbrX -j REJECT --reject-with icmp-port-unreachable`, ¿qué tipo de conectividad se espera para las VMs en esta red `virbrX`?",
+    "options": {
+      "a": "Las VMs pueden comunicarse entre sí y acceder a Internet, pero no al host.",
+      "b": "Las VMs pueden comunicarse entre sí dentro de la red `virbrX`, pero no pueden acceder al host ni a ninguna red externa. Cualquier intento de comunicación fuera de `virbrX` será explícitamente rechazado por el cortafuegos del host.",
+      "c": "Las VMs no pueden comunicarse entre sí, pero pueden acceder al host y a Internet.",
+      "d": "Las VMs tienen conectividad completa sin restricciones, las reglas `REJECT` solo aplican a tráfico malicioso."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Las VMs pueden comunicarse entre sí dentro de la red `virbrX`, pero no pueden acceder al host ni a ninguna red externa. Cualquier intento de comunicación fuera de `virbrX` será explícitamente rechazado por el cortafuegos del host.",
+    "question_explanation": "La Sección 'Red aislada' indica que se usa 'Sin conexión con el exterior de la red aislada' y muestra las reglas `REJECT` en la cadena `FORWARD`. Esto significa que el tráfico que intente salir de la red `virbrX` (a través de `-o virbrX`) o entrar a la red `virbrX` desde fuera (a través de `-i virbrX`) será rechazado. Sin embargo, el tráfico entre VMs que permanecen dentro de la misma red `virbrX` (que es manejado por el bridge `virbrX` a nivel de capa 2) no pasaría por la cadena `FORWARD` del host y sí sería posible."
+  },
+  {
+    "question_number": 6,
+    "question_text": "La interfaz `virbr0` es creada por libvirt por defecto. ¿Cuál es su configuración típica y su propósito principal en una instalación estándar de KVM?",
+    "options": {
+      "a": "Es un bridge de host conectado directamente a la NIC física, proporcionando a las VMs acceso directo a la LAN.",
+      "b": "Es una interfaz de loopback virtual utilizada para pruebas de rendimiento de red de las VMs.",
+      "c": "Es la interfaz de un switch virtual que opera en modo NAT, proporcionando una red privada (ej. 192.168.122.0/24) para las VMs con acceso a Internet a través de la IP del host y, opcionalmente, un servidor DHCP para las VMs.",
+      "d": "Es una interfaz para una red aislada, impidiendo cualquier comunicación externa para las VMs por defecto."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Es la interfaz de un switch virtual que opera en modo NAT, proporcionando una red privada (ej. 192.168.122.0/24) para las VMs con acceso a Internet a través de la IP del host y, opcionalmente, un servidor DHCP para las VMs.",
+    "question_explanation": "La Sección 'Ideas Generales' sobre el switch virtual establece: 'La primera vez que se inicia crea la interfaz virbr0' y 'La interfaz virbr0 representa a una red NAT cuyo nombre es default'. El ejemplo XML para la red 'default' (Sección 'Red NAT') muestra que opera en modo NAT y tiene un servidor DHCP configurado para el rango 192.168.122.0/24."
+  },
+  {
+    "question_number": 7,
+    "question_text": "En la definición XML de una red virtual KVM, como `<network>...<ip address='192.168.100.1' netmask='255.255.255.0'><dhcp><range start='192.168.100.128' end='192.168.100.254'/></dhcp></ip>...</network>`, ¿qué función cumple el bloque `<dhcp>`?",
+    "options": {
+      "a": "Define las direcciones IP estáticas que deben ser asignadas manualmente a cada máquina virtual.",
+      "b": "Configura un servidor DHCP integrado en libvirt que operará en la interfaz bridge de esta red virtual (ej. `virbrX`), asignando automáticamente direcciones IP a las VMs desde el rango especificado.",
+      "c": "Especifica el servidor DHCP externo que las máquinas virtuales deben contactar para obtener su configuración de red.",
+      "d": "Habilita el reenvío de solicitudes DHCP desde las VMs hacia la red física del anfitrión."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Configura un servidor DHCP integrado en libvirt que operará en la interfaz bridge de esta red virtual (ej. `virbrX`), asignando automáticamente direcciones IP a las VMs desde el rango especificado.",
+    "question_explanation": "Los ejemplos XML para 'Red NAT' y 'Red aislada' contienen el bloque `<dhcp><range .../></dhcp>` dentro del elemento `<ip>`. Esto configura el servidor DHCP que libvirt puede ejecutar (usando dnsmasq) en la interfaz del switch virtual (el bridge `virbrX`) para servir direcciones IP a las VMs conectadas a esa red virtual."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Considerando una VM conectada a un bridge de host (configurado para usar la NIC física `eth0`) versus una VM conectada al switch virtual por defecto `virbr0` (modo NAT), ¿cómo diferiría típicamente la dirección IP obtenida por la VM en cada escenario?",
+    "options": {
+      "a": "En ambos casos, la VM obtendría una IP de la subred 192.168.122.0/24.",
+      "b": "Con el bridge de host, la VM obtendría una IP de la misma subred que la interfaz física `eth0` del host (ej. de la LAN física). Con `virbr0` en modo NAT, la VM obtendría una IP de una subred privada gestionada por libvirt (ej. 192.168.122.0/24).",
+      "c": "Con el bridge de host, la VM usaría la misma IP que el host `eth0`. Con `virbr0`, obtendría una IP pública única.",
+      "d": "Con el bridge de host, la VM no necesita una dirección IP. Con `virbr0`, la IP es asignada por el router de la LAN física."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Con el bridge de host, la VM obtendría una IP de la misma subred que la interfaz física `eth0` del host (ej. de la LAN física). Con `virbr0` en modo NAT, la VM obtendría una IP de una subred privada gestionada por libvirt (ej. 192.168.122.0/24).",
+    "question_explanation": "La Sección 'Interfaz modo Bridge' dice: 'Los huéspedes conectados al bridge poseen direcciones de la misma red que la interfaz física del anfitrión.' En contraste, la red `default` asociada a `virbr0` (Sección 'Red NAT') usa la subred `192.168.122.1` para el gateway y asigna IPs en ese rango a las VMs. Estas son dos subredes distintas."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Al configurar una 'Red enrutada' para las VMs, el texto muestra las reglas `iptables`: `-A FORWARD -d 193.16.100.0/24 -o virbr1 -j ACCEPT` y `-A FORWARD -s 193.16.100.0/24 -i virbr1 -j ACCEPT`. ¿Cuál es el propósito de estas reglas y cómo difiere del objetivo de una regla `MASQUERADE`?",
+    "options": {
+      "a": "Estas reglas realizan NAT bidireccional para la subred `193.16.100.0/24`. `MASQUERADE` solo hace NAT de origen.",
+      "b": "Estas reglas permiten el reenvío (routing) de paquetes entre la red de las VMs (`193.16.100.0/24` a través de `virbr1`) y otras redes, sin modificar las direcciones IP de origen o destino. `MASQUERADE` modifica la IP de origen para ocultar la red interna.",
+      "c": "Estas reglas bloquean todo el tráfico excepto el destinado o proveniente de `193.16.100.0/24`. `MASQUERADE` permite todo el tráfico saliente.",
+      "d": "Son reglas de filtrado de estado para conexiones establecidas, mientras que `MASQUERADE` es para nuevas conexiones."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Estas reglas permiten el reenvío (routing) de paquetes entre la red de las VMs (`193.16.100.0/24` a través de `virbr1`) y otras redes, sin modificar las direcciones IP de origen o destino. `MASQUERADE` modifica la IP de origen para ocultar la red interna.",
+    "question_explanation": "La Sección 'Red enrutada' explica que se usa para 'MV con direcciones reales (enrutables)' y 'Conexión al exterior'. Las reglas en la cadena `FORWARD` con target `ACCEPT` permiten que los paquetes pasen a través del host (que actúa como router) sin alteración de sus direcciones IP. Esto es distinto de `MASQUERADE` (usado en NAT) que cambia la IP de origen."
+  },
+  {
+    "question_number": 10,
+    "question_text": "¿Cuál es la diferencia fundamental entre los comandos `virsh net-destroy Mi_Red_Virtual` y `virsh net-undefine Mi_Red_Virtual`?",
+    "options": {
+      "a": "`net-destroy` apaga la red temporalmente y `net-undefine` la reinicia.",
+      "b": "`net-destroy` elimina permanentemente la red y su configuración XML, mientras que `net-undefine` solo la desactiva.",
+      "c": "`net-destroy` desactiva la red virtual (ej. desmonta la interfaz `virbrX`, detiene DHCP), pero su definición persiste. `net-undefine` elimina la definición persistente de la red de la configuración de libvirt (la red debe estar inactiva primero).",
+      "d": "Ambos comandos son alias y realizan la misma acción de eliminar completamente la red."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`net-destroy` desactiva la red virtual (ej. desmonta la interfaz `virbrX`, detiene DHCP), pero su definición persiste. `net-undefine` elimina la definición persistente de la red de la configuración de libvirt (la red debe estar inactiva primero).",
+    "question_explanation": "La Sección 'Ciclo de vida' lista `net-destroy` como 'Desactiva' y `net-undefine` como 'Eliminar'. `net-destroy` detiene la red activa (la pasa a estado inactivo). `net-undefine` elimina la configuración XML persistente del sistema, por lo que libvirt ya no la conocerá. Para ejecutar `net-undefine`, la red primero debe estar inactiva (destruida)."
+  },
+  {
+    "question_number": 11,
+    "question_text": "En la definición XML de una red, el elemento `<bridge name='virbr0' stp='on' delay='0'/>` configura el bridge subyacente al switch virtual. ¿Cuál es el propósito principal de habilitar STP (Spanning Tree Protocol) con `stp='on'` en un bridge virtual como `virbr0`?",
+    "options": {
+      "a": "Aumentar el ancho de banda disponible para las máquinas virtuales conectadas al bridge.",
+      "b": "Prevenir bucles de red (network loops) si el bridge virtual `virbr0` estuviera conectado a otros bridges o switches de una manera que pudiera formar un camino redundante cerrado, lo cual es más relevante si `virbr0` se conectara a la red física de forma compleja.",
+      "c": "Habilitar la asignación automática de direcciones IP (DHCP) en el bridge.",
+      "d": "Mejorar la seguridad del bridge filtrando tráfico malicioso."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Prevenir bucles de red (network loops) si el bridge virtual `virbr0` estuviera conectado a otros bridges o switches de una manera que pudiera formar un camino redundante cerrado, lo cual es más relevante si `virbr0` se conectara a la red física de forma compleja.",
+    "question_explanation": "Spanning Tree Protocol (STP) es un protocolo de capa 2 diseñado para prevenir bucles en topologías de red con bridges redundantes. Aunque en una configuración simple de `virbr0` (NAT o aislada) el riesgo de bucle es bajo, habilitar STP (`stp='on'`) es una medida de precaución, especialmente si el bridge virtual interactúa con otros segmentos de red o bridges físicos. `delay='0'` a menudo se usa en bridges virtuales porque los cambios de topología son controlados por software y no necesitan los retardos de convergencia de STP en redes físicas."
+  },
+  {
+    "question_number": 12,
+    "question_text": "Si se desea que las máquinas virtuales aparezcan en la misma LAN física que el servidor anfitrión KVM, compartiendo la misma subred y obteniendo IPs del mismo servidor DHCP que el anfitrión, ¿qué tipo de configuración de red KVM se debe implementar en el anfitrión?",
+    "options": {
+      "a": "Una red virtual NAT con reenvío de puertos para cada servicio de las VMs.",
+      "b": "Una red virtual aislada para cada VM.",
+      "c": "Una interfaz en modo bridge, donde la NIC física del anfitrión y las NICs virtuales de las VMs se conectan a un bridge virtual Linux.",
+      "d": "Una red virtual enrutada, asignando a cada VM una IP pública de un bloque diferente."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Una interfaz en modo bridge, donde la NIC física del anfitrión y las NICs virtuales de las VMs se conectan a un bridge virtual Linux.",
+    "question_explanation": "La Sección 'Interfaz modo Bridge' establece que este modo se usa 'Para conectar máquinas virtuales a la misma LAN que el host físico' y que 'Los huéspedes conectados al bridge poseen direcciones de la misma red que la interfaz física del anfitrión'. Esto cumple con los requisitos de la pregunta."
+  },
+  {
+    "question_number": 13,
+    "question_text": "En una red NAT configurada por libvirt, si una VM con IP `192.168.122.50` necesita exponer un servicio web (puerto 80) al exterior, y el host tiene una IP pública `A.B.C.D`, ¿qué tipo de regla `iptables` sería necesaria en el host para permitir el acceso externo al puerto 80 del host y redirigirlo al puerto 80 de la VM?",
+    "options": {
+      "a": "Una regla `SNAT` en la cadena `POSTROUTING` para cambiar la IP de origen de la VM.",
+      "b": "Una regla `DNAT` (Destination NAT) en la cadena `PREROUTING` (o `OUTPUT` para tráfico local del host) para cambiar la IP y puerto de destino de los paquetes entrantes dirigidos a `A.B.C.D:80` hacia `192.168.122.50:80`.",
+      "c": "Una regla `MASQUERADE` en la cadena `FORWARD`.",
+      "d": "Una regla `ACCEPT` en la cadena `INPUT` para permitir tráfico al puerto 80, sin necesidad de NAT."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Una regla `DNAT` (Destination NAT) en la cadena `PREROUTING` (o `OUTPUT` para tráfico local del host) para cambiar la IP y puerto de destino de los paquetes entrantes dirigidos a `A.B.C.D:80` hacia `192.168.122.50:80`.",
+    "question_explanation": "La Sección 'Red NAT' indica: 'Si se desea conectarse desde el exterior => desvío de puertos explícito con iptables'. El ejemplo proporcionado es `-A PREROUTING -d 192.168.11.100 -p tcp --dport 80 -j DNAT --to-destination 192.168.11.100:8080`. Esto es una regla de Port Forwarding usando DNAT para redirigir el tráfico entrante en un puerto del host a un IP:puerto de una VM."
+  },
+  {
+    "question_number": 14,
+    "question_text": "Al definir una red virtual en KVM/libvirt, el archivo XML incluye un elemento `<uuid>`. ¿Cuál es la función principal de este UUID en el contexto de la gestión de redes por libvirt?",
+    "options": {
+      "a": "Es la dirección MAC utilizada por la interfaz bridge de la red virtual.",
+      "b": "Es un identificador único universal para la red virtual, utilizado por libvirt para referenciarla internamente de forma inequívoca, incluso si su nombre cambia o se recrea en otro host.",
+      "c": "Define el rango de direcciones IP que serán asignadas por el servidor DHCP de la red.",
+      "d": "Es una clave de encriptación utilizada para asegurar el tráfico dentro de la red virtual."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Es un identificador único universal para la red virtual, utilizado por libvirt para referenciarla internamente de forma inequívoca, incluso si su nombre cambia o se recrea en otro host.",
+    "question_explanation": "Al igual que para las máquinas virtuales y los pools de almacenamiento, libvirt utiliza UUIDs para identificar de forma única y persistente las redes virtuales. Esto permite que otros objetos de configuración (como la interfaz de red de una VM) puedan referenciar la red de forma estable, incluso si el nombre legible por humanos de la red se modifica."
+  },
+  {
+    "question_number": 15,
+    "question_text": "Si un administrador ejecuta `virsh net-destroy my_network` en una red virtual activa a la que están conectadas varias máquinas virtuales, ¿cuál es el impacto inmediato más probable en la conectividad de red de esas VMs?",
+    "options": {
+      "a": "Las VMs no se verán afectadas ya que sus conexiones de red son independientes de la definición activa de la red en libvirt.",
+      "b": "Las VMs perderán su conectividad de red a través de esa red virtual, ya que el comando `net-destroy` típicamente desactiva la interfaz bridge (`virbrX`) asociada, detiene el servidor DHCP y elimina las reglas de `iptables` correspondientes.",
+      "c": "Las VMs mantendrán su conectividad actual, pero no podrán obtener nuevas concesiones DHCP ni establecer nuevas conexiones externas.",
+      "d": "El comando `net-destroy` fallará si hay VMs activas conectadas a la red."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Las VMs perderán su conectividad de red a través de esa red virtual, ya que el comando `net-destroy` típicamente desactiva la interfaz bridge (`virbrX`) asociada, detiene el servidor DHCP y elimina las reglas de `iptables` correspondientes.",
+    "question_explanation": "`virsh net-destroy` desactiva la red. Esto implica eliminar la interfaz bridge (`virbrX`) del sistema host, detener cualquier servicio asociado como `dnsmasq` (para DHCP/DNS), y limpiar las reglas de `iptables` que libvirt había configurado para esa red. Como resultado, las NICs virtuales de las VMs conectadas a ese bridge perderán su conexión de capa 2 y, por ende, su conectividad IP."
+  },
+  {
+    "question_number": 16,
+    "question_text": "Considerando los tres modos de operación de una red virtual KVM (NAT, enrutada, aislada), ¿cuál de ellos requeriría que el administrador configure rutas estáticas en los routers de la red física para que los sistemas externos puedan alcanzar las máquinas virtuales, asumiendo que las VMs usan IPs 'reales' o enrutables?",
+    "options": {
+      "a": "Modo NAT, porque el host necesita saber cómo enrutar las respuestas.",
+      "b": "Modo Aislada, para permitir un acceso selectivo desde el exterior.",
+      "c": "Modo Enrutada, ya que el host actúa como un router para la subred de las VMs, y la red externa debe saber que el host KVM es el gateway para esa subred de VMs.",
+      "d": "Ninguno, libvirt configura automáticamente el enrutamiento externo en todos los modos."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Modo Enrutada, ya que el host actúa como un router para la subred de las VMs, y la red externa debe saber que el host KVM es el gateway para esa subred de VMs.",
+    "question_explanation": "En una red enrutada, las VMs tienen direcciones IP que son parte de una subred distinta a la del host, pero que se supone son enrutables en la red más amplia. El host KVM actúa como el router para esta subred de VMs. Para que otros dispositivos en la red física puedan enviar tráfico a estas VMs, deben tener una ruta que les indique que el host KVM es el siguiente salto para alcanzar la subred de las VMs. Esto a menudo requiere configurar rutas estáticas en los routers de la LAN o el router principal."
+  },
+  {
+    "question_number": 17,
+    "question_text": "El archivo XML de la red 'default' contiene `<bridge name='virbr0' stp='on' delay='0'/>`. ¿Qué representa `virbr0` en el sistema operativo Linux del anfitrión y cuál es su relación con las NICs virtuales de las VMs conectadas a esta red 'default'?",
+    "options": {
+      "a": "`virbr0` es una NIC física del anfitrión dedicada a la virtualización.",
+      "b": "`virbr0` es un bridge (puente) de software Linux creado y gestionado por libvirt. Las interfaces de red virtuales (tap) de las VMs conectadas a la red 'default' son añadidas como puertos a este bridge `virbr0`, permitiendo la comunicación entre ellas y con el host a través de este bridge.",
+      "c": "`virbr0` es un alias para la interfaz de loopback (`lo`) utilizado por las VMs para comunicarse con el host.",
+      "d": "`virbr0` es el nombre del servicio DHCP que asigna IPs a las VMs."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virbr0` es un bridge (puente) de software Linux creado y gestionado por libvirt. Las interfaces de red virtuales (tap) de las VMs conectadas a la red 'default' son añadidas como puertos a este bridge `virbr0`, permitiendo la comunicación entre ellas y con el host a través de este bridge.",
+    "question_explanation": "Como se indica en la Sección 'Ideas Generales', 'En Linux, el switch virtual se muestra como una interfaz de red'. Esta interfaz es un bridge de software (como `virbr0`). Cuando una VM se conecta a una red virtual gestionada por libvirt, se crea una interfaz `tap` en el host para la NIC virtual de la VM, y esta interfaz `tap` se adjunta al bridge (`virbr0` en este caso) que representa esa red virtual."
+  },
+  {
+    "question_number": 18,
+    "question_text": "Si se configura un switch virtual en modo 'Red aislada' con un rango DHCP, ¿cuál de las siguientes afirmaciones describe con mayor precisión la capacidad de comunicación de una VM conectada a esta red?",
+    "options": {
+      "a": "La VM puede comunicarse con todas las demás VMs en la misma red aislada y también acceder a Internet a través del host.",
+      "b": "La VM solo puede comunicarse con el host KVM, pero no con otras VMs ni con Internet.",
+      "c": "La VM puede comunicarse con otras VMs en la misma red aislada y obtener una IP del DHCP de esa red, pero no tendrá conectividad con el host (más allá del bridge `virbrX` en sí) ni con redes externas.",
+      "d": "La VM no tendrá ninguna conectividad de red, ni siquiera con otras VMs en la misma red aislada."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La VM puede comunicarse con otras VMs en la misma red aislada y obtener una IP del DHCP de esa red, pero no tendrá conectividad con el host (más allá del bridge `virbrX` en sí) ni con redes externas.",
+    "question_explanation": "El ejemplo XML para una red aislada (Sección 'Red aislada') muestra una configuración IP con DHCP, lo que implica que las VMs en esa red pueden obtener IPs y comunicarse entre ellas a través del bridge `virbrX`. Sin embargo, la definición de 'Red aislada' es 'Sin conexión con el exterior de la red aislada', y las reglas de `iptables` asociadas (`REJECT`) impiden el tráfico hacia/desde fuera de esa red virtual. La conectividad con el host mismo a través de su IP principal también estaría bloqueada por estas reglas `FORWARD` si el tráfico intentara salir de la red `virbrX`."
+  },
+  {
+    "question_number": 19,
+    "question_text": "Al crear una interfaz de red en modo bridge en el host KVM, ¿por qué es necesario, típicamente, eliminar o desactivar la configuración IP de la interfaz física (ej. `eth0`) que se añade al bridge, y en su lugar, asignar la configuración IP al propio bridge (ej. `br0`)?",
+    "options": {
+      "a": "Para permitir que la interfaz física `eth0` se use exclusivamente para el tráfico de gestión del hipervisor.",
+      "b": "Porque el bridge (`br0`) se convierte en la interfaz de red principal del host para esa conexión de red. La interfaz física (`eth0`) actúa solo como un puerto del bridge, pasando tráfico de capa 2. Si `eth0` conservara su IP, podría haber conflictos de enrutamiento o la IP no sería accesible a través del bridge.",
+      "c": "Esto no es necesario; tanto la interfaz física como el bridge pueden tener configuraciones IP independientes y activas.",
+      "d": "Para mejorar la seguridad, ya que la interfaz física sin IP es menos vulnerable a ataques de red."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Porque el bridge (`br0`) se convierte en la interfaz de red principal del host para esa conexión de red. La interfaz física (`eth0`) actúa solo como un puerto del bridge, pasando tráfico de capa 2. Si `eth0` conservara su IP, podría haber conflictos de enrutamiento o la IP no sería accesible a través del bridge.",
+    "question_explanation": "Cuando se crea un bridge de host y se le añade una interfaz física (ej. `eth0`), la interfaz física deja de tener su propia configuración de capa 3 (IP). El bridge (`br0`) es el que recibe la configuración IP y se convierte en la interfaz de red lógica del host para esa conexión. `eth0` pasa a ser un componente de capa 2 del bridge. Esto permite que tanto el host (a través de `br0`) como las VMs conectadas a `br0` compartan la misma red física."
+  },
+  {
+    "question_number": 20,
+    "question_text": "Si una máquina virtual está conectada a una red virtual `virbr1` configurada en modo enrutado, y el host KVM tiene su interfaz `virbr1` con la IP `10.0.0.1/24` y las VMs en esa red usan IPs del rango `10.0.0.0/24`. Para que una VM `10.0.0.50` pueda ser alcanzada desde otra máquina en la LAN física del host (ej. `192.168.1.0/24`), ¿qué tipo de configuración de red es esencial además de las reglas `FORWARD ACCEPT` en el host KVM?",
+    "options": {
+      "a": "Se necesita una regla DNAT en el host KVM para mapear un puerto de la IP del host a la VM `10.0.0.50`.",
+      "b": "La máquina en la LAN física (`192.168.1.0/24`) debe tener una ruta estática que indique que la red `10.0.0.0/24` es accesible a través de la IP del host KVM en la LAN física (ej. si el host KVM es `192.168.1.10`, la ruta sería `10.0.0.0/24 via 192.168.1.10`).",
+      "c": "Se debe configurar un bridge entre `virbr1` y la interfaz física de la LAN.",
+      "d": "No se requiere configuración adicional; el modo enrutado maneja esto automáticamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La máquina en la LAN física (`192.168.1.0/24`) debe tener una ruta estática que indique que la red `10.0.0.0/24` es accesible a través de la IP del host KVM en la LAN física (ej. si el host KVM es `192.168.1.10`, la ruta sería `10.0.0.0/24 via 192.168.1.10`).",
+    "question_explanation": "En una configuración de red enrutada, el host KVM actúa como un router entre la red virtual de las VMs (`10.0.0.0/24`) y otras redes. Para que los dispositivos en la LAN física (`192.168.1.0/24`) sepan cómo alcanzar la red `10.0.0.0/24`, necesitan una ruta que les diga que envíen ese tráfico al host KVM (que tiene una IP en la LAN física). Sin esta ruta, los dispositivos de la LAN física enviarían el tráfico para `10.0.0.0/24` a su gateway por defecto, que probablemente no conoce esa subred."
+  }
+]

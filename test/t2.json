@@ -1,0 +1,392 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "Un administrador necesita configurar un pool de almacenamiento en KVM/libvirt para imágenes de VM que deben residir en un sistema de archivos XFS existente en la partición `/dev/sdb1`, la cual está montada en el host en `/mnt/kvm_storage`. ¿Cuál es el tipo de pool (`type`) y los parámetros `--source-*` y `--target` más apropiados para `virsh pool-define-as`?",
+    "options": {
+      "a": "type='dir', --source-path /dev/sdb1, --target /mnt/kvm_storage",
+      "b": "type='disk', --source-dev /dev/sdb1, --target /mnt/kvm_storage",
+      "c": "type='fs', --source-dev /dev/sdb1, --target /mnt/kvm_storage",
+      "d": "type='lvm', --source-name /dev/sdb1, --target /mnt/kvm_storage"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "type='fs', --source-dev /dev/sdb1, --target /mnt/kvm_storage",
+    "question_explanation": "El tipo de pool 'fs' (filesystem) es el adecuado cuando la fuente es un dispositivo de bloque preformateado (como `/dev/sdb1` con XFS) y montado en el sistema anfitrión. `--source-dev /dev/sdb1` especifica la partición de origen, y `--target /mnt/kvm_storage` indica el directorio del host donde está montada la partición y donde libvirt gestionará los volúmenes. Un tipo 'dir' usaría `--target` para un directorio sin un dispositivo de origen específico. 'disk' se usaría para un disco completo, y 'lvm' para un grupo de volúmenes LVM."
+  },
+  {
+    "question_number": 2,
+    "question_text": "Al definir un pool de almacenamiento de tipo `netfs` para un servidor NFS, la configuración XML incluye `<source><host name=\"nfs.example.com\"/><dir path=\"/exported/vms\"/></source>` y `<target><path>/mnt/nfs_vms</path></target>`. ¿Cuál es la función de `virsh pool-build <pool_name>` y `virsh pool-start <pool_name>` en este contexto?",
+    "options": {
+      "a": "`pool-build` formatea el recurso NFS y `pool-start` lo comparte en la red local.",
+      "b": "`pool-build` verifica la conectividad con el servidor NFS y crea el directorio de montaje local (`/mnt/nfs_vms`). `pool-start` monta el recurso NFS exportado en el directorio de montaje local.",
+      "c": "`pool-build` monta el recurso NFS y `pool-start` define los permisos para libvirt.",
+      "d": "`pool-build` crea los metadatos del pool en el servidor NFS y `pool-start` activa el acceso de solo lectura."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`pool-build` verifica la conectividad con el servidor NFS y crea el directorio de montaje local (`/mnt/nfs_vms`). `pool-start` monta el recurso NFS exportado en el directorio de montaje local.",
+    "question_explanation": "Según la Sección 2.2.2, `virsh pool-build` compila o prepara el pool. Para un pool `netfs`, esto típicamente implica crear el directorio de destino local (`<target><path>`) si no existe y verificar la disponibilidad del origen. La Sección 2.2.3 indica que `virsh pool-start` pone en marcha el contenedor; para un pool `netfs`, esto significa ejecutar la operación de montaje del recurso NFS en el `<target><path>` especificado."
+  },
+  {
+    "question_number": 3,
+    "question_text": "Un administrador elimina un pool de almacenamiento con la secuencia: 1. `virsh pool-destroy mypool` 2. `virsh pool-delete mypool` 3. `virsh pool-undefine mypool`. ¿Qué ocurre con los volúmenes físicos (archivos de imagen) contenidos en `mypool` si este era de tipo `dir` apuntando a `/data/vm_images/` después del paso 2 (`pool-delete`)?",
+    "options": {
+      "a": "Los archivos de imagen se eliminan automáticamente del directorio `/data/vm_images/`.",
+      "b": "`pool-delete` para un pool de tipo `dir` generalmente no elimina los archivos de volumen contenidos, solo elimina la representación del pool de libvirt y su directorio de montaje si fue creado por libvirt y está vacío. Los archivos de imagen permanecerían en `/data/vm_images/`.",
+      "c": "Los archivos de imagen se mueven a un directorio de respaldo gestionado por libvirt.",
+      "d": "El comando `pool-delete` fallará si el pool de tipo `dir` contiene volúmenes."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`pool-delete` para un pool de tipo `dir` generalmente no elimina los archivos de volumen contenidos, solo elimina la representación del pool de libvirt y su directorio de montaje si fue creado por libvirt y está vacío. Los archivos de imagen permanecerían en `/data/vm_images/`.",
+    "question_explanation": "La Sección 2.2.4 es breve sobre `pool-delete`. Generalmente, `virsh pool-delete` elimina la información del pool de libvirt y, para algunos tipos de pool (como `dir`), puede intentar eliminar el directorio de destino si este fue creado por libvirt y está vacío. Sin embargo, no elimina recursivamente los volúmenes (archivos de imagen) dentro de un pool de tipo `dir` por defecto, ya que esto podría llevar a una pérdida de datos accidental. La eliminación de los archivos de volumen suele ser una acción separada (`virsh vol-delete`) o manual."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Cuando se crea un volumen con `dd if=/dev/zero of=/pool/vol.img bs=1M count=0 seek=4096`, ¿cuál es la característica principal del archivo `vol.img` resultante en términos de asignación de espacio en disco y por qué es esto relevante para formatos como qcow2?",
+    "options": {
+      "a": "Crea un archivo de 4GB completamente asignado (preallocated), ocupando 4GB en disco inmediatamente. Es similar a un disco 'Fixed/Preallocated'.",
+      "b": "Crea un archivo 'sparse' (disperso) de 4GB de tamaño lógico, pero que inicialmente ocupa muy poco espacio físico en disco (solo metadatos). Esto es la base del 'thin provisioning' que formatos como qcow2 pueden aprovechar y gestionar de forma más avanzada.",
+      "c": "Crea un archivo de 4MB, ya que `count=0` anula el `seek`.",
+      "d": "El comando fallará porque `count=0` es inválido para `dd`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Crea un archivo 'sparse' (disperso) de 4GB de tamaño lógico, pero que inicialmente ocupa muy poco espacio físico en disco (solo metadatos). Esto es la base del 'thin provisioning' que formatos como qcow2 pueden aprovechar y gestionar de forma más avanzada.",
+    "question_explanation": "La Sección 2.3 (Creación de volúmenes manualmente) muestra `dd if=/dev/zero of=/Mi_Contenedor/profeslab33.img bs=1M count=0 seek=4096`. El uso de `seek` sin `count` (o `count=0` y `seek`) en `dd` crea un archivo sparse. El tamaño lógico del archivo es determinado por `bs * seek` (1MB * 4096 = 4GB), pero solo los metadatos se escriben inicialmente; los bloques no escritos no ocupan espacio físico. Formatos como qcow2 utilizan este concepto para la expansión dinámica."
+  },
+  {
+    "question_number": 5,
+    "question_text": "Al añadir un volumen virtual a una MV usando un archivo XML de definición con `virsh attach-device --config vm_name disk_def.xml`, si el XML contiene `<target dev='vdc'/>` y `--targetbus virtio` no se especifica en el comando, ¿qué tipo de bus y controlador usará la VM para este disco por defecto y cuál sería la implicación de rendimiento comparado con un bus `virtio`?",
+    "options": {
+      "a": "Usará un bus virtio por defecto si el SO invitado lo soporta, ofreciendo el mejor rendimiento.",
+      "b": "Usará un bus IDE emulado por defecto para `vdc`, resultando en un rendimiento significativamente inferior al de virtio-blk.",
+      "c": "Usará un bus SCSI emulado por defecto para `vdc`, con rendimiento comparable a virtio-scsi.",
+      "d": "Libvirt intentará inferir el mejor bus (probablemente virtio), pero si no se especifica, recurrirá a un bus emulado como PCI (resultando en nombres como `hda`, `hdb` para IDE o `sda`, `sdb` para SCSI/SATA según la emulación de QEMU), que generalmente es más lento que virtio."
+    },
+    "correct_answer_key": "d",
+    "correct_answer_text": "Libvirt intentará inferir el mejor bus (probablemente virtio), pero si no se especifica, recurrirá a un bus emulado como PCI (resultando en nombres como `hda`, `hdb` para IDE o `sda`, `sdb` para SCSI/SATA según la emulación de QEMU), que generalmente es más lento que virtio.",
+    "question_explanation": "La Sección 2.3 muestra `<target dev='vdb'/>` en el XML. El prefijo 'vd' (`vda`, `vdb`, etc.) es una convención para dispositivos virtio-blk. Si `targetbus` no se especifica explícitamente en el comando `attach-device` o el XML no define un bus específico, libvirt y QEMU tienen valores predeterminados que pueden depender del tipo de máquina emulada (ej. pc-i440fx vs q35). Para discos, un bus PCI con un controlador emulado (IDE o SATA/SCSI) es un fallback común si virtio no es el predeterminado o no está especificado. Los dispositivos virtio (como virtio-blk usando `<target dev='vdb'/>` y bus virtio) ofrecen mucho mejor rendimiento que los emulados."
+  },
+  {
+    "question_number": 6,
+    "question_text": "Un administrador define un pool de almacenamiento LVM llamado 'DataVG' usando un archivo XML. ¿Cuál de los siguientes elementos XML dentro de `<source>` es crucial para que libvirt identifique correctamente el grupo de volúmenes LVM en el host?",
+    "options": {
+      "a": "`<dir path='/dev/DataVG'/>`",
+      "b": "`<device path='/dev/DataVG'/>` o `<name>DataVG</name>` (donde DataVG es el nombre del VG).",
+      "c": "`<host name='localhost'/>` y `<device path='DataVG'/>`",
+      "d": "`<format type='lvm2'/>` y `<device path='/etc/lvm/lvm.conf'/>`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`<device path='/dev/DataVG'/>` o `<name>DataVG</name>` (donde DataVG es el nombre del VG).",
+    "question_explanation": "Para un pool LVM (`<pool type='logical'>`), el elemento `<source>` debe indicar el Volume Group (VG). La documentación de libvirt (y la práctica común) muestra que se puede especificar ya sea por su nombre (`<name>VG_NAME</name>`) o, si el VG está activado, a través de su ruta de dispositivo (`<device path='/dev/VG_NAME'/>`). El ejemplo en 2.2.1 para LVM muestra `<device path...>` para los PVs que componen el VG, pero para definir el pool en sí, se referenciaría el VG, no los PVs individuales dentro del source del pool. El `<target><path>` sería `/dev/VG_NAME`."
+  },
+  {
+    "question_number": 7,
+    "question_text": "¿Cuál es la diferencia fundamental en cómo libvirt trata un pool de tipo `disk` (ej. `--source-dev /dev/sdb`) y un pool de tipo `fs` (ej. `--source-dev /dev/sdb1 --target /mnt/sdb1_mount`) en términos de creación y gestión de volúmenes?",
+    "options": {
+      "a": "Un pool `disk` formatea el disco entero con un sistema de archivos gestionado por libvirt; un pool `fs` usa un sistema de archivos existente.",
+      "b": "Un pool `disk` permite crear volúmenes que son particiones directamente en `/dev/sdb`. Un pool `fs` crea volúmenes como archivos dentro del sistema de archivos montado en `/mnt/sdb1_mount`.",
+      "c": "Ambos crean volúmenes como archivos, pero `disk` es para discos extraíbles y `fs` para internos.",
+      "d": "Un pool `disk` no permite la creación de volúmenes, solo el uso directo del disco; un pool `fs` es para crear múltiples volúmenes."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Un pool `disk` permite crear volúmenes que son particiones directamente en `/dev/sdb`. Un pool `fs` crea volúmenes como archivos dentro del sistema de archivos montado en `/mnt/sdb1_mount`.",
+    "question_explanation": "Un pool de tipo `disk` (Sección 2.2.1) con origen `/dev/sdb` permite a libvirt gestionar el disco `/dev/sdb` entero. Los volúmenes creados en este tipo de pool pueden ser particiones lógicas directamente sobre el disco físico (si el formato del pool lo soporta, ej. `gpt` o `mbr`). En contraste, un pool `fs` tiene como origen un dispositivo de bloque ya formateado y montado (`/dev/sdb1` montado en `/mnt/sdb1_mount`), y los volúmenes creados son archivos dentro de ese sistema de archivos."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Si se intenta definir un pool de almacenamiento (`virsh pool-define-as mypool dir --target /nonexistent/path`), donde `/nonexistent/path` no existe en el host, ¿en qué etapa del ciclo de vida del pool se crearía este directorio (si es que se crea automáticamente por libvirt)?",
+    "options": {
+      "a": "Durante `virsh pool-define-as`: el comando fallará si el directorio no existe.",
+      "b": "Durante `virsh pool-build mypool`: este comando intentará crear el directorio de destino si no existe.",
+      "c": "Durante `virsh pool-start mypool`: el inicio fallará, pero el directorio no se creará.",
+      "d": "Libvirt nunca crea automáticamente el directorio de destino para un pool de tipo `dir`; debe existir previamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Durante `virsh pool-build mypool`: este comando intentará crear el directorio de destino si no existe.",
+    "question_explanation": "El comando `virsh pool-define-as` o `virsh pool-define` solo registra la configuración del pool en libvirt. Es el comando `virsh pool-build` (Sección 2.2.2) el que realiza la 'creación' o 'compilación' del pool, lo que para un pool de tipo `dir` incluye crear el directorio de destino (`<target><path>`) si este no existe y tiene los permisos adecuados para ser creado por el usuario que ejecuta libvirtd."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Un administrador desea que un pool NFS llamado `shared_isos` se monte automáticamente cada vez que el servicio `libvirtd` se inicia. ¿Qué comando `virsh` asegura esta persistencia de montaje automático por parte de libvirt?",
+    "options": {
+      "a": "`virsh pool-create shared_isos --autostart`",
+      "b": "`virsh pool-autostart shared_isos`",
+      "c": "`virsh pool-mount shared_isos --persistent`",
+      "d": "`virsh pool-refresh shared_isos --enable-autostart`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh pool-autostart shared_isos`",
+    "question_explanation": "La Sección 2.2.3 ('Puesta en marcha del contenedor de almacenamiento') muestra claramente el comando `virsh pool-autostart container_name` para configurar un pool para que se inicie (y por ende, se monte en el caso de NFS) automáticamente cuando libvirtd arranca."
+  },
+  {
+    "question_number": 10,
+    "question_text": "Al clonar un volumen con `virsh vol-clone --pool source_pool original_vol cloned_vol`, si `original_vol` está en formato `qcow2` y utiliza 'thin provisioning', ¿cómo se comportará `cloned_vol` respecto al espacio en disco inmediatamente después de la clonación y en qué se diferencia esto de una copia con `dd`?",
+    "options": {
+      "a": "`cloned_vol` será una copia completa bit a bit, ocupando el mismo espacio lógico que `original_vol` inmediatamente. `dd` hace lo mismo.",
+      "b": "`cloned_vol` inicialmente ocupará solo el espacio de los metadatos y el espacio realmente utilizado por `original_vol`, manteniendo el 'thin provisioning' si el pool lo soporta. Una copia con `dd` de un archivo sparse podría preservar la dispersión si el sistema de archivos lo permite, pero `dd` de un volumen lógico LVM o un disco crudo crearía una copia densa.",
+      "c": "`vol-clone` siempre convierte a formato `raw`, por lo que `cloned_vol` ocupará su tamaño lógico completo. `dd` puede preservar el formato original.",
+      "d": "`vol-clone` crea un snapshot vinculado, no una copia independiente. `dd` crea una copia independiente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`cloned_vol` inicialmente ocupará solo el espacio de los metadatos y el espacio realmente utilizado por `original_vol`, manteniendo el 'thin provisioning' si el pool lo soporta. Una copia con `dd` de un archivo sparse podría preservar la dispersión si el sistema de archivos lo permite, pero `dd` de un volumen lógico LVM o un disco crudo crearía una copia densa.",
+    "question_explanation": "`virsh vol-clone` (Sección 2.3) está diseñado para ser eficiente. Si el formato original es qcow2 y el pool de destino (o el mismo pool) soporta archivos dispersos, el clon también será qcow2 y se beneficiará del copy-on-write o de una copia eficiente de los datos realmente utilizados, en lugar de una copia completa de bloques vacíos. `dd` es una herramienta de copia de bajo nivel; su comportamiento con archivos sparse depende de las opciones y del sistema de archivos, pero para dispositivos de bloque, realiza una copia bit a bit, resultando en una copia densa."
+  },
+  {
+    "question_number": 11,
+    "question_text": "El XML para añadir un CD-ROM virtual a una MV es `<disk type='file' device='cdrom'> <source file='/path/to/image.iso'/> <target dev='hdc'/> </disk>`. ¿Qué implicaciones tiene `device='cdrom'` en cómo el SO invitado y el hipervisor tratan este dispositivo, comparado con `device='disk'`?",
+    "options": {
+      "a": "No hay diferencia funcional; `device` es solo una etiqueta.",
+      "b": "`device='cdrom'` instruye al hipervisor a emular un dispositivo de CD-ROM, el cual el SO invitado verá como tal (probablemente de solo lectura, con capacidades de eyección, etc.). `device='disk'` emula un disco duro estándar.",
+      "c": "`device='cdrom'` es para archivos ISO, `device='disk'` es para archivos .img; el tipo de archivo fuente determina la emulación.",
+      "d": "`device='cdrom'` solo se puede usar con el bus IDE, mientras que `device='disk'` puede usar virtio."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`device='cdrom'` instruye al hipervisor a emular un dispositivo de CD-ROM, el cual el SO invitado verá como tal (probablemente de solo lectura, con capacidades de eyección, etc.). `device='disk'` emula un disco duro estándar.",
+    "question_explanation": "La Sección 2.3 muestra este XML. El atributo `device` en la etiqueta `<disk>` le indica a libvirt y QEMU qué tipo de dispositivo de almacenamiento emular para el sistema operativo invitado. `cdrom` emula una unidad óptica, mientras que `disk` emula un disco duro. Esto afecta las características que el SO invitado percibe y cómo interactúa con el dispositivo."
+  },
+  {
+    "question_number": 12,
+    "question_text": "Se desea añadir un disco físico `/dev/sdd` del host a una VM `myvm` como dispositivo `vdc` usando el bus virtio para óptimo rendimiento, y que la configuración sea persistente. ¿Cuál es el comando `virsh` más directo y adecuado?",
+    "options": {
+      "a": "`virsh attach-device myvm --file /dev/sdd --target vdc --type block --persistent --driver qemu --subdriver raw --targetbus virtio`",
+      "b": "`virsh attach-disk myvm /dev/sdd vdc --type disk --driver qemu --subdriver raw --targetbus virtio --config`",
+      "c": "`virsh vol-create-from myvm /dev/sdd --name vdc --pool host_devices --targetbus virtio --persistent`",
+      "d": "`virsh define-disk myvm /dev/sdd vdc --bus virtio --persistent`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh attach-disk myvm /dev/sdd vdc --type disk --driver qemu --subdriver raw --targetbus virtio --config`",
+    "question_explanation": "La Sección 2.3 (Añadir Dispositivo Físico...) indica como alternativa `virsh attach-disk profeslab33 /dev/sdc vdc --config`. Para especificar el bus virtio y asegurar que se trata como un dispositivo de bloque crudo, se añadirían las opciones `--targetbus virtio` y `--driver qemu --subdriver raw`. La opción `--config` (o `--persistent`) hace el cambio persistente. `attach-disk` es el comando específico para discos."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Si un pool de almacenamiento de tipo `iscsi` se define con `<target><path>/dev/disk/by-path</path></target>`, ¿por qué se prefiere esta ruta sobre, por ejemplo, `/dev/sde` para el destino de los LUNs iSCSI?",
+    "options": {
+      "a": "`/dev/disk/by-path` ofrece mejor rendimiento de E/S para iSCSI.",
+      "b": "`/dev/disk/by-path` proporciona nombres de dispositivo persistentes que no cambian entre reinicios del host o al reconectar el LUN, a diferencia de los nombres `/dev/sdX` que pueden variar, asegurando que libvirt siempre encuentre el LUN correcto.",
+      "c": "`/dev/disk/by-path` es un requisito de seguridad para el aislamiento de LUNs iSCSI.",
+      "d": "`/dev/sde` no puede ser usado por libvirt para iSCSI; solo rutas bajo `/dev/disk/` son válidas."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`/dev/disk/by-path` proporciona nombres de dispositivo persistentes que no cambian entre reinicios del host o al reconectar el LUN, a diferencia de los nombres `/dev/sdX` que pueden variar, asegurando que libvirt siempre encuentre el LUN correcto.",
+    "question_explanation": "La Sección 2.2.1 para iSCSI y SCSI pools muestra `<target><path>/dev/disk/by-path</path></target>`. Los nombres de dispositivo como `/dev/sda`, `/dev/sdb`, etc., pueden cambiar si se añaden o quitan discos o si el orden de detección varía. Las rutas en `/dev/disk/by-path` (o `/dev/disk/by-id`) son generadas por udev basadas en identificadores únicos del hardware o la conexión, haciéndolas estables y predecibles, lo cual es crucial para configuraciones persistentes."
+  },
+  {
+    "question_number": 14,
+    "question_text": "Al usar `virsh pool-define archivo.xml`, este comando solo registra la configuración del pool. ¿Qué implicaciones tiene esto si se intenta crear un volumen (`virsh vol-create-as`) en este pool inmediatamente después, sin haber ejecutado `virsh pool-build` y `virsh pool-start`?",
+    "options": {
+      "a": "La creación del volumen funcionará, ya que la definición implica la preparación automática del pool.",
+      "b": "La creación del volumen fallará, porque el pool está definido pero no ha sido construido (preparado) ni iniciado (activado/montado), por lo que no está operativo.",
+      "c": "`pool-build` es opcional; `pool-start` es suficiente para que `vol-create-as` funcione.",
+      "d": "El pool se construirá y iniciará automáticamente al primer intento de crear un volumen en él."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "La creación del volumen fallará, porque el pool está definido pero no ha sido construido (preparado) ni iniciado (activado/montado), por lo que no está operativo.",
+    "question_explanation": "El ciclo de vida del pool (Sección 2.2) es: 1. Definición, 2. Creación (build), 3. Puesta en marcha (start). `pool-define` solo registra la configuración. `pool-build` (Sección 2.2.2) prepara el pool (ej. crea directorios). `pool-start` (Sección 2.2.3) lo activa (ej. monta NFS). Sin estos dos últimos pasos, el pool no está listo para alojar volúmenes, y `vol-create-as` fallará."
+  },
+  {
+    "question_number": 15,
+    "question_text": "Se tiene un pool de tipo `dir` llamado `my_local_pool` apuntando a `/opt/vm_images`. ¿Qué comando se usaría para ver una lista de todos los archivos de imagen (volúmenes) dentro de este pool específico?",
+    "options": {
+      "a": "`ls /opt/vm_images`",
+      "b": "`virsh pool-info my_local_pool --list-volumes`",
+      "c": "`virsh vol-list my_local_pool`",
+      "d": "`virsh find-volumes --pool my_local_pool`"
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`virsh vol-list my_local_pool`",
+    "question_explanation": "La Sección 2.3 ('Obtener información de volúmenes...') muestra el comando `virsh vol-list container_name` para listar los volúmenes dentro de un pool. Aunque `ls` mostraría los archivos, `virsh vol-list` interactúa con libvirt y muestra los volúmenes tal como los gestiona el hipervisor."
+  },
+  {
+    "question_number": 16,
+    "question_text": "Un administrador crea un volumen de 10GB con formato qcow2 en un pool. Posteriormente, decide que la VM necesita 15GB. ¿El comando `virsh vol-resize <pool> <vol> 15G` sería suficiente por sí solo para que el sistema operativo invitado vea y utilice el espacio adicional?",
+    "options": {
+      "a": "Sí, `vol-resize` aumenta el tamaño del archivo de imagen y el SO invitado detecta automáticamente el nuevo tamaño.",
+      "b": "No, `vol-resize` solo aumenta el tamaño del archivo de imagen en el host. Dentro del SO invitado, se necesitarían herramientas del sistema operativo (como `fdisk`/`parted` y `resize2fs`/`xfs_growfs`) para extender la partición y el sistema de archivos existentes al nuevo espacio.",
+      "c": "Sí, pero solo si el SO invitado tiene instalado el `qemu-guest-agent`.",
+      "d": "No, `vol-resize` solo funciona para disminuir el tamaño de los volúmenes, no para aumentarlo."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "No, `vol-resize` solo aumenta el tamaño del archivo de imagen en el host. Dentro del SO invitado, se necesitarían herramientas del sistema operativo (como `fdisk`/`parted` y `resize2fs`/`xfs_growfs`) para extender la partición y el sistema de archivos existentes al nuevo espacio.",
+    "question_explanation": "Aunque `vol-resize` no se detalla en este documento, es un comando estándar de libvirt. Este comando redimensiona el contenedor del volumen (el archivo .qcow2 o el LV). Sin embargo, el sistema operativo invitado no es consciente de este cambio hasta que se le indica. Para que el SO invitado use el espacio adicional, el administrador debe, desde dentro de la VM, redimensionar la partición que reside en ese volumen y luego expandir el sistema de archivos sobre esa partición."
+  },
+  {
+    "question_number": 17,
+    "question_text": "Al definir un pool de almacenamiento iSCSI, el XML incluye `<source><host name=\"iscsi.example.com\"/><device path=\"demo-target\"/></source>`. ¿Qué representa `demo-target` en este contexto?",
+    "options": {
+      "a": "El nombre del iniciador iSCSI en el host KVM.",
+      "b": "El nombre del LUN (Logical Unit Number) o el IQN (iSCSI Qualified Name) del target específico en el servidor iSCSI al que se conectará.",
+      "c": "Un archivo de configuración local que contiene los detalles del LUN.",
+      "d": "El protocolo de autenticación a usar (ej. CHAP)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El nombre del LUN (Logical Unit Number) o el IQN (iSCSI Qualified Name) del target específico en el servidor iSCSI al que se conectará.",
+    "question_explanation": "En la configuración de un pool iSCSI (Sección 2.2.1), `<device path=\"demo-target\"/>` dentro de `<source>` se refiere al identificador del target iSCSI específico en el servidor `iscsi.example.com`. Esto suele ser el IQN del target o una parte de él que identifica el LUN que se va a utilizar como backing para el pool o los volúmenes."
+  },
+  {
+    "question_number": 18,
+    "question_text": "El comando `virsh attach-disk myvm /images/data.qcow2 vdb --targetbus virtio --config` se ejecuta mientras `myvm` está en ejecución. ¿El nuevo disco `vdb` estará disponible inmediatamente para el SO invitado, o se requiere un reinicio de la VM?",
+    "options": {
+      "a": "Se requiere un reinicio de la VM para que el nuevo hardware sea detectado.",
+      "b": "El disco estará disponible inmediatamente si el SO invitado y el kernel de KVM soportan 'hotplug' para dispositivos virtio-blk. La mayoría de los sistemas Linux modernos lo hacen.",
+      "c": "El comando fallará si la VM está en ejecución; `attach-disk` solo funciona con VMs apagadas.",
+      "d": "El disco se define, pero solo se activa tras un `virsh reset myvm`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El disco estará disponible inmediatamente si el SO invitado y el kernel de KVM soportan 'hotplug' para dispositivos virtio-blk. La mayoría de los sistemas Linux modernos lo hacen.",
+    "question_explanation": "Libvirt y KVM soportan la conexión en caliente (hotplug) de muchos tipos de dispositivos, incluidos los discos virtio-blk. Si el sistema operativo invitado tiene los módulos necesarios (generalmente incluidos), detectará el nuevo disco `vdb` sin necesidad de reiniciar la VM. La opción `--config` asegura que el cambio también sea persistente."
+  },
+  {
+    "question_number": 19,
+    "question_text": "Si se elimina un volumen con `virsh vol-delete mypool myvol.img` mientras una VM está utilizando activamente ese volumen, ¿cuál será el resultado más probable?",
+    "options": {
+      "a": "El comando eliminará el volumen inmediatamente, causando corrupción de datos o un fallo en la VM.",
+      "b": "El comando fallará, indicando que el volumen está en uso por una o más VMs.",
+      "c": "El volumen se marcará para eliminación y se borrará la próxima vez que la VM se apague.",
+      "d": "Se creará un snapshot del volumen antes de eliminarlo para permitir la recuperación."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El comando fallará, indicando que el volumen está en uso por una o más VMs.",
+    "question_explanation": "Libvirt mantiene un seguimiento de qué volúmenes están siendo utilizados por qué máquinas virtuales. Intentar eliminar un volumen que está activamente conectado y en uso por una VM generalmente resultará en un error por parte de `virsh vol-delete`, protegiendo contra la pérdida accidental de datos o la inestabilidad de la VM. El volumen debe ser primero desasociado de la VM (`virsh detach-disk`)."
+  },
+  {
+    "question_number": 20,
+    "question_text": "Al definir un pool de tipo `scsi` con `<source><adapter name=\"host0\"/></source>`, ¿qué representa `host0`?",
+    "options": {
+      "a": "El nombre de host del servidor SCSI remoto.",
+      "b": "Un LUN específico en un adaptador SCSI.",
+      "c": "El identificador del adaptador HBA (Host Bus Adapter) SCSI físico en el sistema anfitrión KVM, a través del cual se accederán los LUNs.",
+      "d": "Un archivo de configuración que define los parámetros del bus SCSI."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "El identificador del adaptador HBA (Host Bus Adapter) SCSI físico en el sistema anfitrión KVM, a través del cual se accederán los LUNs.",
+    "question_explanation": "Para un pool SCSI (Sección 2.2.1), `<adapter name=\"host0\"/>` se refiere al nombre del adaptador HBA SCSI físico instalado en el host KVM. Libvirt utilizará este adaptador para descubrir y gestionar los LUNs SCSI disponibles a través de él como posibles volúmenes."
+  },
+  {
+    "question_number": 21,
+    "question_text": "El texto menciona que el uso de pools de almacenamiento 'se justifica por razones de seguridad', incluyendo 'Aislamiento del espacio utilizado por las MVs' y 'Uso de mecanismos específicos de seguridad'. ¿Cómo podría un pool LVM contribuir a estos aspectos de seguridad de forma más robusta que un simple pool de tipo `dir`?",
+    "options": {
+      "a": "Los pools LVM son inherentemente encriptados, mientras que los pools `dir` no.",
+      "b": "Un pool LVM puede asignar volúmenes lógicos (LVs) como dispositivos de bloque discretos a las VMs. Esto puede combinarse con permisos a nivel de dispositivo en el host y potencialmente con SELinux/AppArmor para un aislamiento más fuerte que simples archivos en un directorio compartido, donde los permisos de archivo y directorio son la principal barrera.",
+      "c": "Los pools de tipo `dir` no pueden tener cuotas de espacio, a diferencia de LVM.",
+      "d": "La comunicación con un pool LVM siempre se realiza sobre un canal seguro, a diferencia de un pool `dir`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Un pool LVM puede asignar volúmenes lógicos (LVs) como dispositivos de bloque discretos a las VMs. Esto puede combinarse con permisos a nivel de dispositivo en el host y potencialmente con SELinux/AppArmor para un aislamiento más fuerte que simples archivos en un directorio compartido, donde los permisos de archivo y directorio son la principal barrera.",
+    "question_explanation": "Mientras un pool `dir` gestiona archivos dentro de un directorio del host (cuya seguridad depende de los permisos de ese directorio y sus archivos), un pool LVM gestiona volúmenes lógicos. Cada LV es un dispositivo de bloque separado en el host. Esto permite aplicar políticas de seguridad (como SELinux contexts o permisos de dispositivo udev) a cada LV individualmente, ofreciendo un modelo de aislamiento más granular y potencialmente más robusto si una VM comprometiera su acceso al archivo de imagen en un pool `dir`."
+  },
+  {
+    "question_number": 22,
+    "question_text": "Al comparar la creación de un volumen con `virsh vol-create-as mypool myvol 10G --format qcow2` versus `virsh vol-create-as mypool myvol 10G --format raw`, ¿cuál es la diferencia principal en la asignación inicial de espacio en disco si el pool `mypool` está basado en un sistema de archivos que soporta archivos dispersos?",
+    "options": {
+      "a": "Ambos formatos asignarán inmediatamente 10GB de espacio físico en disco.",
+      "b": "El formato `raw` asignará inmediatamente 10GB físicos. El formato `qcow2`, debido a su naturaleza de 'copy-on-write' y 'thin provisioning', ocupará inicialmente mucho menos de 10GB (solo metadatos y el espacio de los datos ya escritos, si los hubiera), creciendo a medida que se escriben datos.",
+      "c": "El formato `qcow2` asignará 10GB físicos, mientras que `raw` solo asignará el espacio de metadatos.",
+      "d": "Ambos formatos solo asignarán el espacio de metadatos inicialmente, gracias a los archivos dispersos."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "El formato `raw` asignará inmediatamente 10GB físicos. El formato `qcow2`, debido a su naturaleza de 'copy-on-write' y 'thin provisioning', ocupará inicialmente mucho menos de 10GB (solo metadatos y el espacio de los datos ya escritos, si los hubiera), creciendo a medida que se escriben datos.",
+    "question_explanation": "Un volumen `raw` por defecto es una asignación densa (fully allocated); si se pide 10GB, reserva 10GB en el sistema de archivos (a menos que el propio sistema de archivos lo cree como sparse, lo cual es menos común para `raw` gestionado por libvirt). `qcow2` está diseñado para 'thin provisioning' (expansión dinámica), por lo que un nuevo volumen `qcow2` de 10GB lógicos ocupará inicialmente solo unos pocos kilobytes o megabytes para sus metadatos y crecerá dinámicamente."
+  },
+  {
+    "question_number": 23,
+    "question_text": "Si se define un pool de almacenamiento de tipo `disk` con origen `/dev/sdb` y libvirt gestiona este disco para crear volúmenes (posiblemente como particiones), ¿qué sucede si `/dev/sdb` ya contiene datos importantes o un sistema de archivos existente antes de que libvirt lo 'construya' o cree volúmenes en él?",
+    "options": {
+      "a": "Libvirt detectará los datos existentes y creará los nuevos volúmenes en el espacio libre, preservando los datos.",
+      "b": "Libvirt mostrará una advertencia y requerirá confirmación antes de sobrescribir el disco `/dev/sdb`.",
+      "c": "La operación de `pool-build` o la creación de volúmenes que impliquen particionar o formatear el disco `/dev/sdb` probablemente sobrescribirá y destruirá cualquier dato o sistema de archivos preexistente sin advertencia explícita por parte de `virsh` si el comando se formula para ello (ej. crear una tabla de particiones nueva).",
+      "d": "Libvirt automáticamente realizará una copia de seguridad de `/dev/sdb` antes de modificarlo."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "La operación de `pool-build` o la creación de volúmenes que impliquen particionar o formatear el disco `/dev/sdb` probablemente sobrescribirá y destruirá cualquier dato o sistema de archivos preexistente sin advertencia explícita por parte de `virsh` si el comando se formula para ello (ej. crear una tabla de particiones nueva).",
+    "question_explanation": "Cuando se entrega un disco completo (`/dev/sdb`) a libvirt para que lo gestione como un pool de tipo `disk` y se le instruye para crear una nueva tabla de particiones o formatearlo para un tipo de pool específico que lo requiera (ej., para crear particiones como volúmenes), libvirt y las herramientas subyacentes (como `parted` o `mkfs`) generalmente asumirán que tienen control total sobre el dispositivo y procederán, lo que resultaría en la pérdida de datos preexistentes. Es responsabilidad del administrador asegurarse de que el dispositivo está vacío o que los datos no son necesarios."
+  },
+  {
+    "question_number": 24,
+    "question_text": "Al añadir un dispositivo físico como `/dev/cdrom` (dispositivo CD/DVD del host) a una VM, el XML usa `<disk type='block' device='cdrom'> <source dev='/dev/cdrom'/> <target dev='hda'/> </disk>`. ¿Por qué se usa `type='block'` en lugar de `type='file'` aquí, y qué implica `target dev='hda'`?",
+    "options": {
+      "a": "`type='block'` es para todos los dispositivos físicos, `type='file'` para imágenes ISO. `hda` es un dispositivo virtio-cdrom.",
+      "b": "`type='block'` indica que la fuente (`/dev/cdrom`) es un dispositivo de bloque del host, no un archivo. `target dev='hda'` sugiere que se emulará como una unidad de CD-ROM en el primer canal IDE de la VM.",
+      "c": "`type='block'` se usa para CD-ROMs grabables, `type='file'` para solo lectura. `hda` es un disco duro virtual para el cacheo del CD.",
+      "d": "El tipo debe ser `file` si la fuente es `/dev/cdrom`. `hda` indica un disco duro, no un CD-ROM."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`type='block'` indica que la fuente (`/dev/cdrom`) es un dispositivo de bloque del host, no un archivo. `target dev='hda'` sugiere que se emulará como una unidad de CD-ROM en el primer canal IDE de la VM.",
+    "question_explanation": "Sección 2.3 (Añadir Dispositivo Físico...). Cuando la `<source>` es un dispositivo de bloque del host (como `/dev/cdrom` o `/dev/sdb`), se usa `type='block'`. Si la fuente fuera un archivo ISO, se usaría `type='file'`. El atributo `device='cdrom'` le dice a QEMU que emule una unidad de CD-ROM. El `target dev='hda'` (o `hdb`, `hdc`, `hdd`) es la convención para dispositivos en el bus IDE emulado. Un CD-ROM en `hda` sería el maestro en el primer canal IDE."
+  },
+  {
+    "question_number": 25,
+    "question_text": "El comando `virsh pool-dumpxml my_pool` muestra la configuración XML de un pool. Si este pool está activo y se realizan cambios directamente en su archivo XML persistente (ej. en `/etc/libvirt/storage/my_pool.xml`) sin usar `virsh edit` o `virsh pool-undefine/pool-define`, ¿cuándo se reflejarán estos cambios en el comportamiento del pool activo?",
+    "options": {
+      "a": "Inmediatamente, ya que libvirt monitorea los archivos XML en tiempo real.",
+      "b": "Después de ejecutar `virsh pool-refresh my_pool`.",
+      "c": "Solo después de detener (`pool-destroy`) y volver a iniciar (`pool-start`) el pool, o después de reiniciar el servicio `libvirtd`, ya que libvirt carga la configuración persistente al iniciar el pool o el servicio.",
+      "d": "Nunca; los cambios directos en los archivos XML son ignorados y sobrescritos por libvirt."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Solo después de detener (`pool-destroy`) y volver a iniciar (`pool-start`) el pool, o después de reiniciar el servicio `libvirtd`, ya que libvirt carga la configuración persistente al iniciar el pool o el servicio.",
+    "question_explanation": "Libvirt carga la configuración XML persistente de un pool cuando este se define por primera vez y cuando se inicia (o cuando el servicio `libvirtd` arranca y autoinicia pools). Los cambios realizados directamente en el archivo XML mientras el pool está activo o mientras `libvirtd` está en ejecución no se aplican dinámicamente a la instancia activa del pool. Para que los cambios en el XML persistente surtan efecto, el pool normalmente necesita ser reiniciado (destroy/start) o el servicio `libvirtd` reiniciado. Editar directamente los XML no es la práctica recomendada (Tema 1.5 del segundo documento)."
+  },
+  {
+    "question_number": 26,
+    "question_text": "Si un sistema anfitrión tiene un LVM Volume Group (VG) llamado `vg_vms` compuesto por `/dev/sdb1` y `/dev/sdc1`. Se desea crear un pool libvirt a partir de este VG. ¿Cuál sería la forma correcta de especificar la fuente en el XML del pool (`<pool type='logical'>`)?",
+    "options": {
+      "a": "`<source><device path='/dev/sdb1'/><device path='/dev/sdc1'/></source>`",
+      "b": "`<source><name>vg_vms</name></source>`",
+      "c": "`<source><dir path='/dev/vg_vms'/></source>`",
+      "d": "`<source><device path='/dev/mapper/vg_vms-*'/></source>`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`<source><name>vg_vms</name></source>`",
+    "question_explanation": "El ejemplo en la Sección 2.2.1 para un pool LVM (`<pool type=\"logical\">`) muestra `<source><device path=\"/dev/sda1\"/><device path=\"/dev/sdb1\"/><device path=\"/dev/sdc1\"/></source>`. Esto parece indicar los Physical Volumes (PVs) que *componen* el VG, pero la forma más común y directa de referenciar un VG existente para un pool es por su nombre usando `<name>VG_NAME</name>` dentro de `<source>`, o alternativamente `<device path='/dev/VG_NAME'/>` si el VG ya está activo. El `<target><path>` sería entonces `/dev/VG_NAME`."
+  },
+  {
+    "question_number": 27,
+    "question_text": "Un administrador necesita crear rápidamente un volumen disperso de 50GB llamado `test_vol.qcow2` en el pool `default` con formato qcow2, preasignando metadatos para mejor rendimiento. ¿Cuál es el comando `virsh` más apropiado?",
+    "options": {
+      "a": "`virsh vol-create-as default test_vol.qcow2 50G --format qcow2 --allocation 0 --prealloc-metadata`",
+      "b": "`virsh vol-create-as default test_vol.qcow2 50G --format qcow2 --prealloc-metadata`",
+      "c": "`dd if=/dev/zero of=$(virsh pool-dumpxml default | xpath -e /pool/target/path/text())/test_vol.qcow2 bs=1G count=0 seek=50 && qemu-img create -f qcow2 -o preallocation=metadata $(virsh pool-dumpxml default | xpath -e /pool/target/path/text())/test_vol.qcow2 50G`",
+      "d": "`virsh vol-create default test_vol.qcow2 --size 50G --type qcow2 --metadata-prealloc`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh vol-create-as default test_vol.qcow2 50G --format qcow2 --prealloc-metadata`",
+    "question_explanation": "El comando `virsh vol-create-as` (Sección 2.3) es el adecuado. La sintaxis es `virsh vol-create-as <pool> <nombre_vol> <capacidad> --format <formato> [opciones]`. Para qcow2, se especifica `--format qcow2`. La preasignación de metadatos es una opción de `qemu-img create` que se puede pasar o que `vol-create-as` podría implicar con ciertos backends o tener una opción equivalente. Asumiendo que `--prealloc-metadata` es una opción válida (o que el comportamiento por defecto con qcow2 es crear un archivo disperso con metadatos listos), la opción B es la más directa. La opción C es demasiado compleja y manual. La A tiene `--allocation 0` que es una sintaxis común en `qemu-img` para especificar thin provisioning, pero `vol-create-as` lo maneja con el formato. *Revisando documentación de libvirt, `--prealloc-metadata` es una opción válida para `vol-create-as` al usar `qcow2`.*"
+  },
+  {
+    "question_number": 28,
+    "question_text": "El documento menciona que el uso de pools de almacenamiento 'se justifica por razones de seguridad' y 'Aislamiento del espacio utilizado por las MVs'. Si se usa un pool de tipo `dir` donde el `<target><path>` es `/srv/myvms` y los permisos de este directorio son `0700` (propietario `qemu:qemu`), ¿cómo contribuye esto al aislamiento si el proceso `qemu-system-x86_64` de cada VM se ejecuta como un usuario `qemu` sin privilegios?",
+    "options": {
+      "a": "No contribuye significativamente, ya que todas las VMs que se ejecutan como `qemu` pueden acceder y modificar los archivos de las otras VMs en `/srv/myvms`.",
+      "b": "Contribuye al asegurar que solo el usuario `qemu` (y root) pueden acceder a `/srv/myvms`. Si, además, libvirt y SELinux/AppArmor configuran etiquetas de seguridad únicas para cada archivo de imagen de VM, se puede lograr un aislamiento efectivo entre las VMs, previniendo que una VM acceda a los archivos de otra.",
+      "c": "Los permisos `0700` en el directorio del pool son irrelevantes; la seguridad se gestiona enteramente por el hipervisor a nivel de bloque.",
+      "d": "Esto crea un 'chroot jail' para cada VM dentro de `/srv/myvms`, aislándolas completamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Contribuye al asegurar que solo el usuario `qemu` (y root) pueden acceder a `/srv/myvms`. Si, además, libvirt y SELinux/AppArmor configuran etiquetas de seguridad únicas para cada archivo de imagen de VM, se puede lograr un aislamiento efectivo entre las VMs, previniendo que una VM acceda a los archivos de otra.",
+    "question_explanation": "Los permisos `0700` para `qemu:qemu` en el directorio del pool aseguran que solo el proceso `qemu` pueda acceder a los archivos de imagen. Sin embargo, por sí solo, esto no aísla los archivos de imagen de *diferentes* VMs entre sí si todos los procesos `qemu` se ejecutan con la misma identidad. El aislamiento real entre VMs en este escenario proviene de mecanismos adicionales como sVirt (usando SELinux o AppArmor), donde libvirt asigna etiquetas de seguridad dinámicas y únicas a cada proceso de VM y a sus recursos (incluidos los archivos de imagen), impidiendo el acceso cruzado."
+  },
+  {
+    "question_number": 29,
+    "question_text": "Al definir un pool de almacenamiento con `virsh pool-define-as`, ¿cuál es la diferencia fundamental entre usar el parámetro `--source-path` y `--source-dev`?",
+    "options": {
+      "a": "`--source-path` es para rutas de red (NFS, iSCSI path), mientras que `--source-dev` es para dispositivos de bloque locales.",
+      "b": "`--source-path` se usa para especificar un directorio o un path exportado (para `dir` o `netfs`), mientras que `--source-dev` se usa para especificar un dispositivo de bloque físico o lógico (para `fs`, `disk`, `logical`).",
+      "c": "Ambos son sinónimos y se pueden usar indistintamente para cualquier tipo de pool.",
+      "d": "`--source-path` define el archivo de imagen base para pools de tipo `snapshot`, `--source-dev` el dispositivo físico subyacente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`--source-path` se usa para especificar un directorio o un path exportado (para `dir` o `netfs`), mientras que `--source-dev` se usa para especificar un dispositivo de bloque físico o lógico (para `fs`, `disk`, `logical`).",
+    "question_explanation": "Observando los ejemplos en la Sección 2.2.1: Para `dir`, no hay `--source-*` en el comando `pool-define-as`, solo `--target`. Para `fs`, se usa `--source-dev /dev/VolGroup00/VirtImages`. Para `netfs`, se usa `--source-host nfs.example.com --source-path /var/lib/libvirt/images`. Para `disk`, se usa `--source-dev /dev/sdb`. Para `iscsi`, `--source-host ... --source-path demo-target`. Esto indica que `--source-path` se usa cuando el origen es una ruta (directorio o identificador de recurso en un host remoto), y `--source-dev` cuando el origen es un dispositivo de bloque local."
+  },
+  {
+    "question_number": 30,
+    "question_text": "Si un administrador necesita adjuntar un archivo ISO como un CD-ROM a una VM llamada `testvm` para una instalación de SO, y el ISO está en `/isos/distro.iso` en el host, y quiere que aparezca como `/dev/sr0` (o `hdc` dependiendo de la emulación) en la VM de forma persistente. ¿Cuál de los siguientes comandos `virsh` es el más adecuado?",
+    "options": {
+      "a": "`virsh attach-file testvm /isos/distro.iso sr0 --type cdrom --config`",
+      "b": "`virsh attach-disk testvm /isos/distro.iso hdc --type cdrom --mode readonly --config`",
+      "c": "`virsh change-media testvm hdc /isos/distro.iso --type cdrom --config`",
+      "d": "`virsh update-device testvm <xml_con_definicion_cdrom> --config`"
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`virsh attach-disk testvm /isos/distro.iso hdc --type cdrom --mode readonly --config`",
+    "question_explanation": "La Sección 2.3 muestra un XML para CDROM_VIRTUAL con `type='file'`, `device='cdrom'`, `source file='...'`, y `target dev='vdb'` (aunque hdc/hdd/sr0 es más común para CD-ROMs IDE/SATA). El comando `virsh attach-disk` es la herramienta de línea de comandos para esto. Especificar `--type cdrom` es crucial. `--mode readonly` es implícito para ISOs pero buena práctica. `--config` lo hace persistente. La elección del `target dev` (`hdc`, `sdb`, `sr0`, etc.) depende del bus que se use (IDE, SATA, SCSI, virtio) y cómo el SO invitado lo numere."
+  }
+]

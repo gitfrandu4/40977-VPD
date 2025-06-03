@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Chart.js para visualización de datos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div id="app-container">
@@ -51,6 +53,17 @@
               <p>Preguntas sobre Almacenamiento Distribuido.</p>
             </button>
           </div>
+
+          <div id="history-section" class="hidden">
+            <h3>Historial de Tests</h3>
+            <div id="history-chart-container">
+              <canvas id="history-chart"></canvas>
+            </div>
+            <div id="history-details">
+              <!-- Los detalles del historial se cargarán aquí dinámicamente -->
+            </div>
+            <button id="toggle-history-button" class="button">Ver Historial Completo</button>
+          </div>
         </section>
 
         <section id="quiz-container" class="hidden">
@@ -80,6 +93,11 @@
                 Puntuación Final: <span id="correct-answers"></span> (de un máximo posible de
                 <span id="total-questions-for-max-score"></span>)
               </p>
+              <!-- Aquí se insertará el performance-feedback -->
+              <!-- Aquí se insertará el performance-stats -->
+              <div id="performance-chart-container">
+                <canvas id="performance-chart"></canvas>
+              </div>
               <button id="restart-button" class="button">Reiniciar Test</button>
               <button id="back-to-selection-button" class="button">Volver a Selección</button>
             </div>

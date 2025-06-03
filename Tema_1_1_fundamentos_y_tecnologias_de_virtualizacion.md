@@ -172,7 +172,7 @@ Fue IBM quien empezó a implementar la virtualización a mediados de los 60.
 
 #### Virtualización Nativa
 
-- Se virtualiza el hardware suficiente para permitir que un sistema operativo invitado, diseñado para la misma CPU que tiene el host (o con el mismo repertorio de instrucciones), se ejecute de forma aislada.
+- Se virtualiza el hardware suficiente para permitir que un sistema operativo invitado, **diseñado para la misma CPU que tiene el host** (o con el mismo repertorio de instrucciones), se ejecute de forma aislada.
 - El hypervisor puede usar virtualización por hardware. Si la CPU es compatible ("Hardware-assisted vitualization").
 - Ejemplos: KVM, Xen,VirtualBox, VMware Workstation, VMware Server, etc
 

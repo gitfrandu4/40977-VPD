@@ -1,0 +1,46 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Quiz Application Structure
+
+This project is a web-based quiz application designed for studying.
+
+## Key Files:
+
+*   **[`index.html`](mdc:index.html)**: This is the main entry point of the application. It defines the overall HTML structure, including:
+    *   A selection screen where users can choose a quiz.
+    *   The main quiz area where questions, options, feedback, and explanations are displayed.
+    *   Header and footer for the application.
+    *   Links to the CSS stylesheet ([`styles.css`](mdc:styles.css)) and the JavaScript logic file ([`script.js`](mdc:script.js)).
+*   **[`styles.css`](mdc:styles.css)**: This file contains all the CSS rules for styling the application. It handles:
+    *   The overall layout and appearance of the selection screen and quiz interface.
+    *   Responsive design for various screen sizes, especially mobile devices.
+    *   Dynamic styling for elements like the score display (color-coded based on performance) and feedback messages.
+    *   Styling for test selection cards, buttons, and other UI components.
+
+*   **[`script.js`](mdc:script.js)**: This file houses all the client-side JavaScript logic that powers the quiz. Its responsibilities include:
+    *   Fetching quiz data (questions, options, answers, explanations) from a JSON file (e.g., [`test.json`](mdc:test.json)).
+    *   Managing the UI state, switching between the test selection screen and the active quiz view.
+    *   Randomly shuffling questions and answer options.
+    *   Dynamically rendering questions, options, and explanations on the page.
+    *   Handling user interactions, such as selecting an answer.
+    *   Calculating the score (including penalties for incorrect answers) and updating the real-time score display with color-coding for performance.
+    *   Providing immediate feedback on answers (correct/incorrect).
+    *   Displaying question explanations after an answer is submitted.
+    *   Showing the final score and providing options to restart the quiz or return to the selection screen.
+
+*   **[`test.json`](mdc:test.json)**: This JSON file serves as the database for the quiz questions. Each question object typically includes:
+    *   `question_text`: The text of the question.
+    *   `options`: An object mapping option keys (e.g., "a", "b") to option texts.
+    *   `correct_answer_key`: The key of the correct option.
+    *   `correct_answer_text`: The full text of the correct answer.
+    *   `question_explanation`: A detailed explanation for the question, displayed after the user answers.
+
+## Workflow:
+
+1.  The user is first presented with the selection screen (defined in `index.html`, styled by `styles.css`).
+2.  Upon selecting a test, `script.js` fetches the corresponding JSON data.
+3.  `script.js` then populates the quiz area in `index.html` with questions and handles the quiz logic.
+4.  `styles.css` ensures the quiz is presented in a user-friendly and responsive manner.

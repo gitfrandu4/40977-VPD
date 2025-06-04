@@ -1,0 +1,197 @@
+[
+  {
+    "question_number": 1,
+    "question_text": "La Práctica 1 menciona que SELinux está en modo `enforcing` con la política `targeted`. ¿Cuál es la implicación más significativa de esta configuración para el aislamiento de las máquinas virtuales KVM y sus recursos en el host?",
+    "options": {
+      "a": "SELinux en modo `enforcing` deshabilita KVM por completo, requiriendo el modo `permissive` para virtualización.",
+      "b": "La política `targeted` aplica restricciones de seguridad principalmente a los procesos de las VMs, no al host.",
+      "c": "SELinux `enforcing` con política `targeted` confina los procesos de las VMs (QEMU) y controla su acceso a los recursos del host (como archivos de imagen y dispositivos), previniendo que una VM comprometida afecte indebidamente al host u otras VMs.",
+      "d": "Este modo solo registra violaciones de seguridad de las VMs, sin bloquearlas activamente, para auditoría."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "SELinux `enforcing` con política `targeted` confina los procesos de las VMs (QEMU) y controla su acceso a los recursos del host (como archivos de imagen y dispositivos), previniendo que una VM comprometida afecte indebidamente al host u otras VMs.",
+    "question_explanation": "SELinux en modo `enforcing` aplica activamente las políticas. La política `targeted` se centra en confinar servicios de red y otros procesos clave, incluyendo los procesos `qemu-system-x86_64` que representan cada VM. A través de contextos y reglas de SELinux (gestionados en parte por sVirt con libvirt), se controla qué archivos puede leer/escribir el proceso de la VM (sus imágenes de disco), a qué dispositivos puede acceder y cómo puede interactuar con la red, proporcionando una capa crucial de aislamiento mandatorio más allá de los permisos discrecionales estándar de Linux."
+  },
+  {
+    "question_number": 2,
+    "question_text": "La verificación de las capacidades de virtualización del procesador mediante `grep -E 'svm|vmx' /proc/cpuinfo` es un paso crucial. Si este comando no devuelve ninguna coincidencia, ¿cuál es la causa raíz más probable y qué acción correctiva es indispensable antes de intentar instalar KVM?",
+    "options": {
+      "a": "El kernel de Linux no tiene los módulos KVM cargados; un `modprobe kvm` solucionaría el problema inmediato.",
+      "b": "Indica que la CPU del host no posee las extensiones de virtualización por hardware (AMD-V para `svm` o Intel VT-x para `vmx`), o estas están deshabilitadas en la BIOS/UEFI del sistema. Es necesario habilitarlas en la BIOS/UEFI o usar una CPU compatible.",
+      "c": "El paquete `lscpu` no está instalado, impidiendo que `/proc/cpuinfo` se popule correctamente con esta información.",
+      "d": "SELinux está bloqueando el acceso a `/proc/cpuinfo` para el usuario actual; se requiere ejecutarlo como root."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Indica que la CPU del host no posee las extensiones de virtualización por hardware (AMD-V para `svm` o Intel VT-x para `vmx`), o estas están deshabilitadas en la BIOS/UEFI del sistema. Es necesario habilitarlas en la BIOS/UEFI o usar una CPU compatible.",
+    "question_explanation": "Las flags `svm` (Secure Virtual Machine, de AMD) o `vmx` (Virtual Machine Extensions, de Intel) en `/proc/cpuinfo` indican que la CPU soporta virtualización asistida por hardware y que está habilitada. KVM depende fundamentalmente de estas extensiones. Si no aparecen, o bien la CPU es demasiado antigua y no las tiene, o, lo más común, están deshabilitadas en la configuración de la BIOS/UEFI del sistema anfitrión y deben ser activadas allí."
+  },
+  {
+    "question_number": 3,
+    "question_text": "El comando `free -h` muestra memoria `total`, `used`, `free` y `available`. En un sistema anfitrión KVM que ejecuta varias VMs, ¿por qué la métrica `available` es a menudo más relevante para determinar la capacidad de lanzar nuevas VMs o asignar más memoria a las existentes que simplemente la métrica `free`?",
+    "options": {
+      "a": "`available` incluye el espacio de swap, que puede ser usado por las VMs si la RAM se agota completamente.",
+      "b": "`free` solo muestra la memoria no utilizada por el kernel, mientras `available` incluye la memoria de usuario.",
+      "c": "`available` es una estimación de cuánta memoria se puede asignar a nuevas aplicaciones sin recurrir al swap, ya que incluye la memoria `free` más la memoria utilizada por cachés y buffers del sistema que pueden ser liberados si es necesario. Las VMs consumen memoria que el host ve como aplicación.",
+      "d": "`available` es la suma de `free` y la memoria reservada para el hipervisor KVM exclusivamente."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "`available` es una estimación de cuánta memoria se puede asignar a nuevas aplicaciones sin recurrir al swap, ya que incluye la memoria `free` más la memoria utilizada por cachés y buffers del sistema que pueden ser liberados si es necesario. Las VMs consumen memoria que el host ve como aplicación.",
+    "question_explanation": "La memoria `free` es la que no está siendo usada para nada. Sin embargo, Linux usa agresivamente la RAM no utilizada para cachés de disco (`buff/cache`) para acelerar el sistema. Esta memoria caché puede ser reclamada rápidamente si las aplicaciones (incluyendo los procesos QEMU de las VMs) la necesitan. `available` proporciona una mejor estimación de la memoria realmente disponible para nuevas cargas de trabajo."
+  },
+  {
+    "question_number": 4,
+    "question_text": "Al instalar KVM con `dnf groupinstall \"Virtualization\" --with-optional`, ¿cuál es la implicación de incluir `--with-optional` y qué tipo de funcionalidades adicionales podría proporcionar en un entorno de virtualización?",
+    "options": {
+      "a": "Instala solo los paquetes opcionales del grupo, omitiendo los componentes básicos de virtualización.",
+      "b": "Incluye paquetes complementarios que no son estrictamente necesarios para la funcionalidad básica de KVM, pero que pueden ofrecer características avanzadas como herramientas de migración, soporte para formatos de disco adicionales, o interfaces de gestión alternativas.",
+      "c": "Fuerza la instalación de versiones experimentales de los paquetes de virtualización para pruebas.",
+      "d": "Reduce el número de paquetes instalados al seleccionar solo los más optimizados del grupo de virtualización."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Incluye paquetes complementarios que no son estrictamente necesarios para la funcionalidad básica de KVM, pero que pueden ofrecer características avanzadas como herramientas de migración, soporte para formatos de disco adicionales, o interfaces de gestión alternativas.",
+    "question_explanation": "La opción `--with-optional` en `dnf groupinstall` instruye al gestor de paquetes para que instale no solo los paquetes marcados como mandatorios dentro del grupo, sino también aquellos marcados como opcionales. Para el grupo \"Virtualization\", esto podría incluir herramientas como `virt-top`, bibliotecas para diferentes tipos de almacenamiento o red, o plugins para `libvirt` que extienden su funcionalidad más allá del núcleo básico."
+  },
+  {
+    "question_number": 5,
+    "question_text": "La Práctica 1 habilita e inicia los servicios `libvirtd` y `virtnetworkd`. ¿Cuál es la distinción fundamental en las responsabilidades de estos dos demonios en la arquitectura modular de libvirt?",
+    "options": {
+      "a": "`libvirtd` gestiona las VMs y `virtnetworkd` gestiona el almacenamiento de las VMs exclusivamente.",
+      "b": "`libvirtd` es el demonio principal que expone la API de libvirt y coordina todas las operaciones de virtualización, mientras que `virtnetworkd` es un demonio modular especializado responsable específicamente de la gestión y configuración de las redes virtuales (switches virtuales, interfaces, DHCP/DNS).",
+      "c": "`virtnetworkd` es una versión más antigua de `libvirtd` y se usa por compatibilidad con sistemas legados.",
+      "d": "`libvirtd` solo maneja la creación de VMs, `virtnetworkd` maneja su ciclo de vida (inicio, parada, pausa)."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`libvirtd` es el demonio principal que expone la API de libvirt y coordina todas las operaciones de virtualización, mientras que `virtnetworkd` es un demonio modular especializado responsable específicamente de la gestión y configuración de las redes virtuales (switches virtuales, interfaces, DHCP/DNS).",
+    "question_explanation": "Libvirt ha evolucionado hacia una arquitectura más modular para mejorar la seguridad y la gestión de recursos. `libvirtd` sigue siendo el demonio central de gestión. Sin embargo, tareas específicas como la gestión de redes virtuales (creación de bridges `virbrX`, gestión de `dnsmasq` para DHCP/DNS, configuración de `iptables` para NAT/routing) son delegadas al demonio `virtnetworkd`. Similarmente, hay otros como `virtstoraged` para pools de almacenamiento."
+  },
+  {
+    "question_number": 6,
+    "question_text": "La salida de `lsmod | grep kvm` muestra `kvm_amd` y `kvm`, donde `kvm` tiene un contador de uso mayor que cero (ej. `kvm  1441792  1 kvm_amd`). ¿Qué indica esta relación de dependencia y la presencia de `kvm_amd`?",
+    "options": {
+      "a": "Indica que el módulo `kvm` está obsoleto y ha sido reemplazado por `kvm_amd` para procesadores AMD.",
+      "b": "Muestra que `kvm_amd` es un módulo genérico y `kvm` es una personalización para un modelo específico de AMD.",
+      "c": "Señala que `kvm` es el módulo principal de la infraestructura KVM, mientras `kvm_amd` es el módulo específico del proveedor que implementa las funcionalidades dependientes de la arquitectura AMD-V. El contador en `kvm` indica que `kvm_amd` (y posiblemente otros) lo están utilizando.",
+      "d": "Confirma que KVM solo puede ejecutarse en procesadores AMD; `kvm` es un alias para `kvm_amd`."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Señala que `kvm` es el módulo principal de la infraestructura KVM, mientras `kvm_amd` es el módulo específico del proveedor que implementa las funcionalidades dependientes de la arquitectura AMD-V. El contador en `kvm` indica que `kvm_amd` (y posiblemente otros) lo están utilizando.",
+    "question_explanation": "KVM tiene un módulo genérico (`kvm.ko`) que proporciona la infraestructura común de virtualización del kernel. Luego, hay módulos específicos del proveedor (`kvm_intel.ko` para Intel VT-x, `kvm_amd.ko` para AMD-V) que implementan las partes dependientes de las extensiones de hardware de cada fabricante. `kvm_amd` utiliza (depende de) las funciones exportadas por el módulo `kvm`."
+  },
+  {
+    "question_number": 7,
+    "question_text": "El `qemu-guest-agent` se instala dentro de la VM. Si este agente no está instalado o no se está ejecutando correctamente en la VM, ¿qué funcionalidades de gestión desde el host KVM se verían más afectadas o no estarían disponibles?",
+    "options": {
+      "a": "La capacidad de iniciar o detener la VM desde `virsh` o `virt-manager` completamente.",
+      "b": "El rendimiento de la red y el disco de la VM, ya que el agente optimiza estos accesos.",
+      "c": "Funciones como el apagado ordenado (graceful shutdown) de la VM desde el host, la obtención de direcciones IP de la VM por parte de libvirt, la sincronización de tiempo, o la ejecución de comandos dentro de la VM desde el host (`virsh qemu-agent-command`).",
+      "d": "La capacidad de la VM para acceder a los recursos de hardware virtualizados proporcionados por QEMU."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Funciones como el apagado ordenado (graceful shutdown) de la VM desde el host, la obtención de direcciones IP de la VM por parte de libvirt, la sincronización de tiempo, o la ejecución de comandos dentro de la VM desde el host (`virsh qemu-agent-command`).",
+    "question_explanation": "El `qemu-guest-agent` actúa como un canal de comunicación entre el hipervisor (host) y el sistema operativo invitado. Facilita operaciones que requieren cooperación del SO invitado, como un apagado limpio (enviando la señal ACPI de apagado o ejecutando un script de shutdown dentro de la VM), obtener información detallada del guest (IPs, estado de aplicaciones), y otras acciones de gestión más finas."
+  },
+  {
+    "question_number": 8,
+    "question_text": "Configurar el FQDN (ej. `lq-d25.vpd.com`) en el host KVM es importante. Si el host solo tuviera un nombre corto (ej. `lq-d25`) o su FQDN no fuera resoluble por otros sistemas (incluyendo las propias VMs o herramientas de gestión), ¿qué tipo de problemas podrían surgir en un entorno de virtualización más complejo?",
+    "options": {
+      "a": "Las VMs no podrían obtener direcciones IP del servidor DHCP de libvirt.",
+      "b": "El rendimiento de la CPU de las VMs se vería degradado significativamente.",
+      "c": "Podrían surgir problemas con la migración de VMs, la gestión remota del host con `virsh -c qemu+ssh://...`, la configuración de almacenamiento compartido que dependa de nombres, o la integración con sistemas de orquestación que requieran FQDNs resolubles.",
+      "d": "SELinux impediría la creación de nuevas máquinas virtuales en el host."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Podrían surgir problemas con la migración de VMs, la gestión remota del host con `virsh -c qemu+ssh://...`, la configuración de almacenamiento compartido que dependa de nombres, o la integración con sistemas de orquestación que requieran FQDNs resolubles.",
+    "question_explanation": "Un FQDN consistente y resoluble es crucial para muchas operaciones avanzadas. La migración en vivo requiere que los hosts se puedan identificar y comunicar entre sí. La gestión remota de libvirt a través de URIs como `qemu+ssh://host.example.com/system` depende de la resolución del nombre. Algunos tipos de almacenamiento compartido o sistemas de clúster también pueden depender de FQDNs."
+  },
+  {
+    "question_number": 9,
+    "question_text": "Para acceder a una VM local (ej. `mvp1.vpd.com` con IP `192.168.122.123`) por su FQDN desde el host KVM, la práctica sugiere añadir una entrada al archivo `/etc/hosts` del anfitrión. ¿Por qué se utiliza este método en lugar de depender exclusivamente de un servidor DNS configurado en la red del host?",
+    "options": {
+      "a": "El archivo `/etc/hosts` tiene mayor prioridad de resolución que DNS, asegurando que se use la IP correcta para la VM local incluso si hay un DNS mal configurado o un nombre conflictivo en DNS.",
+      "b": "Las VMs en redes NAT de libvirt no pueden ser registradas en servidores DNS externos.",
+      "c": "Usar `/etc/hosts` es más seguro porque encripta la resolución de nombres.",
+      "d": "Es un requisito de `libvirtd` para poder gestionar VMs por nombre de host."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "El archivo `/etc/hosts` tiene mayor prioridad de resolución que DNS, asegurando que se use la IP correcta para la VM local incluso si hay un DNS mal configurado o un nombre conflictivo en DNS.",
+    "question_explanation": "El orden de resolución de nombres en Linux es típicamente configurable vía `/etc/nsswitch.conf`, pero por defecto, el archivo `/etc/hosts` se consulta antes que los servidores DNS. Para VMs locales cuyas IPs son conocidas y estables (o gestionadas por el DHCP de libvirt), añadir entradas a `/etc/hosts` en el anfitrión es una forma rápida y fiable de asegurar la resolución de sus nombres, independientemente de la configuración DNS externa o la disponibilidad de un servidor DNS que conozca esas IPs privadas."
+  },
+  {
+    "question_number": 10,
+    "question_text": "Si el comando `virsh cpu-models x86_64` no devuelve ningún modelo de CPU o muestra un error, y se ha verificado que KVM está instalado y los módulos del kernel están cargados, ¿cuál podría ser una causa subyacente de este problema?",
+    "options": {
+      "a": "El servicio `libvirtd` no se está ejecutando o el usuario no tiene permisos para conectarse a él.",
+      "b": "La arquitectura del host no es x86_64, por lo que no hay modelos x86_64 para mostrar.",
+      "c": "El paquete `qemu-kvm` no está instalado o está corrupto, ya que QEMU proporciona la lista de modelos de CPU emulables.",
+      "d": "Es necesario especificar un modelo de CPU base en la configuración global de libvirt primero."
+    },
+    "correct_answer_key": "a",
+    "correct_answer_text": "El servicio `libvirtd` no se está ejecutando o el usuario no tiene permisos para conectarse a él.",
+    "question_explanation": "El comando `virsh` es un cliente que se comunica con el demonio `libvirtd`. Si `libvirtd` no está en ejecución, o si el usuario que ejecuta `virsh` no tiene los permisos necesarios para acceder al socket de `libvirtd` (usualmente requiere ser root o pertenecer al grupo `libvirt`), `virsh` no podrá obtener la información del hipervisor, incluyendo los modelos de CPU disponibles. La opción (c) también es plausible si QEMU no está bien, pero (a) es un prerrequisito más fundamental para cualquier comando `virsh`."
+  },
+  {
+    "question_number": 11,
+    "question_text": "Cuando se usa `systemctl enable --now libvirtd`, ¿cuál es la diferencia clave entre el efecto de `enable` y el efecto de `--now` en el estado del servicio `libvirtd`?",
+    "options": {
+      "a": "`enable` inicia el servicio inmediatamente, `--now` lo configura para el próximo arranque.",
+      "b": "`enable` configura el servicio para que se inicie automáticamente en los futuros arranques del sistema; `--now` además de habilitarlo, inicia el servicio inmediatamente en la sesión actual.",
+      "c": "`enable` solo verifica la configuración del servicio, `--now` realiza una recarga de la configuración.",
+      "d": "`enable` es para servicios de sistema, `--now` para servicios de usuario exclusivamente."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`enable` configura el servicio para que se inicie automáticamente en los futuros arranques del sistema; `--now` además de habilitarlo, inicia el servicio inmediatamente en la sesión actual.",
+    "question_explanation": "En `systemd`, `systemctl enable <servicio>` crea los enlaces simbólicos necesarios para que el servicio arranque en los niveles de ejecución apropiados (targets) durante el inicio del sistema. Por sí solo, no afecta el estado actual del servicio. La opción `--now` es un atajo que combina `enable` con `systemctl start <servicio>`, por lo que el servicio se habilita para el futuro Y se inicia de inmediato."
+  },
+  {
+    "question_number": 12,
+    "question_text": "La salida de `sestatus` incluye `Policy MLS status: enabled`. ¿Qué tipo de control de acceso adicional implica la habilitación de MLS (Multi-Level Security) en SELinux, más allá del control de acceso de tipo (TE) estándar?",
+    "options": {
+      "a": "Permite múltiples políticas de SELinux cargadas simultáneamente, seleccionables por el usuario.",
+      "b": "Habilita el logging de todas las acciones permitidas por SELinux, no solo las denegadas.",
+      "c": "MLS añade un componente de seguridad basado en niveles de sensibilidad (ej. secreto, confidencial) y categorías, aplicando el modelo Bell-LaPadula para controlar el flujo de información (no leer arriba, no escribir abajo), además del control de acceso basado en tipos de procesos y objetos.",
+      "d": "Se refiere a 'Multi-Libvirt Security', permitiendo que varias instancias de libvirtd coexistan de forma segura."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "MLS añade un componente de seguridad basado en niveles de sensibilidad (ej. secreto, confidencial) y categorías, aplicando el modelo Bell-LaPadula para controlar el flujo de información (no leer arriba, no escribir abajo), además del control de acceso basado en tipos de procesos y objetos.",
+    "question_explanation": "Multi-Level Security (MLS) es un modelo de seguridad más estricto que el control de acceso de tipo (Type Enforcement, TE) que es el más común en la política `targeted`. MLS asigna niveles de seguridad a sujetos (procesos) y objetos (archivos) y restringe el acceso basándose en estos niveles para prevenir que información de un nivel alto fluya a un nivel bajo. Aunque la política `targeted` puede tener MLS habilitado en su compilación, su uso efectivo requiere una configuración más compleja y no es típicamente el principal mecanismo de aislamiento para KVM en configuraciones estándar, que se basan más en TE y sVirt."
+  },
+  {
+    "question_number": 13,
+    "question_text": "Para usar `virt-manager` (interfaz gráfica para KVM), la práctica instala el grupo de paquetes `base-x`. ¿Por qué es necesario `base-x` y qué componentes esenciales proporciona para que una aplicación gráfica como `virt-manager` pueda funcionar en un servidor que podría haber sido instalado inicialmente sin entorno gráfico?",
+    "options": {
+      "a": "`base-x` es un hipervisor alternativo que `virt-manager` usa para mejorar el rendimiento gráfico de las VMs.",
+      "b": "`base-x` proporciona las bibliotecas fundamentales del sistema X Window (X11), el servidor Xorg y drivers básicos necesarios para renderizar cualquier interfaz gráfica de usuario. Sin esto, `virt-manager` no podría mostrar sus ventanas.",
+      "c": "`base-x` es un conjunto de herramientas de línea de comandos para gestionar la configuración gráfica de `virt-manager`.",
+      "d": "`base-x` incluye el kernel de Linux con soporte gráfico optimizado, requerido por `virt-manager`."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "`base-x` proporciona las bibliotecas fundamentales del sistema X Window (X11), el servidor Xorg y drivers básicos necesarios para renderizar cualquier interfaz gráfica de usuario. Sin esto, `virt-manager` no podría mostrar sus ventanas.",
+    "question_explanation": "Las aplicaciones gráficas en Linux tradicionalmente dependen del sistema X Window (X11, o más recientemente Wayland). El grupo de paquetes `base-x` instala los componentes esenciales del sistema X, como el servidor X (Xorg), bibliotecas cliente de X11 (libX11, etc.), y drivers gráficos básicos. Sin estos, el sistema no tiene la capacidad de mostrar ventanas o interfaces gráficas, y `virt-manager` (que es una aplicación GTK) no podría ejecutarse."
+  },
+  {
+    "question_number": 14,
+    "question_text": "El comando `ip -4 addr show` lista `lo`, `enp6s0` y `virbr0`. Si `virbr0` está activa y tiene la IP `192.168.122.1/24`, ¿cuál es su función principal en un sistema KVM recién instalado, antes de crear VMs personalizadas?",
+    "options": {
+      "a": "Servir como la interfaz de red primaria del host para la comunicación con la red externa global.",
+      "b": "Actuar como un bridge de red virtual por defecto, usualmente configurado en modo NAT para las VMs que se creen.",
+      "c": "Ser una interfaz de diagnóstico para probar la pila de red del kernel sin involucrar tráfico externo.",
+      "d": "Funcionar como un enlace dedicado a otra máquina física para la replicación de datos del sistema."
+    },
+    "correct_answer_key": "b",
+    "correct_answer_text": "Actuar como un bridge de red virtual por defecto, usualmente configurado en modo NAT para las VMs que se creen.",
+    "question_explanation": "`virbr0` es la interfaz de host para la red virtual 'default' creada por libvirt. Por defecto, esta red opera en modo NAT, proporcionando una subred privada (comúnmente `192.168.122.0/24`) para las máquinas virtuales y permitiéndoles acceder a redes externas a través de la IP del host. El propio host usa la IP de `virbr0` (ej. `192.168.122.1`) como gateway para esta red virtual."
+  },
+  {
+    "question_number": 15,
+    "question_text": "La práctica usa una imagen ISO 'netinst' de Fedora Server 41 para instalar la VM `mvp1`. ¿Qué característica define a una imagen 'netinst' y qué requisito impone esto durante el proceso de instalación de la VM en `virt-manager` o con `virt-install`?",
+    "options": {
+      "a": "Una imagen 'netinst' contiene todos los paquetes necesarios; no requiere red durante la instalación.",
+      "b": "La imagen 'netinst' es más grande e incluye un entorno gráfico completo para la instalación de la VM.",
+      "c": "Una imagen 'netinst' es mínima, conteniendo solo el instalador y los componentes básicos. Requiere que la VM tenga una conexión de red funcional durante la instalación para descargar la mayoría de los paquetes desde repositorios en línea.",
+      "d": "La imagen 'netinst' instala solo el kernel; todos los demás paquetes se añaden manualmente después."
+    },
+    "correct_answer_key": "c",
+    "correct_answer_text": "Una imagen 'netinst' es mínima, conteniendo solo el instalador y los componentes básicos. Requiere que la VM tenga una conexión de red funcional durante la instalación para descargar la mayoría de los paquetes desde repositorios en línea.",
+    "question_explanation": "Una imagen de instalación por red ('netinstall' o 'netinst') es pequeña porque solo incluye el software necesario para iniciar el proceso de instalación. El resto de los paquetes del sistema operativo se descargan de los repositorios de la distribución a través de la red durante la instalación. Por lo tanto, la máquina virtual debe tener una configuración de red que le permita acceder a Internet (generalmente la red 'default' en modo NAT de libvirt funciona bien para esto)."
+  }
+]

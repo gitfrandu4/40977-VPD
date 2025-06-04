@@ -11,6 +11,7 @@
     - [2. Recursos Almacenamiento Virtual KVM](#2-recursos-almacenamiento-virtual-kvm)
     - [3. Recursos de red en KVM](#3-recursos-de-red-en-kvm)
     - [4. Almacenamiento Distribuido](#4-almacenamiento-distribuido)
+    - [5. Computación en Clúster](#5-computación-en-clúster)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
     - [Práctica 2: Operaciones con máquinas virtuales](#práctica-2-operaciones-con-máquinas-virtuales)
@@ -278,6 +279,40 @@ Los sistemas de almacenamiento distribuido constituyen una infraestructura funda
   - Mecanismos de seguridad: autenticación in-band e IPSec
 
 La implementación de sistemas de almacenamiento distribuido ofrece beneficios críticos como mayor disponibilidad de datos, acceso compartido eficiente, independencia de tecnologías específicas, y en implementaciones modernas, características avanzadas como replicación geográfica, autoescalado y reparación automática de fallos.
+
+### 5. Computación en Clúster
+
+La computación en clúster constituye un enfoque fundamental para el procesamiento distribuido, proporcionando escalabilidad, disponibilidad y flexibilidad en entornos de TI modernos. Este módulo explora:
+
+- **Conceptos fundamentales**: Definición de clúster como un conjunto de nodos independientes que trabajan coordinadamente para proporcionar una Imagen Única del Sistema (SSI), aumentando la capacidad de procesamiento y la tolerancia a fallos.
+
+- **Tipos de clústeres según su objetivo**:
+
+  - **Alto rendimiento (HPC)**: Orientados a maximizar la capacidad computacional para cálculos intensivos.
+  - **Alta disponibilidad (HA)**: Diseñados para garantizar la continuidad operativa de servicios críticos.
+  - **Almacenamiento distribuido**: Enfocados en proporcionar acceso compartido a datos.
+  - **Balanceo de carga**: Distribuyen solicitudes entre múltiples nodos para optimizar rendimiento.
+
+- **Arquitectura y componentes**:
+
+  - **Nodos**: Servidores físicos o virtuales que conforman el clúster.
+  - **Interconexión de red**: Tecnologías como Ethernet, Infiniband o Myrinet que proporcionan la comunicación entre nodos.
+  - **Middleware**: Software que coordina los recursos distribuidos y proporciona la imagen única del sistema.
+  - **Sistema de planificación de recursos (RMS)**: Componentes encargados de la distribución eficiente de tareas.
+
+- **Red Hat Enterprise High Availability Add-On**:
+
+  - **Pacemaker**: Gestor de recursos del clúster que controla los servicios y garantiza su disponibilidad.
+  - **Corosync**: Proporciona la infraestructura de comunicación entre nodos y gestiona la membresía del clúster.
+  - **STONITH (Shoot The Other Node In The Head)**: Mecanismo de aislamiento (fencing) que previene la corrupción de datos al desconectar nodos problemáticos.
+  - **Recursos y restricciones**: Abstracción de servicios gestionados por el clúster con reglas sobre su localización, orden y colocación.
+
+- **Algoritmos de sincronización distribuida**:
+  - **Basados en testigo (token)**: Enfoques como Martin, Naimi-Tréhel y Suzuki-Kasami que coordinan el acceso a secciones críticas mediante el paso de un token único.
+  - **Basados en permisos**: Requieren la aprobación explícita de otros nodos para acceder a recursos compartidos.
+  - **Técnicas para grandes configuraciones**: Estrategias jerárquicas y basadas en prioridad para clusters con miles de nodos o geográficamente dispersos.
+
+La implementación de entornos clusterizados permite no solo aumentar el rendimiento de aplicaciones exigentes, sino también proporcionar continuidad de negocio mediante la eliminación de puntos únicos de fallo, capacidades fundamentales para infraestructuras críticas modernas.
 
 ## Prácticas
 

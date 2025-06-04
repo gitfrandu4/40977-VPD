@@ -44,6 +44,12 @@ Un **clúster** es un tipo de arquitectura escalable para el procesamiento distr
 - Sistemas de acceso no uniforme a memoria de caché coherente (CCNUMA)
 - Sistemas distribuidos: sistemas clúster
 
+> **Definiciones rápidas**  
+> • **MPP (Massively Parallel Processing)**: sistema con muchos nodos independientes y memoria distribuida; cada nodo ejecuta su propio SO y los procesos se comunican mediante paso de mensajes.  
+> • **SMP (Symmetric Multiprocessing)**: varios procesadores comparten la misma memoria física bajo un único sistema operativo; la comunicación se basa en memoria compartida.  
+> • **CCNUMA (Cache‑Coherent Non‑Uniform Memory Access)**: evolución de SMP donde cada CPU dispone de memoria local; la coherencia de caché se mantiene por hardware, pero la latencia varía según la cercanía de la memoria.  
+> • **Clúster distribuido**: colección de nodos de propósito general conectados por red de alta velocidad, coordinados por middleware para ofrecer una Imagen Única de Sistema (SSI).
+
 **Sinónimos del término clúster**:
 
 - Red de estaciones de trabajo
@@ -53,6 +59,8 @@ Un **clúster** es un tipo de arquitectura escalable para el procesamiento distr
 
 - Basado en tecnología de uso popular, y por tanto atractiva desde el punto de vista de su coste.
 - Escalabilidad.
+
+> **Aplicaciones típicas**: simulaciones numéricas (CFD, análisis FEM), renderizado 3D, procesamiento de Big Data, entrenamiento de modelos de IA y servicios web críticos que requieren alta disponibilidad.
 
 ### 2. Arquitectura.
 
@@ -100,6 +108,8 @@ En función del **objetivo perseguido**:
 - Almacenamiento distribuido
 - De balanceo de carga
 
+  > _Ejemplo práctico_: un clúster de alto rendimiento (HPC) para investigación climática agrupa cientos de nodos y maximiza FLOPS, mientras que un clúster de alta disponibilidad para bases de datos prioriza la redundancia para minimizar el tiempo de inactividad.
+
 En función de la **configuración del nodo**:
 
 - Homogéneo: todos los nodos son iguales.
@@ -128,8 +138,12 @@ En función del **número de nodos**:
 - Asynchronous Transfer Mode (ATM).
 - Scalable Coherent Interface (SCI).
 - Myrinet
-  Bus del sistema.
-- Subsistema de E/S.
+
+  > **Notas de rendimiento de redes**
+  >
+  > - _Gigabit Ethernet_ es económico pero su latencia (~30 µs) puede ser un cuello de botella en HPC.
+  > - _Infiniband_ ofrece latencias menores a 2 µs y más de 100 Gbps de ancho de banda, ideal para cargas MPI intensivas.
+  > - _Myrinet_ fue popular en la década de 2000; su bajo retardo la hizo atractiva, aunque hoy ha sido sustituida por tecnologías como Infiniband y Omni‑Path.
 
 **Sistema operativo**:
 
@@ -161,6 +175,10 @@ Middleware es un módulo software estructurado en dos capas:
   - Un único espacio de procesos.
   - Mecanismo de salvaguardado de contexto.
   - Mecanismo de migración de procesos.
+    > **Herramientas concretas**
+    >
+    > - _Imagen única del sistema_: gestores de recursos como **Slurm**, sistemas de archivos distribuidos como **GFS2** o **CephFS**, y redes virtuales mediante **Open vSwitch**.
+    > - _Alta disponibilidad_: la pila **Corosync + Pacemaker** controla miembros y recursos, mientras que **DRBD** proporciona réplicas de bloques en tiempo real.
 
 ### 6. Manejo y planificación de recursos.
 
@@ -174,6 +192,7 @@ En un entorno clúster el **manejo y la planificación de recursos (RMS)** tiene
 - Tolerancia a fallos.
 - Balanceado de carga.
 - Planificación mediante múltiples colas de proceso
+  > **Planificadores habituales**: **Slurm**, **PBS Pro**, **HTCondor** y, para cargas contenedorizadas, **Kubernetes**. Implementan políticas como _FCFS_, _backfilling_ y _fair‑share_ para optimizar CPU y memoria.
 
 ### 7. Recursos básicos de programación.
 
@@ -213,6 +232,14 @@ En un entorno clúster el **manejo y la planificación de recursos (RMS)** tiene
   - _PARMON_ (Grandes configuraciones).
   - **_Orden pcs_ (Red Hat Enterprise High Availability Add-On)**.
   - _Servicio pcsd Web UI_ (Red Hat Enterprise High Availability Add-On).
+
+> **Comparativa rápida**
+>
+> - **MPI** (p.ej., OpenMPI, MPICH): comunicación explícita por mensajes, escalabilidad a miles de nodos.
+> - **OpenMP**: paralelismo mediante directivas en memoria compartida; se habilita con `-fopenmp`.
+> - **Modelo híbrido MPI+OpenMP**: usa memoria compartida dentro de cada nodo y paso de mensajes entre nodos para escalar eficientemente.
+> - Depuración: **TotalView** y **GDB** con soporte para multiproceso paralelo permiten inspeccionar ejecuciones distribuidas.
+> - Perfilado: **gprof**, **perf**, **Intel VTune** y **HPCToolkit** ayudan a identificar cuellos de botella de CPU, memoria y red.
 
 ## Red Hat Enterprise High Availability Add-On
 
@@ -270,6 +297,8 @@ Un ejemplo:
 
 - Manejo del aislamiento (_fencing_) de un nodo.
 
+  > Evita la temida condición _split‑brain_, donde dos nodos crean ser maestros simultáneamente. STONITH aísla por completo al nodo problemático antes de reasignar los recursos.
+
 **Demonio corosync**:
 
 - Comunicaciones requeridas entre los miembros del cluster para proporcionar alta disponibilidad.
@@ -304,6 +333,8 @@ El **aislamiento de un nodo (fencing)** es la acción de desconectar un nodo del
 
 <img src="assets/2025-06-04-18-25-46.png" alt="Aislamiento de un nodo" width="500">
 
+> **Buenas prácticas**: configure siempre mecanismos de quorum junto con dispositivos de fencing redundantes. Realice pruebas periódicas para verificar que STONITH funciona y protege los datos ante fallos de red o hardware.
+
 ### 6. Recursos.
 
 Un recurso es una instancia de programa, dato o aplicación que es manejado por un servicio del clúster.
@@ -319,6 +350,7 @@ Los recursos son manejados por agentes que proporcionan una interfaz común.
 - STONITH
 
 Para garantizar que todos los recursos funcionan correctamente, todos estos son monitorizados periódicamente (por defecto 60 segundos).
+
 - Se puede establecer en el momento de la creación del recurso en el clúster.
 - Si no, entonces se establece por defecto cuando se crea el recurso mediante la utilidad pcs.
 

@@ -12,6 +12,7 @@
     - [3. Recursos de red en KVM](#3-recursos-de-red-en-kvm)
     - [4. Almacenamiento Distribuido](#4-almacenamiento-distribuido)
     - [5. Computación en Clúster](#5-computación-en-clúster)
+    - [6. Introducción a la computación en la nube](#6-introducción-a-la-computación-en-la-nube)
   - [Prácticas](#prácticas)
     - [Práctica 1: Instalación y Configuración de KVM y Máquinas Virtuales](#práctica-1-instalación-y-configuración-de-kvm-y-máquinas-virtuales)
     - [Práctica 2: Operaciones con máquinas virtuales](#práctica-2-operaciones-con-máquinas-virtuales)
@@ -313,6 +314,45 @@ La computación en clúster constituye un enfoque fundamental para el procesamie
   - **Técnicas para grandes configuraciones**: Estrategias jerárquicas y basadas en prioridad para clusters con miles de nodos o geográficamente dispersos.
 
 La implementación de entornos clusterizados permite no solo aumentar el rendimiento de aplicaciones exigentes, sino también proporcionar continuidad de negocio mediante la eliminación de puntos únicos de fallo, capacidades fundamentales para infraestructuras críticas modernas.
+
+### 6. Introducción a la computación en la nube
+
+La computación en la nube representa un paradigma de procesamiento distribuido fundamentado en la abstracción, virtualización e Internet, diseñado para proporcionar recursos computacionales de forma flexible, ágil y medible. Este módulo examina:
+
+- **Definición y objetivos fundamentales**:
+
+  - Provisión de recursos bajo demanda con costes optimizados
+  - Escalabilidad y elasticidad dinámica
+  - Gestión simplificada y accesible
+  - Medición y facturación precisa del consumo
+  - Alta fiabilidad y calidad de servicio garantizada
+
+- **Modelos de implementación (NIST)**:
+
+  - **Nube pública**: Recursos proporcionados por proveedores externos a través de Internet (AWS, Azure, GCP)
+  - **Nube privada**: Infraestructura exclusiva para una organización, ya sea en sus instalaciones o externamente gestionada
+  - **Nube híbrida**: Combinación integrada de nubes públicas y privadas
+  - **Nube comunitaria**: Compartida entre organizaciones con intereses comunes
+  - **Multicloud**: Utilización de múltiples proveedores de nube del mismo tipo
+
+- **Modelos de servicio (SPI)**:
+
+  - **IaaS (Infrastructure as a Service)**: Proporciona recursos virtualizados (computación, almacenamiento, redes)
+    - Usuario típico: administrador de sistemas
+    - Ejemplos: Amazon EC2, Google Compute Engine, Azure VMs
+  - **PaaS (Platform as a Service)**: Ofrece plataformas de desarrollo y despliegue de aplicaciones
+    - Usuario típico: desarrollador
+    - Ejemplos: AWS Elastic Beanstalk, Google App Engine, Azure App Service
+  - **SaaS (Software as a Service)**: Aplicaciones completas accesibles a través de Internet
+    - Usuario típico: usuario final
+    - Ejemplos: Microsoft 365, Google Workspace, Salesforce
+
+- **Modelo de nube cúbica (Jericho Forum)**:
+  - Proporciona un marco tridimensional para evaluar riesgos y seguridad
+  - Dimensiones: Interna/Externa, Propietaria/Subcontratada, Con/Sin perímetro
+  - Permite mapear estrategias de implementación en función de los requisitos de control y seguridad
+
+La adopción de la computación en la nube ha transformado radicalmente la forma en que las organizaciones gestionan sus recursos de TI, permitiendo mayor agilidad, reducción de costes operativos y enfoque en la innovación en lugar del mantenimiento de infraestructuras. El entendimiento de estos modelos fundamentales permite seleccionar las arquitecturas óptimas para cada caso de uso específico.
 
 ## Prácticas
 

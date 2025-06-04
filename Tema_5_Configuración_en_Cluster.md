@@ -16,7 +16,16 @@
     - [4. Herramientas de administración del clúster.](#4-herramientas-de-administración-del-clúster)
     - [5. Aislamiento (_Fencing_).](#5-aislamiento-fencing)
     - [6. Recursos.](#6-recursos)
-  - [Algoritmos de Sincronización Distribuidos](#algoritmos-de-sincronización-distribuidos)
+  - [Algoritmos de Sincronización para el Control de Acceso a Secciones Críticas en Sistemas Distribuidos](#algoritmos-de-sincronización-para-el-control-de-acceso-a-secciones-críticas-en-sistemas-distribuidos)
+    - [1. Introducción](#1-introducción-1)
+    - [2. Algoritmos basados en testigo](#2-algoritmos-basados-en-testigo)
+      - [2.1 Algoritmo de **Martin** (1985)](#21-algoritmo-de-martin-1985)
+      - [2.2 Algoritmo de **Naimi‑Tréhel** (1996)](#22-algoritmo-de-naimitréhel-1996)
+      - [2.3 Algoritmo de **Suzuki‑Kasami** (1985)](#23-algoritmo-de-suzukikasami-1985)
+    - [3. Algoritmos para grandes configuraciones](#3-algoritmos-para-grandes-configuraciones)
+      - [3.1 Algoritmos basados en prioridad](#31-algoritmos-basados-en-prioridad)
+      - [3.2 Estrategias combinadas](#32-estrategias-combinadas)
+    - [4. Rendimiento](#4-rendimiento)
 
 ## Computación en Clúster
 
@@ -360,4 +369,123 @@ Para garantizar que todos los recursos funcionan correctamente, todos estos son 
 - **Restricción de orden**: establece en qué orden se debe ejecutar el recurso.
 - **Restricción de colocación**: establece dónde se deben ubicar los recursos en relación con otros recursos.
 
-## Algoritmos de Sincronización Distribuidos
+## Algoritmos de Sincronización para el Control de Acceso a Secciones Críticas en Sistemas Distribuidos
+
+**Objetivos**
+
+- Describir las técnicas de sincronización para resolver el problema de la sección crítica en entornos distribuidos dispersos (clústeres).
+- Nos interesa:
+  - Como operan
+  - Sus ventajas e inconvenientes
+
+### 1. Introducción
+
+El _problema de la sección crítica (SC)_ en sistemas distribuidos consiste en garantizar que, en todo instante, **como máximo un proceso** esté ejecutando la SC, incluso cuando los nodos sólo se comunican por mensajes de red. Las prestaciones de cualquier protocolo de sincronización dependen, principalmente, del **tráfico de mensajes** que genera y de la **latencia** de cada envío.
+
+Existen dos grandes familias de algoritmos:
+
+| Familia                        | Idea clave                                                                           | Mensajes típicos     |
+| ------------------------------ | ------------------------------------------------------------------------------------ | -------------------- |
+| **Basados en permisos**        | Cada nodo solicita permiso a (todos)/(mayoría) de los demás antes de entrar en la SC | `O(N)` por entrada   |
+| **Basados en testigo (token)** | Un _token_ exclusivo circula entre nodos; sólo el poseedor puede ejecutar la SC      | ≤ `O(1)` por entrada |
+
+Los algoritmos basados en **testigo** suelen ser preferibles en clústeres porque reducen el tráfico de red, aunque requieren mecanismos de _recuperación del token_ si éste se pierde.
+
+---
+
+### 2. Algoritmos basados en testigo
+
+#### 2.1 Algoritmo de **Martin** (1985)
+
+- **Estructura**: los nodos forman un **anillo lógico**.
+- **Mensajes**:
+  - _Petición de testigo_ ⟶ sentido antihorario.
+  - _Testigo_ ⟶ sentido horario.
+- **Funcionamiento**:
+  1. Un nodo que desea la SC y no tiene el token envía la petición a su sucesor.
+  2. La petición avanza hasta llegar al nodo poseedor del token.
+  3. Cuando el poseedor termina (o no está en SC) reenvía el token siguiendo el anillo.
+  4. Si el token pasa por otro nodo que también había solicitado, éste lo captura.
+- **Coste**: hasta `N‑1` saltos de token en el peor caso y ≤ `N‑1` peticiones.
+- **Ventajas**: sencillo y determinista.
+- **Inconvenientes**: latencia proporcional al tamaño del anillo; sensible a fallos de enlace.
+
+<img src="assets/2025-06-04-18-45-08.png" alt="Algoritmo de Martin" width="500">
+
+#### 2.2 Algoritmo de **Naimi‑Tréhel** (1996)
+
+- **Estructuras de control por nodo**:
+  - `LAST`: construye un **árbol dinámico** cuyo _raíz_ será el siguiente receptor del token.
+  - `NEXT`: cola distribuida de solicitudes pendientes.
+- **Petición**: viaja siguiendo los punteros `LAST` hasta la raíz; cada salto actualiza `LAST` al solicitante.
+- **Cesión del token**: cuando un nodo libera la SC, envía el token al nodo apuntado por su `NEXT`.
+- **Coste promedio**: `O(log N)` saltos; en ausencia de contención puede ser `O(1)`.
+- **Fortalezas**: se adapta dinámicamente y minimiza mensajes en caso de baja contención.
+- **Debilidades**: requiere mantener dos punteros por nodo y actualizar coherentemente la cola.
+
+<img src="assets/2025-06-04-18-46-09.png" alt="Algoritmo de Naimi‑Tréhel" width="500">
+
+#### 2.3 Algoritmo de **Suzuki‑Kasami** (1985)
+
+- **Estructuras globales**:
+  - Array `LN[N]`: última petición atendida de cada nodo (viaja con el token).
+  - Cola `Q`: nodos esperando token (viaja con el token).
+- **Estructuras locales**:
+  - Array `RN_i[N]`: nº de peticiones conocidas por nodo _i_.
+- **Petición**: el nodo emite _broadcast_ con `(id, seq)`; cada receptor actualiza su `RN`.
+- **Cesión del token**: al salir de la SC, el poseedor actualiza `LN` y, si la cola `Q` no está vacía, envía el token al primero.
+- **Coste**: `N‑1` mensajes de petición (broadcast) + ≤ 1 para el token.
+- **Observaciones**: eficiente en redes con _broadcast_ barato; puede saturar la red en entornos con miles de nodos.
+
+<img src="assets/2025-06-04-18-47-00.png" alt="Algoritmo de Suzuki‑Kasami" width="500">
+
+---
+
+### 3. Algoritmos para grandes configuraciones
+
+En infraestructuras con **centenares o miles de nodos** (o varios clústeres geográficamente dispersos) la latencia inter‑clúster domina. Los diseños modernos combinan **prioridades** y **jerarquías** para reducir tráfico.
+
+#### 3.1 Algoritmos basados en prioridad
+
+| Algoritmo   | Año  | Idea principal                                                                                         | Mejora                                                        |
+| ----------- | ---- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| **Bertier** | 2004 | Modifica Naimi‑Tréhel priorizando peticiones _intra‑clúster_ hasta un umbral `U`                       | Menor tráfico inter‑clúster antes de saturar                  |
+| **Muller**  | 1998 | Cada petición lleva una prioridad; las colas locales se fusionan en una _cola virtual global_ ordenada | Evita inanición y permite políticas de servicio diferenciadas |
+
+#### 3.2 Estrategias combinadas
+
+- **Dos niveles de arbitraje**
+  1. **_Intra‑clúster_**: se usa un algoritmo rápido (p.ej., Naimi‑Tréhel).
+  2. **_Inter‑clúster_**: se usa otro algoritmo (p.ej., Suzuki‑Kasami) sólo entre _coordinadores_ de clúster.
+- **Prioridad** habitual: se atienden primero las peticiones locales; las remotas se difieren salvo que se alcance un límite de inanición.
+
+---
+
+### 4. Rendimiento
+
+Variables que condicionan las pruebas:
+
+| Símbolo   | Significado                              |
+| --------- | ---------------------------------------- |
+| `A`       | Tiempo dentro de la SC                   |
+| `B`       | Intervalo entre dos peticiones sucesivas |
+| `P = B/A` | Frecuencia relativa de acceso            |
+| `N`       | Nº de procesos                           |
+
+**Grados de paralelismo**
+
+- _Bajo_: `P ≤ N` (mucha contención).
+- _Medio_: `N < P ≤ 3N`.
+- _Alto_: `P > 3N` (poca contención).
+
+**Métricas clave**
+
+| Métrica                       | Fórmula / Comentario                   |
+| ----------------------------- | -------------------------------------- |
+| Tiempo de espera `TpendCS`    | `Treq + Tproc + Ttoken`                |
+| Varianza del tiempo de espera | Evalúa impredecibilidad                |
+| Mensajes totales              | Depende de algoritmo (`O(1)` a `O(N)`) |
+
+**Ejemplo empírico – Grid’5000 (Francia)**: 17 clústeres conectados a 10 Gb/s.  
+
+Comparando combinaciones _Naimi/Suzuki_, _Naimi/Martin_ y _Naimi/Naimi_, se observa que la elección óptima varía con la contención y el tamaño (`K`, nº de coordinadores) — véanse las tablas de la página 18‑19 del pdf

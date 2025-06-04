@@ -10,6 +10,12 @@
     - [6. Manejo y planificación de recursos.](#6-manejo-y-planificación-de-recursos)
     - [7. Recursos básicos de programación.](#7-recursos-básicos-de-programación)
   - [Red Hat Enterprise High Availability Add-On](#red-hat-enterprise-high-availability-add-on)
+    - [1. Visión general.](#1-visión-general)
+    - [2. Infraestructura de un clúster gestionado por Pacemaker.](#2-infraestructura-de-un-clúster-gestionado-por-pacemaker)
+    - [3. Componentes de Pacemaker.](#3-componentes-de-pacemaker)
+    - [4. Herramientas de administración del clúster.](#4-herramientas-de-administración-del-clúster)
+    - [5. Aislamiento (_Fencing_).](#5-aislamiento-fencing)
+    - [6. Recursos.](#6-recursos)
   - [Algoritmos de Sincronización Distribuidos](#algoritmos-de-sincronización-distribuidos)
 
 ## Computación en Clúster
@@ -63,6 +69,16 @@ Elementos de un entorno clúster:
 <img src="assets/2025-06-04-18-04-26.png" alt="Arquitectura de un clúster" width="500">
 
 La imagen muestra la arquitectura lógica de un clúster de computación. Es un sistema distribuido compuesto por:
+
+Estos elementos están organizados de manera que permitan la ejecución transparente de aplicaciones, gracias a la capa de middleware que coordina la comunicación, sincronización y asignación de recursos.
+
+**Detalles adicionales:**
+
+- _Comm. S/W (Communication Software)_: Puede incluir bibliotecas como MPI (Message Passing Interface) o sockets TCP/IP personalizados que permiten a los procesos intercambiar datos entre nodos.
+- _Net Interface HW_: Tarjetas de red de alta velocidad, como Ethernet Gigabit o Infiniband, fundamentales para minimizar la latencia y maximizar el ancho de banda.
+- _Cluster Middleware_: Suele estar compuesto por herramientas de gestión de recursos (como Slurm o Torque), servicios de alta disponibilidad (como Pacemaker o Corosync), y sistemas de archivos distribuidos (como GlusterFS o Lustre).
+
+Esta arquitectura permite que un clúster funcione como una única máquina lógica, donde los recursos se aprovechan de forma conjunta para resolver problemas que requieren alto poder computacional.
 
 - Nodos (PC/Workstation): Equipos conectados por una red de alta velocidad. Cada uno tiene:
 - Net Interface HW: hardware de red.
@@ -186,6 +202,7 @@ En un entorno clúster el **manejo y la planificación de recursos (RMS)** tiene
     - MPI, PVM.
     - IBM AIX, SGI IRIX, SunOS, etc.
 - **Herramientas de análisis de rendimiento**:
+
   - Funciones para monitorizar el rendimiento.
   - Librería “run-time” .
   - Herramientas para procesar y visualizar los datos de rendimiento.
@@ -198,5 +215,117 @@ En un entorno clúster el **manejo y la planificación de recursos (RMS)** tiene
   - _Servicio pcsd Web UI_ (Red Hat Enterprise High Availability Add-On).
 
 ## Red Hat Enterprise High Availability Add-On
+
+**Objetivo**: Proporcionar una visión general de la plataforma Red Hat para proporcionar **alta disponibilidad** (_Red Hat Enterprise High Availability Add-On_).
+
+### 1. Visión general.
+
+Tipos de clúster soportados en Red Hat:
+
+- **Alta disponibilidad**: soportado por _Red Hat Enterprise High Availability Add-On_. **_Pacemaker_** es el software responsable del manejo del clúster.
+- **Almacenamiento**: soportado por _Red Hat Enterprise High Availability Add-On_ y _Global FileSystem_ (componente de _Red Hat Enterprise Resilient Storage Add-On_).
+- **Balanceo de carga**: soportado por _Red Hat Enterpriese Load Balancer Add-On_.
+
+**Componentes de _Red Hat Enterprise High Availability Add-On_**:
+
+- Infraestructura (_Cluster infrastructure_).
+- Manejo de servicios de alta disponibilidad (_High-availability Service Management_).
+- Herramientas de administración del clúster (_Cluster administration tools_).
+
+**Componentes suplementarios (no forman parte de _Red Hat Enterprise High Availability Add-On_):**
+
+- _Red Hat Global File System_ (GFS).
+- _Cluster Logical Volume Manager_ (CLVM).
+- _Load Balancer Add-On_ (LVS).
+
+<img src="assets/2025-06-04-18-20-40.png" alt="Componentes de Red Hat Enterprise High Availability Add-On" width="500">
+
+### 2. Infraestructura de un clúster gestionado por Pacemaker.
+
+Proporciona las funcionalidades básicas para que los nodos puedan trabajar de manera conjunta:
+
+- **Cluster management**: Gestiona el clúster y sus recursos.
+- **Lock management**: Gestiona los recursos compartidos.
+- **Aislamiento (_Fencing_)**: Evita que los nodos se ejecuten simultáneamente.
+- **Cluster configuration management**: Gestiona la configuración del clúster.
+
+Un ejemplo:
+
+<img src="assets/2025-06-04-18-21-30.png" alt="Infraestructura de un clúster gestionado por Pacemaker" width="500">
+
+### 3. Componentes de Pacemaker.
+
+**Cluster Information Base (CIB)**: Manejo de la configuración y estado del clúster.
+
+- Nodo coordinador (DC).
+- Archivos XML.
+- Demonio Pacemaker.
+
+**Manejo de los recursos del clúster**:
+
+- Demonio Cluster Resource Management (CRMd).
+- Demonio Local Resource Manager (LRMd).
+
+**Shoot the Other Node in the Head (STONITH)**:
+
+- Manejo del aislamiento (_fencing_) de un nodo.
+
+**Demonio corosync**:
+
+- Comunicaciones requeridas entre los miembros del cluster para proporcionar alta disponibilidad.
+- Manejo de quorum
+
+### 4. Herramientas de administración del clúster.
+
+Configuración y manejo de todos los aspectos relacionados con los demonios Pacemaker y Corosync.
+
+- Crear y configurar un clúster.
+- Modificar la configuración del clúster, estando en funcionamiento.
+- Arrancar, detener y obtener información del clúster.
+
+**Herramientas**:
+
+- Línea de órdenes: herramienta **pcs**.
+- Intefaz gráfica web: **pcsd Web UI**.
+
+### 5. Aislamiento (_Fencing_).
+
+El **aislamiento de un nodo (fencing)** es la acción de desconectar un nodo del clúster, para evitar que corrompa los datos compartidos.
+
+- Este aislamiento se debe realizar cuando se detecta que el nodo tiene un comportamiento errático.
+- Se realiza mediante el componente **STONITH**.
+- El aislamiento se puede realizar de distintas maneras (fencing devices):
+  - Uninterruptible Power Supply (UPS).
+  - Power Distribution Unit (PDU).
+  - Blade power control devices.
+  - Lights-out devices.
+  - Sistema anfitrión de máquinas virtuales (**_fence_virt_**).
+  - Otros.
+
+<img src="assets/2025-06-04-18-25-46.png" alt="Aislamiento de un nodo" width="500">
+
+### 6. Recursos.
+
+Un recurso es una instancia de programa, dato o aplicación que es manejado por un servicio del clúster.
+
+Los recursos son manejados por agentes que proporcionan una interfaz común.
+
+**Tipos de recursos**:
+
+- Linux Standards Base (LSB).
+- Open Cluster Framework (OCF).
+- Systemd.
+- Nagios.
+- STONITH
+
+Para garantizar que todos los recursos funcionan correctamente, todos estos son monitorizados periódicamente (por defecto 60 segundos).
+- Se puede establecer en el momento de la creación del recurso en el clúster.
+- Si no, entonces se establece por defecto cuando se crea el recurso mediante la utilidad pcs.
+
+**Restricciones de recursos**:
+
+- **Restricción de localización**: establece en qué nodos se puede ejecutar el recurso.
+- **Restricción de orden**: establece en qué orden se debe ejecutar el recurso.
+- **Restricción de colocación**: establece dónde se deben ubicar los recursos en relación con otros recursos.
 
 ## Algoritmos de Sincronización Distribuidos
